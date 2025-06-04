@@ -32,6 +32,9 @@ import { Resume } from "./decorators/resume.decorator";
 import { ResumeGuard } from "./guards/resume.guard";
 import { ResumeService } from "./resume.service";
 
+// TODO: Temporary mock user ID for testing - replace with actual auth when ready
+const MOCK_USER_ID = "mock-user-123";
+
 @ApiTags("Resume")
 @Controller("resume")
 export class ResumeController {
@@ -43,10 +46,11 @@ export class ResumeController {
   }
 
   @Post()
-  @UseGuards(TwoFactorGuard)
-  async create(@User() user: UserEntity, @Body() createResumeDto: CreateResumeDto) {
+  // TEMPORARILY COMMENTED OUT FOR TESTING - UNCOMMENT WHEN ADDING AUTH BACK
+  // @UseGuards(TwoFactorGuard)
+  async create(@Body() createResumeDto: CreateResumeDto) {
     try {
-      return await this.resumeService.create(user.id, createResumeDto);
+      return await this.resumeService.create(MOCK_USER_ID, createResumeDto);
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError && error.code === "P2002") {
         throw new BadRequestException(ErrorMessage.ResumeSlugAlreadyExists);
@@ -58,11 +62,12 @@ export class ResumeController {
   }
 
   @Post("import")
-  @UseGuards(TwoFactorGuard)
-  async import(@User() user: UserEntity, @Body() importResumeDto: unknown) {
+  // TEMPORARILY COMMENTED OUT FOR TESTING - UNCOMMENT WHEN ADDING AUTH BACK
+  // @UseGuards(TwoFactorGuard)
+  async import(@Body() importResumeDto: unknown) {
     try {
       const result = importResumeSchema.parse(importResumeDto);
-      return await this.resumeService.import(user.id, result);
+      return await this.resumeService.import(MOCK_USER_ID, result);
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError && error.code === "P2002") {
         throw new BadRequestException(ErrorMessage.ResumeSlugAlreadyExists);
@@ -74,9 +79,10 @@ export class ResumeController {
   }
 
   @Get()
-  @UseGuards(TwoFactorGuard)
-  findAll(@User() user: UserEntity) {
-    return this.resumeService.findAll(user.id);
+  // TEMPORARILY COMMENTED OUT FOR TESTING - UNCOMMENT WHEN ADDING AUTH BACK
+  // @UseGuards(TwoFactorGuard)
+  findAll() {
+    return this.resumeService.findAll(MOCK_USER_ID);
   }
 
   @Get(":id")
@@ -86,7 +92,8 @@ export class ResumeController {
   }
 
   @Get(":id/statistics")
-  @UseGuards(TwoFactorGuard)
+  // TEMPORARILY COMMENTED OUT FOR TESTING - UNCOMMENT WHEN ADDING AUTH BACK
+  // @UseGuards(TwoFactorGuard)
   findOneStatistics(@Param("id") id: string) {
     return this.resumeService.findOneStatistics(id);
   }
@@ -102,25 +109,27 @@ export class ResumeController {
   }
 
   @Patch(":id")
-  @UseGuards(TwoFactorGuard)
+  // TEMPORARILY COMMENTED OUT FOR TESTING - UNCOMMENT WHEN ADDING AUTH BACK
+  // @UseGuards(TwoFactorGuard)
   update(
-    @User() user: UserEntity,
     @Param("id") id: string,
     @Body() updateResumeDto: UpdateResumeDto,
   ) {
-    return this.resumeService.update(user.id, id, updateResumeDto);
+    return this.resumeService.update(MOCK_USER_ID, id, updateResumeDto);
   }
 
   @Patch(":id/lock")
-  @UseGuards(TwoFactorGuard)
-  lock(@User() user: UserEntity, @Param("id") id: string, @Body("set") set = true) {
-    return this.resumeService.lock(user.id, id, set);
+  // TEMPORARILY COMMENTED OUT FOR TESTING - UNCOMMENT WHEN ADDING AUTH BACK
+  // @UseGuards(TwoFactorGuard)
+  lock(@Param("id") id: string, @Body("set") set = true) {
+    return this.resumeService.lock(MOCK_USER_ID, id, set);
   }
 
   @Delete(":id")
-  @UseGuards(TwoFactorGuard)
-  remove(@User() user: UserEntity, @Param("id") id: string) {
-    return this.resumeService.remove(user.id, id);
+  // TEMPORARILY COMMENTED OUT FOR TESTING - UNCOMMENT WHEN ADDING AUTH BACK
+  // @UseGuards(TwoFactorGuard)
+  remove(@Param("id") id: string) {
+    return this.resumeService.remove(MOCK_USER_ID, id);
   }
 
   @Get("/print/:id")

@@ -4,7 +4,6 @@ import {
   InternalServerErrorException,
   Logger,
 } from "@nestjs/common";
-import { Prisma } from "@prisma/client";
 import { CreateResumeDto, ImportResumeDto, ResumeDto, UpdateResumeDto } from "@reactive-resume/dto";
 import { defaultResumeData, ResumeData } from "@reactive-resume/schema";
 import type { DeepPartial } from "@reactive-resume/utils";
@@ -37,7 +36,7 @@ export class ResumeService {
 
     return this.prisma.resume.create({
       data: {
-        data,
+        data: JSON.stringify(data),
         userId,
         title: createResumeDto.title,
         visibility: createResumeDto.visibility,
@@ -53,7 +52,7 @@ export class ResumeService {
       data: {
         userId,
         visibility: "private",
-        data: importResumeDto.data,
+        data: JSON.stringify(importResumeDto.data),
         title: importResumeDto.title ?? randomTitle,
         slug: importResumeDto.slug ?? slugify(randomTitle),
       },
@@ -115,7 +114,7 @@ export class ResumeService {
           title: updateResumeDto.title,
           slug: updateResumeDto.slug,
           visibility: updateResumeDto.visibility,
-          data: updateResumeDto.data as Prisma.JsonObject,
+          data: updateResumeDto.data ? JSON.stringify(updateResumeDto.data) : undefined,
         },
         where: { userId_id: { userId, id } },
       });

@@ -10,6 +10,8 @@ import { VerifyEmailPage } from "../pages/auth/verify-email/page";
 import { VerifyOtpPage } from "../pages/auth/verify-otp/page";
 import { BuilderLayout } from "../pages/builder/layout";
 import { builderLoader, BuilderPage } from "../pages/builder/page";
+import { NewJobApplicationPage } from "../pages/dashboard/job-applications/new/page";
+import { JobApplicationsPage } from "../pages/dashboard/job-applications/page";
 import { DashboardLayout } from "../pages/dashboard/layout";
 import { ResumesPage } from "../pages/dashboard/resumes/page";
 import { SettingsPage } from "../pages/dashboard/settings/page";
@@ -18,8 +20,9 @@ import { HomePage } from "../pages/home/page";
 import { ErrorPage } from "../pages/public/error";
 import { publicLoader, PublicResumePage } from "../pages/public/page";
 import { Providers } from "../providers";
-import { AuthGuard } from "./guards/auth";
-import { GuestGuard } from "./guards/guest";
+// COMMENTED OUT FOR SINGLE USER MODE - can be restored later
+// import { AuthGuard } from "./guards/auth";
+// import { GuestGuard } from "./guards/guest";
 import { authLoader } from "./loaders/auth";
 
 export const routes = createRoutesFromElements(
@@ -31,27 +34,31 @@ export const routes = createRoutesFromElements(
 
       <Route path="auth">
         <Route element={<AuthLayout />}>
-          <Route element={<GuestGuard />}>
+          {/* COMMENTED OUT FOR SINGLE USER MODE - can be restored later */}
+          {/* <Route element={<GuestGuard />}> */}
             <Route path="login" element={<LoginPage />} />
             <Route path="register" element={<RegisterPage />} />
-          </Route>
+          {/* </Route> */}
 
           {/* Password Recovery */}
-          <Route element={<GuestGuard />}>
+          {/* COMMENTED OUT FOR SINGLE USER MODE - can be restored later */}
+          {/* <Route element={<GuestGuard />}> */}
             <Route path="forgot-password" element={<ForgotPasswordPage />} />
             <Route path="reset-password" element={<ResetPasswordPage />} />
-          </Route>
+          {/* </Route> */}
 
           {/* Two-Factor Authentication */}
-          <Route element={<GuestGuard />}>
+          {/* COMMENTED OUT FOR SINGLE USER MODE - can be restored later */}
+          {/* <Route element={<GuestGuard />}> */}
             <Route path="verify-otp" element={<VerifyOtpPage />} />
             <Route path="backup-otp" element={<BackupOtpPage />} />
-          </Route>
+          {/* </Route> */}
 
           {/* Email Verification */}
-          <Route element={<AuthGuard />}>
+          {/* COMMENTED OUT FOR SINGLE USER MODE - can be restored later */}
+          {/* <Route element={<AuthGuard />}> */}
             <Route path="verify-email" element={<VerifyEmailPage />} />
-          </Route>
+          {/* </Route> */}
 
           {/* OAuth Callback */}
           <Route path="callback" loader={authLoader} element={<div />} />
@@ -61,24 +68,28 @@ export const routes = createRoutesFromElements(
       </Route>
 
       <Route path="dashboard">
-        <Route element={<AuthGuard />}>
+        {/* COMMENTED OUT FOR SINGLE USER MODE - can be restored later */}
+        {/* <Route element={<AuthGuard />}> */}
           <Route element={<DashboardLayout />}>
             <Route path="resumes" element={<ResumesPage />} />
+            <Route path="job-applications" element={<JobApplicationsPage />} />
+            <Route path="job-applications/new" element={<NewJobApplicationPage />} />
             <Route path="settings" element={<SettingsPage />} />
 
             <Route index element={<Navigate replace to="/dashboard/resumes" />} />
           </Route>
-        </Route>
+        {/* </Route> */}
       </Route>
 
       <Route path="builder">
-        <Route element={<AuthGuard />}>
+        {/* COMMENTED OUT FOR SINGLE USER MODE - can be restored later */}
+        {/* <Route element={<AuthGuard />}> */}
           <Route element={<BuilderLayout />}>
             <Route path=":id" loader={builderLoader} element={<BuilderPage />} />
 
             <Route index element={<Navigate replace to="/dashboard/resumes" />} />
           </Route>
-        </Route>
+        {/* </Route> */}
       </Route>
 
       {/* Public Routes */}

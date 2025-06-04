@@ -10,7 +10,7 @@ import {
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
-import { AuthProvidersDto, LoginDto, RegisterDto, UserWithSecrets } from "@reactive-resume/dto";
+import { AuthProvidersDto, LoginDto, RegisterDto } from "@reactive-resume/dto";
 import { ErrorMessage } from "@reactive-resume/utils";
 import * as bcryptjs from "bcryptjs";
 import { authenticator } from "otplib";
@@ -115,7 +115,7 @@ export class AuthService {
       // Do not `await` this function, otherwise the user will have to wait for the email to be sent before the response is returned
       void this.sendVerificationEmail(user.email);
 
-      return user as UserWithSecrets;
+      return user;
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError && error.code === "P2002") {
         throw new BadRequestException(ErrorMessage.UserAlreadyExists);
@@ -306,7 +306,7 @@ export class AuthService {
 
     await this.userService.updateByEmail(email, {
       twoFactorEnabled: true,
-      secrets: { update: { twoFactorBackupCodes: backupCodes } },
+      secrets: { update: { twoFactorBackupCodes: JSON.stringify(backupCodes) } },
     });
 
     return { backupCodes };
@@ -322,7 +322,7 @@ export class AuthService {
 
     await this.userService.updateByEmail(email, {
       twoFactorEnabled: false,
-      secrets: { update: { twoFactorSecret: null, twoFactorBackupCodes: [] } },
+      secrets: { update: { twoFactorSecret: null, twoFactorBackupCodes: "[]" } },
     });
   }
 
@@ -354,18 +354,20 @@ export class AuthService {
       throw new BadRequestException(ErrorMessage.TwoFactorNotEnabled);
     }
 
-    const verified = user.secrets.twoFactorBackupCodes.includes(code);
+    // Parse backup codes from JSON string
+    const backupCodesArray = JSON.parse(user.secrets.twoFactorBackupCodes || "[]");
+    const verified = backupCodesArray.includes(code);
 
     if (!verified) {
       throw new BadRequestException(ErrorMessage.InvalidTwoFactorBackupCode);
     }
 
     // Remove the used backup code from the database
-    const backupCodes = user.secrets.twoFactorBackupCodes.filter((c) => c !== code);
+    const backupCodes = backupCodesArray.filter((c: string) => c !== code);
     await this.userService.updateByEmail(email, {
-      secrets: { update: { twoFactorBackupCodes: backupCodes } },
+      secrets: { update: { twoFactorBackupCodes: JSON.stringify(backupCodes) } },
     });
 
-    return user as UserWithSecrets;
+    return user;
   }
 }

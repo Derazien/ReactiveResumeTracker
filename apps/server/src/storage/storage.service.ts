@@ -50,7 +50,7 @@ export class StorageService implements OnModuleInit {
     this.client = this.minioService.client;
     this.bucketName = this.configService.getOrThrow<string>("STORAGE_BUCKET");
 
-    const skipBucketCheck = this.configService.getOrThrow<boolean>("STORAGE_SKIP_BUCKET_CHECK");
+    const skipBucketCheck = this.configService.get<boolean>("STORAGE_SKIP_BUCKET_CHECK", true);
 
     if (skipBucketCheck) {
       this.logger.warn("Skipping the verification of whether the storage bucket exists.");
@@ -95,7 +95,7 @@ export class StorageService implements OnModuleInit {
         );
       }
     } catch (error) {
-      throw new InternalServerErrorException(error);
+      this.logger.warn(`Storage service not available: ${error.message}. Continuing without storage...`);
     }
   }
 
