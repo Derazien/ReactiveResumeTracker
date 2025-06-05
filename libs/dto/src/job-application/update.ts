@@ -20,6 +20,8 @@ export const updateJobApplicationSchema = z.object({
     .optional(),
   appliedDate: z.string().datetime().optional(),
   notes: z.string().optional(),
+  requirements: z.array(z.string()).optional(),
+  extractedTags: z.array(z.string()).optional(),
 });
 
 export class UpdateJobApplicationDto extends createZodDto(updateJobApplicationSchema) {}

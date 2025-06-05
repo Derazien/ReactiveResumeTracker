@@ -1,90 +1,93 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import type { JobApplication } from "@prisma/client";
 import type { CreateJobApplicationDto, UpdateJobApplicationDto } from "@reactive-resume/dto";
 
-// TEMPORARILY COMMENTED OUT FOR TESTING - REMOVE WHEN ADDING AUTH BACK
-// import { TwoFactorGuard } from "@/server/auth/guards/two-factor.guard";
-// import { User } from "@/server/user/decorators/user.decorator";
+import { TwoFactorGuard } from "@/server/auth/guards/two-factor.guard";
+import { User } from "@/server/user/decorators/user.decorator";
 
-import { JobApplicationService } from "./job-application.service";
-
-// TODO: Temporary mock user ID for testing - replace with actual auth when ready
-const MOCK_USER_ID = "mock-user-123";
+import { type JobAnalysisResult, JobApplicationService } from "./job-application.service";
 
 @ApiTags("Job Applications")
 @Controller("job-applications")
-// TEMPORARILY COMMENTED OUT FOR TESTING - UNCOMMENT WHEN ADDING AUTH BACK
-// @UseGuards(TwoFactorGuard)
+@UseGuards(TwoFactorGuard)
 export class JobApplicationController {
   constructor(private readonly jobApplicationService: JobApplicationService) {}
 
   @Post()
   @ApiOperation({ summary: "Create a new job application" })
   create(
-    // TEMPORARILY USING MOCK USER - RESTORE @User() user: UserEntity WHEN ADDING AUTH BACK
+    @User("id") userId: string,
     @Body() createJobApplicationDto: CreateJobApplicationDto,
   ): Promise<JobApplication> {
-    return this.jobApplicationService.create(MOCK_USER_ID, createJobApplicationDto);
+    return this.jobApplicationService.create(userId, createJobApplicationDto);
   }
 
   @Get()
   @ApiOperation({ summary: "Get all job applications for the authenticated user" })
-  findAll(): Promise<JobApplication[]> {
-    return this.jobApplicationService.findAll(MOCK_USER_ID);
+  findAll(@User("id") userId: string): Promise<JobApplication[]> {
+    return this.jobApplicationService.findAll(userId);
   }
 
   @Get(":id")
   @ApiOperation({ summary: "Get a specific job application" })
-  findOne(@Param("id") id: string): Promise<JobApplication | null> {
-    return this.jobApplicationService.findOne(id, MOCK_USER_ID);
+  findOne(@User("id") userId: string, @Param("id") id: string): Promise<JobApplication | null> {
+    return this.jobApplicationService.findOne(id, userId);
   }
 
   @Patch(":id")
   @ApiOperation({ summary: "Update a job application" })
   update(
+    @User("id") userId: string,
     @Param("id") id: string,
     @Body() updateJobApplicationDto: UpdateJobApplicationDto,
   ): Promise<JobApplication> {
-    return this.jobApplicationService.update(id, MOCK_USER_ID, updateJobApplicationDto);
+    return this.jobApplicationService.update(id, userId, updateJobApplicationDto);
   }
 
   @Delete(":id")
   @ApiOperation({ summary: "Delete a job application" })
-  remove(@Param("id") id: string): Promise<JobApplication> {
-    return this.jobApplicationService.remove(id, MOCK_USER_ID);
+  remove(@User("id") userId: string, @Param("id") id: string): Promise<JobApplication> {
+    return this.jobApplicationService.remove(id, userId);
   }
 
   // LLM-Powered Endpoints
 
-  @Post("analyze-from-text")
-  @ApiOperation({ summary: "Analyze job posting text and create application with LLM" })
-  async analyzeFromText(@Body() body: { jobText: string; url?: string }) {
-    return this.jobApplicationService.analyzeAndCreateFromJobPosting(
-      MOCK_USER_ID,
-      body.jobText,
-      body.url,
-    );
+  @Post("analyze")
+  @ApiOperation({ summary: "Analyze job posting text using LLM - NO creation" })
+  async analyzeJobPosting(@Body() body: { jobText: string; url?: string }): Promise<{ analysisResult: JobAnalysisResult }> {
+    return this.jobApplicationService.analyzeJobPosting(body.jobText, body.url);
+  }
+
+  @Post("create-from-analysis")
+  @ApiOperation({ summary: "Create job application from previously analyzed data" })
+  async createFromAnalysis(
+    @User("id") userId: string,
+    @Body() body: { analysisData: JobAnalysisResult; url?: string }
+  ): Promise<JobApplication> {
+    return this.jobApplicationService.createFromAnalysis(userId, body.analysisData, body.url);
   }
 
   @Post(":id/generate-resume")
-  @ApiOperation({ summary: "Generate tailored resume for job application" })
+  @ApiOperation({ summary: "Generate tailored resume for job application - includes content matching" })
   async generateTailoredResume(
+    @User("id") userId: string,
     @Param("id") id: string,
     @Body() body: { selectedContentIds?: string[] },
   ) {
-    return this.jobApplicationService.generateTailoredResume(id, MOCK_USER_ID, body.selectedContentIds);
+    return this.jobApplicationService.generateTailoredResume(id, userId, body.selectedContentIds);
   }
 
   @Post(":id/generate-cover-letter")
   @ApiOperation({ summary: "Generate personalized cover letter" })
   async generateCoverLetter(
+    @User("id") userId: string,
     @Param("id") id: string,
     @Body() body: { selectedContentIds?: string[] },
   ) {
     const coverLetter = await this.jobApplicationService.generateCoverLetter(
       id,
-      MOCK_USER_ID,
+      userId,
       body.selectedContentIds,
     );
     return { coverLetter };
@@ -92,8 +95,8 @@ export class JobApplicationController {
 
   @Post(":id/generate-interview-questions")
   @ApiOperation({ summary: "Generate interview practice questions" })
-  async generateInterviewQuestions(@Param("id") id: string) {
-    const questions = await this.jobApplicationService.generateInterviewQuestions(id, MOCK_USER_ID);
+  async generateInterviewQuestions(@User("id") userId: string, @Param("id") id: string) {
+    const questions = await this.jobApplicationService.generateInterviewQuestions(id, userId);
     return { questions };
   }
 }

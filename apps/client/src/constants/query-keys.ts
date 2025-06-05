@@ -11,3 +11,6 @@ export const RESUME_PREVIEW_KEY: QueryKey = ["resume", "preview"];
 
 export const JOB_APPLICATION_KEY: QueryKey = ["job-application"];
 export const JOB_APPLICATIONS_KEY: QueryKey = ["job-applications"];
+
+export const CONTENT_LIBRARY_KEY: QueryKey = ["content-library"];
+export const CONTENT_LIBRARY_ITEM_KEY: QueryKey = ["content-library", "item"];

@@ -174,8 +174,8 @@ PORT=3000
 PUBLIC_URL=http://localhost:3000
 CLIENT_URL=http://localhost:5173
 
-# Database (configure as needed)
-DATABASE_URL="postgresql://username:password@localhost:5432/reactive_resume"
+# Database - SQLite for development  
+DATABASE_URL="file:./dev.db"
 
 # JWT Secrets (generate your own)
 ACCESS_TOKEN_SECRET=your-access-token-secret-here

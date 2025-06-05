@@ -13,6 +13,9 @@ import {
 import { useState } from "react";
 import { useNavigate } from "react-router";
 
+import { useToast } from "@/client/hooks/use-toast";
+import { useCreateJobApplication } from "@/client/services/job-application/create";
+
 type FormData = {
   title: string;
   company: string;
@@ -35,6 +38,8 @@ export const ManualJobForm = () => {
   });
 
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const { createJobApplication, loading: isCreating } = useCreateJobApplication();
 
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({
@@ -69,9 +74,29 @@ export const ManualJobForm = () => {
     }
   };
 
-  const handleSave = () => {
-    // TODO: Validate and save the job application to backend
-    void navigate("/dashboard/job-applications");
+  const handleSave = async () => {
+    try {
+      await createJobApplication({
+        title: formData.title,
+        company: formData.company,
+        description: formData.description,
+        url: formData.url,
+        notes: formData.notes,
+      });
+
+      toast({
+        title: t`Success`,
+        description: t`Job application created successfully`,
+      });
+
+      navigate("/dashboard/job-applications");
+    } catch (error) {
+      toast({
+        variant: "error",
+        title: t`Error`,
+        description: t`Failed to create job application. Please try again.`,
+      });
+    }
   };
 
   const isFormValid = formData.title.trim() && formData.company.trim();
@@ -195,9 +220,13 @@ export const ManualJobForm = () => {
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3 pt-4">
-          <Button disabled={!isFormValid} className="flex-1" onClick={handleSave}>
-            {t`Create Application`}
+        <div className="flex gap-2">
+          <Button
+            disabled={!isFormValid || isCreating}
+            className="flex-1"
+            onClick={handleSave}
+          >
+            {isCreating ? t`Creating...` : t`Create Application`}
           </Button>
         </div>
       </CardContent>

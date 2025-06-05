@@ -5,6 +5,47 @@ import { z } from "zod";
 
 import { userSchema } from "../user";
 
+// Basic resume schema for relations
+const resumeRelationSchema = z.object({
+  id: idSchema,
+  title: z.string(),
+  slug: z.string(),
+  visibility: z.enum(["private", "public"]),
+  locked: z.boolean(),
+  createdAt: dateSchema,
+  updatedAt: dateSchema,
+});
+
+// Basic cover letter schema for relations
+const coverLetterRelationSchema = z.object({
+  id: idSchema,
+  content: z.string(),
+  createdAt: dateSchema,
+  updatedAt: dateSchema,
+});
+
+// Basic interview schema for relations
+const interviewRelationSchema = z.object({
+  id: idSchema,
+  type: z.string(),
+  content: z.string().nullable(),
+  audioUrl: z.string().nullable(),
+  insights: z.string().nullable(),
+  createdAt: dateSchema,
+});
+
+// Basic generated content schema for relations
+const generatedContentRelationSchema = z.object({
+  id: idSchema,
+  type: z.string(),
+  prompt: z.string(),
+  response: z.string(),
+  llmProvider: z.string(),
+  model: z.string(),
+  contentIds: z.string(),
+  createdAt: dateSchema,
+});
+
 export const jobApplicationSchema = z.object({
   id: idSchema,
   title: z.string(),
@@ -29,6 +70,11 @@ export const jobApplicationSchema = z.object({
   user: userSchema.optional(),
   createdAt: dateSchema,
   updatedAt: dateSchema,
+  // Optional relations that may be included
+  resumes: z.array(resumeRelationSchema).optional(),
+  coverLetters: z.array(coverLetterRelationSchema).optional(),
+  interviews: z.array(interviewRelationSchema).optional(),
+  generatedContent: z.array(generatedContentRelationSchema).optional(),
 });
 
 export class JobApplicationDto extends createZodDto(jobApplicationSchema) {}

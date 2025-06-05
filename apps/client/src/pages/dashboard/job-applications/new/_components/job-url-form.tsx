@@ -1,3 +1,6 @@
+import { useState } from "react";
+import { useNavigate } from "react-router";
+
 import { t } from "@lingui/macro";
 import { Link, MagnifyingGlass, Sparkle } from "@phosphor-icons/react";
 import {
@@ -10,183 +13,164 @@ import {
   Label,
   RichInput,
 } from "@reactive-resume/ui";
-import { useState } from "react";
-import { useNavigate } from "react-router";
+
+import { useToast } from "@/client/hooks/use-toast";
+import { useAnalyzeJobPosting, useCreateFromAnalysis, JobAnalysisResult } from "@/client/services/job-application/analyze-job";
 
 export const JobUrlForm = () => {
   const [url, setUrl] = useState("");
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [extractedData, setExtractedData] = useState<any>(null);
+  const [extractedData, setExtractedData] = useState<JobAnalysisResult | null>(null);
   const navigate = useNavigate();
+  const { toast } = useToast();
+  
+  const { analyzeJobPosting, loading: isAnalyzing } = useAnalyzeJobPosting();
+  const { createFromAnalysis, loading: isCreating } = useCreateFromAnalysis();
 
   const handleAnalyze = async () => {
     if (!url.trim()) return;
 
-    setIsAnalyzing(true);
-
     try {
-      // TODO: Call backend API to analyze the URL
-      // Simulating API call for now
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // Mock extracted data
-      setExtractedData({
-        title: "Senior Frontend Developer",
-        company: "TechCorp Inc.",
-        location: "San Francisco, CA",
-        description: "We are looking for a Senior Frontend Developer to join our team...",
-        requirements: [
-          "5+ years of React experience",
-          "TypeScript proficiency",
-          "Experience with modern build tools",
-          "Strong CSS/HTML skills",
-        ],
-        extractedTags: ["react", "typescript", "frontend", "javascript", "css"],
-      });
+      const result = await analyzeJobPosting({ jobText: url });
+      
+      setExtractedData(result.analysisResult);
+        toast({
+        title: t`Success`,
+        description: t`Job posting analyzed successfully`,
+        });
     } catch (error) {
-      console.error("Error analyzing URL:", error);
-    } finally {
-      setIsAnalyzing(false);
+      toast({
+        variant: "error",
+        title: t`Error`,
+        description: t`Failed to analyze job posting. Please try again.`,
+      });
     }
   };
 
-  const handleSave = async () => {
-    // TODO: Save the job application to backend
-    navigate("/dashboard/job-applications");
-  };
+  const handleCreateApplication = async () => {
+    if (!extractedData) return;
 
-  const handleStartOver = () => {
-    setUrl("");
-    setExtractedData(null);
+    try {
+      const newApplication = await createFromAnalysis({
+        analysisData: extractedData,
+        url: url,
+      });
+
+      toast({
+        title: t`Success`,
+        description: t`Job application created successfully`,
+      });
+
+      // Navigate to the newly created application detail page
+      navigate(`/dashboard/job-applications/${newApplication.id}`);
+    } catch {
+      toast({
+        variant: "error",
+        title: t`Error`,
+        description: t`Failed to create job application. Please try again.`,
+      });
+    }
   };
 
   return (
     <div className="space-y-6">
-      {/* URL Input Section */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Link size={20} />
-            {t`Job Posting URL`}
+            {t`Analyze Job Posting from URL`}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="url">{t`Paste the job posting URL here`}</Label>
-            <div className="mt-2 flex gap-2">
+          <div className="space-y-2">
+            <Label htmlFor="url">{t`Job Posting URL`}</Label>
               <Input
                 id="url"
-                placeholder={t`https://linkedin.com/jobs/view/123456789...`}
+              type="url"
+              placeholder="https://company.com/jobs/position"
                 value={url}
-                disabled={isAnalyzing}
-                onChange={(e) => {
-                  setUrl(e.target.value);
-                }}
+              onChange={(e) => setUrl(e.target.value)}
               />
-              <Button
-                disabled={!url.trim() || isAnalyzing}
-                className="gap-2"
-                onClick={handleAnalyze}
-              >
-                {isAnalyzing ? (
-                  <>
-                    <MagnifyingGlass size={16} className="animate-spin" />
-                    {t`Analyzing...`}
-                  </>
-                ) : (
-                  <>
-                    <Sparkle size={16} />
-                    {t`Analyze`}
-                  </>
-                )}
-              </Button>
-            </div>
           </div>
 
-          {isAnalyzing && (
-            <div className="py-8 text-center">
-              <div className="animate-pulse space-y-2">
-                <div className="mx-auto h-4 w-3/4 rounded bg-gray-200"></div>
-                <div className="mx-auto h-4 w-1/2 rounded bg-gray-200"></div>
-                <div className="mx-auto h-4 w-2/3 rounded bg-gray-200"></div>
-              </div>
-              <p className="text-muted-foreground mt-4">
-                {t`Extracting job details from the posting...`}
-              </p>
-            </div>
-          )}
+          <Button 
+            onClick={handleAnalyze} 
+            disabled={!url.trim() || isAnalyzing}
+            className="w-full"
+          >
+            <MagnifyingGlass size={16} className="mr-2" />
+            {isAnalyzing ? t`Analyzing...` : t`Analyze Job Posting`}
+          </Button>
         </CardContent>
       </Card>
 
-      {/* Extracted Data Section */}
-      {extractedData && !isAnalyzing && (
+      {extractedData && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Sparkle size={20} />
-              {t`Extracted Job Details`}
+              {t`Extracted Job Information`}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
-              <div>
+              <div className="space-y-2">
                 <Label>{t`Job Title`}</Label>
-                <Input readOnly value={extractedData.title} />
+                <div className="p-2 bg-muted rounded">{extractedData.title}</div>
               </div>
-              <div>
+              <div className="space-y-2">
                 <Label>{t`Company`}</Label>
-                <Input readOnly value={extractedData.company} />
+                <div className="p-2 bg-muted rounded">{extractedData.company}</div>
               </div>
             </div>
 
-            <div>
+            {extractedData.location && (
+              <div className="space-y-2">
               <Label>{t`Location`}</Label>
-              <Input readOnly value={extractedData.location} />
+                <div className="p-2 bg-muted rounded">{extractedData.location}</div>
             </div>
+            )}
 
-            <div>
+            <div className="space-y-2">
               <Label>{t`Job Description`}</Label>
               <RichInput
-                readOnly
                 content={extractedData.description}
                 onChange={() => {}} // Read-only
+                className="min-h-32"
               />
             </div>
 
-            <div>
+            {extractedData.requirements.length > 0 && (
+              <div className="space-y-2">
               <Label>{t`Requirements`}</Label>
-              <div className="mt-2 space-y-2">
-                {extractedData.requirements.map((req: string, index: number) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <div className="size-2 shrink-0 rounded-full bg-primary"></div>
-                    <span className="text-sm">{req}</span>
-                  </div>
+                <ul className="list-disc list-inside space-y-1 p-2 bg-muted rounded">
+                  {extractedData.requirements.map((req, index) => (
+                    <li key={index} className="text-sm">{req}</li>
                 ))}
+                </ul>
               </div>
-            </div>
+            )}
 
-            <div>
-              <Label>{t`Extracted Tags`}</Label>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {extractedData.extractedTags.map((tag: string) => (
-                  <span
-                    key={tag}
-                    className="rounded-md bg-primary/10 px-2 py-1 text-xs text-primary"
-                  >
+            {extractedData.extractedTags.length > 0 && (
+              <div className="space-y-2">
+                <Label>{t`Key Skills & Tags`}</Label>
+                <div className="flex flex-wrap gap-2">
+                  {extractedData.extractedTags.map((tag, index) => (
+                    <span key={index} className="px-2 py-1 bg-primary/10 text-primary rounded-full text-xs">
                     {tag}
-                  </span>
+                    </span>
                 ))}
               </div>
             </div>
+            )}
 
-            <div className="flex gap-3 pt-4">
-              <Button className="flex-1" onClick={handleSave}>
-                {t`Create Application`}
+              <Button
+              onClick={handleCreateApplication}
+                disabled={isCreating}
+              className="w-full"
+            >
+              <Sparkle size={16} className="mr-2" />
+              {isCreating ? t`Creating Application...` : t`Create Job Application`}
               </Button>
-              <Button variant="outline" onClick={handleStartOver}>
-                {t`Start Over`}
-              </Button>
-            </div>
           </CardContent>
         </Card>
       )}

@@ -10,6 +10,9 @@ import { VerifyEmailPage } from "../pages/auth/verify-email/page";
 import { VerifyOtpPage } from "../pages/auth/verify-otp/page";
 import { BuilderLayout } from "../pages/builder/layout";
 import { builderLoader, BuilderPage } from "../pages/builder/page";
+import ContentLibraryPage from "../pages/dashboard/content-library/page";
+import { JobApplicationDetailPage } from "../pages/dashboard/job-applications/[id]/page";
+import { JobApplicationEditPage } from "../pages/dashboard/job-applications/[id]/edit/page";
 import { NewJobApplicationPage } from "../pages/dashboard/job-applications/new/page";
 import { JobApplicationsPage } from "../pages/dashboard/job-applications/page";
 import { DashboardLayout } from "../pages/dashboard/layout";
@@ -20,10 +23,9 @@ import { HomePage } from "../pages/home/page";
 import { ErrorPage } from "../pages/public/error";
 import { publicLoader, PublicResumePage } from "../pages/public/page";
 import { Providers } from "../providers";
-// COMMENTED OUT FOR SINGLE USER MODE - can be restored later
-// import { AuthGuard } from "./guards/auth";
-// import { GuestGuard } from "./guards/guest";
 import { authLoader } from "./loaders/auth";
+import { AuthGuard } from "./guards/auth";
+import { GuestGuard } from "./guards/guest";
 
 export const routes = createRoutesFromElements(
   <Route element={<Providers />}>
@@ -34,31 +36,27 @@ export const routes = createRoutesFromElements(
 
       <Route path="auth">
         <Route element={<AuthLayout />}>
-          {/* COMMENTED OUT FOR SINGLE USER MODE - can be restored later */}
-          {/* <Route element={<GuestGuard />}> */}
+          <Route element={<GuestGuard />}>
             <Route path="login" element={<LoginPage />} />
             <Route path="register" element={<RegisterPage />} />
-          {/* </Route> */}
+          </Route>
 
           {/* Password Recovery */}
-          {/* COMMENTED OUT FOR SINGLE USER MODE - can be restored later */}
-          {/* <Route element={<GuestGuard />}> */}
+          <Route element={<GuestGuard />}>
             <Route path="forgot-password" element={<ForgotPasswordPage />} />
             <Route path="reset-password" element={<ResetPasswordPage />} />
-          {/* </Route> */}
+          </Route>
 
           {/* Two-Factor Authentication */}
-          {/* COMMENTED OUT FOR SINGLE USER MODE - can be restored later */}
-          {/* <Route element={<GuestGuard />}> */}
+          <Route element={<GuestGuard />}>
             <Route path="verify-otp" element={<VerifyOtpPage />} />
             <Route path="backup-otp" element={<BackupOtpPage />} />
-          {/* </Route> */}
+          </Route>
 
           {/* Email Verification */}
-          {/* COMMENTED OUT FOR SINGLE USER MODE - can be restored later */}
-          {/* <Route element={<AuthGuard />}> */}
+          <Route element={<AuthGuard />}>
             <Route path="verify-email" element={<VerifyEmailPage />} />
-          {/* </Route> */}
+          </Route>
 
           {/* OAuth Callback */}
           <Route path="callback" loader={authLoader} element={<div />} />
@@ -68,28 +66,29 @@ export const routes = createRoutesFromElements(
       </Route>
 
       <Route path="dashboard">
-        {/* COMMENTED OUT FOR SINGLE USER MODE - can be restored later */}
-        {/* <Route element={<AuthGuard />}> */}
+        <Route element={<AuthGuard />}>
           <Route element={<DashboardLayout />}>
             <Route path="resumes" element={<ResumesPage />} />
             <Route path="job-applications" element={<JobApplicationsPage />} />
             <Route path="job-applications/new" element={<NewJobApplicationPage />} />
+            <Route path="job-applications/:id" element={<JobApplicationDetailPage />} />
+            <Route path="job-applications/:id/edit" element={<JobApplicationEditPage />} />
+            <Route path="content-library" element={<ContentLibraryPage />} />
             <Route path="settings" element={<SettingsPage />} />
 
             <Route index element={<Navigate replace to="/dashboard/resumes" />} />
           </Route>
-        {/* </Route> */}
+        </Route>
       </Route>
 
       <Route path="builder">
-        {/* COMMENTED OUT FOR SINGLE USER MODE - can be restored later */}
-        {/* <Route element={<AuthGuard />}> */}
+        <Route element={<AuthGuard />}>
           <Route element={<BuilderLayout />}>
             <Route path=":id" loader={builderLoader} element={<BuilderPage />} />
 
             <Route index element={<Navigate replace to="/dashboard/resumes" />} />
           </Route>
-        {/* </Route> */}
+        </Route>
       </Route>
 
       {/* Public Routes */}

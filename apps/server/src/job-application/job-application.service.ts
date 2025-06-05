@@ -6,6 +6,18 @@ import { PrismaService } from "nestjs-prisma";
 import { ContentLibraryService } from "@/server/content-library/content-library.service";
 import { LLMService } from "@/server/llm/llm.service";
 
+export type JobAnalysisResult = {
+  title: string;
+  company: string;
+  description: string;
+  requirements: string[];
+  extractedTags: string[];
+  location?: string;
+  salaryRange?: string;
+  employmentType?: string;
+  experienceLevel?: string;
+};
+
 @Injectable()
 export class JobApplicationService {
   private readonly logger = new Logger(JobApplicationService.name);
@@ -24,7 +36,7 @@ export class JobApplicationService {
       data: {
         title: createJobApplicationDto.title,
         company: createJobApplicationDto.company,
-        description: createJobApplicationDto.description || "",
+        description: createJobApplicationDto.description ?? "",
         url: createJobApplicationDto.url,
         notes: createJobApplicationDto.notes,
         userId,
@@ -61,9 +73,29 @@ export class JobApplicationService {
     userId: string,
     updateJobApplicationDto: UpdateJobApplicationDto,
   ): Promise<JobApplication> {
+    // Convert DTO to Prisma update format
+    const updateData: any = {};
+    
+    // Copy basic fields
+    if (updateJobApplicationDto.title !== undefined) updateData.title = updateJobApplicationDto.title;
+    if (updateJobApplicationDto.company !== undefined) updateData.company = updateJobApplicationDto.company;
+    if (updateJobApplicationDto.description !== undefined) updateData.description = updateJobApplicationDto.description;
+    if (updateJobApplicationDto.url !== undefined) updateData.url = updateJobApplicationDto.url;
+    if (updateJobApplicationDto.notes !== undefined) updateData.notes = updateJobApplicationDto.notes;
+    if (updateJobApplicationDto.status !== undefined) updateData.status = updateJobApplicationDto.status;
+    if (updateJobApplicationDto.appliedDate !== undefined) updateData.appliedDate = updateJobApplicationDto.appliedDate;
+    
+    // Convert arrays to JSON strings for database storage
+    if (updateJobApplicationDto.requirements !== undefined) {
+      updateData.requirements = JSON.stringify(updateJobApplicationDto.requirements);
+    }
+    if (updateJobApplicationDto.extractedTags !== undefined) {
+      updateData.extractedTags = JSON.stringify(updateJobApplicationDto.extractedTags);
+    }
+
     return this.prisma.jobApplication.update({
       where: { id, userId },
-      data: updateJobApplicationDto,
+      data: updateData,
     });
   }
 
@@ -71,6 +103,67 @@ export class JobApplicationService {
     return this.prisma.jobApplication.delete({
       where: { id, userId },
     });
+  }
+
+  /**
+   * Analyze a job posting URL or text - ONLY analysis, no creation
+   */
+  async analyzeJobPosting(
+    jobText: string,
+    url?: string,
+  ): Promise<{
+    analysisResult: JobAnalysisResult;
+  }> {
+    this.logger.log(`Analyzing job posting text`);
+
+    // Only analyze the job posting with LLM
+    const analysisResult = await this.llmService.analyzeJobPosting(jobText);
+
+    if (!analysisResult.success || !analysisResult.data) {
+      throw new Error(`Job analysis failed: ${analysisResult.error ?? 'Unknown error'}`);
+    }
+
+    return {
+      analysisResult: analysisResult.data,
+    };
+  }
+
+  /**
+   * Create job application from analyzed data
+   */
+  async createFromAnalysis(
+    userId: string,
+    analysisData: JobAnalysisResult,
+    url?: string,
+  ): Promise<JobApplication> {
+    this.logger.log(`Creating job application from analysis for user ${userId}`);
+
+    const jobApplication = await this.prisma.jobApplication.create({
+      data: {
+        title: analysisData.title,
+        company: analysisData.company,
+        description: analysisData.description,
+        requirements: JSON.stringify(analysisData.requirements ?? []),
+        extractedTags: JSON.stringify(analysisData.extractedTags ?? []),
+        url: url ?? "",
+        userId,
+      },
+    });
+
+    // Store the analysis record (without content matching)
+    await this.prisma.generatedContent.create({
+      data: {
+        type: "job_analysis",
+        prompt: `Analyze job posting: ${analysisData.title} at ${analysisData.company}`,
+        response: JSON.stringify(analysisData),
+        llmProvider: "ANTHROPIC",
+        model: "claude-3-5-sonnet",
+        contentIds: JSON.stringify([]), // Empty - no content matching at this stage
+        jobApplicationId: jobApplication.id,
+      },
+    });
+
+    return jobApplication;
   }
 
   /**

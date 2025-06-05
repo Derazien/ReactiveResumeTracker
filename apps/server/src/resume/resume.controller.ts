@@ -12,10 +12,10 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
-import { User as UserEntity } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import {
   CreateResumeDto,
+  ImportResumeDto,
   importResumeSchema,
   ResumeDto,
   UpdateResumeDto,
@@ -24,65 +24,35 @@ import { resumeDataSchema } from "@reactive-resume/schema";
 import { ErrorMessage } from "@reactive-resume/utils";
 import { zodToJsonSchema } from "zod-to-json-schema";
 
+import { OptionalGuard } from "@/server/auth/guards/optional.guard";
+import { TwoFactorGuard } from "@/server/auth/guards/two-factor.guard";
 import { User } from "@/server/user/decorators/user.decorator";
 
-import { OptionalGuard } from "../auth/guards/optional.guard";
-import { TwoFactorGuard } from "../auth/guards/two-factor.guard";
 import { Resume } from "./decorators/resume.decorator";
 import { ResumeGuard } from "./guards/resume.guard";
 import { ResumeService } from "./resume.service";
 
-// TODO: Temporary mock user ID for testing - replace with actual auth when ready
-const MOCK_USER_ID = "mock-user-123";
+
 
 @ApiTags("Resume")
 @Controller("resume")
 export class ResumeController {
   constructor(private readonly resumeService: ResumeService) {}
 
+  @Get()
+  @UseGuards(TwoFactorGuard)
+  findAll(@User("id") userId: string) {
+    return this.resumeService.findAllAsDto(userId);
+  }
+
   @Get("schema")
   getSchema() {
     return zodToJsonSchema(resumeDataSchema);
   }
 
-  @Post()
-  // TEMPORARILY COMMENTED OUT FOR TESTING - UNCOMMENT WHEN ADDING AUTH BACK
-  // @UseGuards(TwoFactorGuard)
-  async create(@Body() createResumeDto: CreateResumeDto) {
-    try {
-      return await this.resumeService.create(MOCK_USER_ID, createResumeDto);
-    } catch (error) {
-      if (error instanceof PrismaClientKnownRequestError && error.code === "P2002") {
-        throw new BadRequestException(ErrorMessage.ResumeSlugAlreadyExists);
-      }
-
-      Logger.error(error);
-      throw new InternalServerErrorException(error);
-    }
-  }
-
-  @Post("import")
-  // TEMPORARILY COMMENTED OUT FOR TESTING - UNCOMMENT WHEN ADDING AUTH BACK
-  // @UseGuards(TwoFactorGuard)
-  async import(@Body() importResumeDto: unknown) {
-    try {
-      const result = importResumeSchema.parse(importResumeDto);
-      return await this.resumeService.import(MOCK_USER_ID, result);
-    } catch (error) {
-      if (error instanceof PrismaClientKnownRequestError && error.code === "P2002") {
-        throw new BadRequestException(ErrorMessage.ResumeSlugAlreadyExists);
-      }
-
-      Logger.error(error);
-      throw new InternalServerErrorException(error);
-    }
-  }
-
-  @Get()
-  // TEMPORARILY COMMENTED OUT FOR TESTING - UNCOMMENT WHEN ADDING AUTH BACK
-  // @UseGuards(TwoFactorGuard)
-  findAll() {
-    return this.resumeService.findAll(MOCK_USER_ID);
+  @Get("import/schema")
+  getImportSchema() {
+    return zodToJsonSchema(importResumeSchema);
   }
 
   @Get(":id")
@@ -91,69 +61,53 @@ export class ResumeController {
     return resume;
   }
 
-  @Get(":id/statistics")
-  // TEMPORARILY COMMENTED OUT FOR TESTING - UNCOMMENT WHEN ADDING AUTH BACK
-  // @UseGuards(TwoFactorGuard)
-  findOneStatistics(@Param("id") id: string) {
-    return this.resumeService.findOneStatistics(id);
-  }
-
   @Get("/public/:username/:slug")
   @UseGuards(OptionalGuard)
   findOneByUsernameSlug(
     @Param("username") username: string,
     @Param("slug") slug: string,
-    @User("id") userId: string,
+    @User("id") userId?: string,
   ) {
-    return this.resumeService.findOneByUsernameSlug(username, slug, userId);
+    return this.resumeService.findOneByUsernameSlugAsDto(username, slug, userId);
+  }
+
+  @Post()
+  @UseGuards(TwoFactorGuard)
+  create(@User("id") userId: string, @Body() createResumeDto: CreateResumeDto) {
+    return this.resumeService.create(userId, createResumeDto);
+  }
+
+  @Post("import")
+  @UseGuards(TwoFactorGuard)
+  import(@User("id") userId: string, @Body() data: ImportResumeDto) {
+    return this.resumeService.import(userId, data);
   }
 
   @Patch(":id")
-  // TEMPORARILY COMMENTED OUT FOR TESTING - UNCOMMENT WHEN ADDING AUTH BACK
-  // @UseGuards(TwoFactorGuard)
-  update(
-    @Param("id") id: string,
-    @Body() updateResumeDto: UpdateResumeDto,
-  ) {
-    return this.resumeService.update(MOCK_USER_ID, id, updateResumeDto);
-  }
-
-  @Patch(":id/lock")
-  // TEMPORARILY COMMENTED OUT FOR TESTING - UNCOMMENT WHEN ADDING AUTH BACK
-  // @UseGuards(TwoFactorGuard)
-  lock(@Param("id") id: string, @Body("set") set = true) {
-    return this.resumeService.lock(MOCK_USER_ID, id, set);
+  @UseGuards(TwoFactorGuard, ResumeGuard)
+  update(@Resume("id") id: string, @User("id") userId: string, @Body() updateResumeDto: UpdateResumeDto) {
+    return this.resumeService.update(userId, id, updateResumeDto);
   }
 
   @Delete(":id")
-  // TEMPORARILY COMMENTED OUT FOR TESTING - UNCOMMENT WHEN ADDING AUTH BACK
-  // @UseGuards(TwoFactorGuard)
-  remove(@Param("id") id: string) {
-    return this.resumeService.remove(MOCK_USER_ID, id);
+  @UseGuards(TwoFactorGuard, ResumeGuard)
+  remove(@Resume("id") id: string, @User("id") userId: string) {
+    return this.resumeService.remove(userId, id);
   }
 
   @Get("/print/:id")
   @UseGuards(OptionalGuard, ResumeGuard)
-  async printResume(@User("id") userId: string | undefined, @Resume() resume: ResumeDto) {
+  async printResume(@Resume() resume: ResumeDto, @User("id") userId?: string) {
     try {
       const url = await this.resumeService.printResume(resume, userId);
-
       return { url };
     } catch (error) {
       Logger.error(error);
-      throw new InternalServerErrorException(error);
-    }
-  }
 
-  @Get("/print/:id/preview")
-  @UseGuards(TwoFactorGuard, ResumeGuard)
-  async printPreview(@Resume() resume: ResumeDto) {
-    try {
-      const url = await this.resumeService.printPreview(resume);
+      if (error instanceof PrismaClientKnownRequestError && error.code === "P2025") {
+        throw new BadRequestException(ErrorMessage.ResumeNotFound);
+      }
 
-      return { url };
-    } catch (error) {
-      Logger.error(error);
       throw new InternalServerErrorException(error);
     }
   }

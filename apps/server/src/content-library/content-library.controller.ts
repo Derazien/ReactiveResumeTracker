@@ -7,34 +7,31 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { ContentType } from "@prisma/client";
 import { CreateContentLibraryDto, UpdateContentLibraryDto } from "@reactive-resume/dto";
 
-// TEMPORARILY COMMENTED OUT FOR TESTING - REMOVE WHEN ADDING AUTH BACK
-// import { TwoFactorGuard } from "@/server/auth/guards/two-factor.guard";
-// import { User } from "@/server/user/decorators/user.decorator";
+import { TwoFactorGuard } from "@/server/auth/guards/two-factor.guard";
+import { User } from "@/server/user/decorators/user.decorator";
 
 import { ContentLibraryService } from "./content-library.service";
 
-// TODO: Temporary mock user ID for testing - replace with actual auth when ready
-const MOCK_USER_ID = "mock-user-123";
-
 @ApiTags("Content Library")
 @Controller("content-library")
-// TEMPORARILY COMMENTED OUT FOR TESTING - UNCOMMENT WHEN ADDING AUTH BACK
-// @UseGuards(TwoFactorGuard)
+@UseGuards(TwoFactorGuard)
 export class ContentLibraryController {
   constructor(private readonly contentLibraryService: ContentLibraryService) {}
 
   @Post()
-  create(@Body() createContentLibraryDto: CreateContentLibraryDto) {
-    return this.contentLibraryService.create(MOCK_USER_ID, createContentLibraryDto);
+  create(@User("id") userId: string, @Body() createContentLibraryDto: CreateContentLibraryDto) {
+    return this.contentLibraryService.create(userId, createContentLibraryDto);
   }
 
   @Get()
   findAll(
+    @User("id") userId: string,
     @Query("type") type?: ContentType,
     @Query("search") search?: string,
     @Query("tags") tags?: string,
@@ -49,35 +46,36 @@ export class ContentLibraryController {
       take: take ? Number.parseInt(take, 10) : undefined,
     };
 
-    return this.contentLibraryService.findAll(MOCK_USER_ID, options);
+    return this.contentLibraryService.findAll(userId, options);
   }
 
   @Get("by-type/:type")
-  getByType(@Param("type") type: ContentType) {
-    return this.contentLibraryService.getContentByType(MOCK_USER_ID, type);
+  getByType(@User("id") userId: string, @Param("type") type: ContentType) {
+    return this.contentLibraryService.getContentByType(userId, type);
   }
 
   @Get("by-tags")
-  findByTags(@Query("tags") tags: string) {
+  findByTags(@User("id") userId: string, @Query("tags") tags: string) {
     const tagArray = tags ? tags.split(",") : [];
-    return this.contentLibraryService.findByTags(MOCK_USER_ID, tagArray);
+    return this.contentLibraryService.findByTags(userId, tagArray);
   }
 
   @Get(":id")
-  findOne(@Param("id") id: string) {
-    return this.contentLibraryService.findOne(id, MOCK_USER_ID);
+  findOne(@User("id") userId: string, @Param("id") id: string) {
+    return this.contentLibraryService.findOne(id, userId);
   }
 
   @Patch(":id")
   update(
+    @User("id") userId: string,
     @Param("id") id: string,
     @Body() updateContentLibraryDto: UpdateContentLibraryDto,
   ) {
-    return this.contentLibraryService.update(id, MOCK_USER_ID, updateContentLibraryDto);
+    return this.contentLibraryService.update(id, userId, updateContentLibraryDto);
   }
 
   @Delete(":id")
-  remove(@Param("id") id: string) {
-    return this.contentLibraryService.remove(id, MOCK_USER_ID);
+  remove(@User("id") userId: string, @Param("id") id: string) {
+    return this.contentLibraryService.remove(id, userId);
   }
 }

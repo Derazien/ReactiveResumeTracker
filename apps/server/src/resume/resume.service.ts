@@ -24,6 +24,14 @@ export class ResumeService {
     private readonly storageService: StorageService,
   ) {}
 
+  // Helper method to transform raw database resume to ResumeDto
+  private transformToResumeDto(resume: any): ResumeDto {
+    return {
+      ...resume,
+      data: typeof resume.data === 'string' ? JSON.parse(resume.data) : resume.data,
+    };
+  }
+
   async create(userId: string, createResumeDto: CreateResumeDto) {
     const { name, email, picture } = await this.prisma.user.findUniqueOrThrow({
       where: { id: userId },
@@ -63,12 +71,24 @@ export class ResumeService {
     return this.prisma.resume.findMany({ where: { userId }, orderBy: { updatedAt: "desc" } });
   }
 
+  // New method that returns properly transformed ResumeDto array
+  async findAllAsDto(userId: string): Promise<ResumeDto[]> {
+    const resumes = await this.findAll(userId);
+    return resumes.map(resume => this.transformToResumeDto(resume));
+  }
+
   findOne(id: string, userId?: string) {
     if (userId) {
       return this.prisma.resume.findUniqueOrThrow({ where: { userId_id: { userId, id } } });
     }
 
     return this.prisma.resume.findUniqueOrThrow({ where: { id } });
+  }
+
+  // New method that returns properly transformed ResumeDto
+  async findOneAsDto(id: string, userId?: string): Promise<ResumeDto> {
+    const resume = await this.findOne(id, userId);
+    return this.transformToResumeDto(resume);
   }
 
   async findOneStatistics(id: string) {
@@ -98,6 +118,12 @@ export class ResumeService {
     }
 
     return resume;
+  }
+
+  // New method that returns properly transformed ResumeDto
+  async findOneByUsernameSlugAsDto(username: string, slug: string, userId?: string): Promise<ResumeDto> {
+    const resume = await this.findOneByUsernameSlug(username, slug, userId);
+    return this.transformToResumeDto(resume);
   }
 
   async update(userId: string, id: string, updateResumeDto: UpdateResumeDto) {
