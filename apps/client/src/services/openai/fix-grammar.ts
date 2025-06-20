@@ -2,8 +2,7 @@
 
 import { t } from "@lingui/macro";
 
-import { DEFAULT_MAX_TOKENS, DEFAULT_MODEL } from "@/client/constants/llm";
-import { useOpenAiStore } from "@/client/stores/openai";
+import { useLLMStore } from "@/client/stores/llm";
 
 import { openai } from "./client";
 
@@ -18,19 +17,19 @@ Revised Text: """`;
 export const fixGrammar = async (text: string) => {
   const prompt = PROMPT.replace("{input}", text);
 
-  const { model, maxTokens } = useOpenAiStore.getState();
+  const settings = useLLMStore.getState().getCurrentProviderSettings();
 
   const result = await openai().chat.completions.create({
     messages: [{ role: "user", content: prompt }],
-    model: model ?? DEFAULT_MODEL,
-    max_tokens: maxTokens ?? DEFAULT_MAX_TOKENS,
+    model: settings?.model || "gpt-4-turbo-preview",
+    max_tokens: settings?.maxTokens || 4000,
     temperature: 0,
     stop: ['"""'],
     n: 1,
   });
 
   if (result.choices.length === 0) {
-    throw new Error(t`OpenAI did not return any choices for your text.`);
+    throw new Error(t`AI did not return any choices for your text.`);
   }
 
   return result.choices[0].message.content ?? text;

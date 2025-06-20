@@ -4,39 +4,19 @@ const path = require('path');
 
 const prisma = new PrismaClient();
 
-// Temporary mock user ID for testing
-const MOCK_USER_ID = 'mock-user-123';
-const MOCK_USER_EMAIL = 'mock@user.com';
+// Use the actual RaedZein user
+const RAED_USER_ID = 'cmc56vsoc0000u4dkf8t82ymv';
 
-async function ensureMockUser() {
-  const user = await prisma.user.findUnique({ where: { id: MOCK_USER_ID } });
+async function ensureRaedUser() {
+  const user = await prisma.user.findUnique({ where: { id: RAED_USER_ID } });
   if (!user) {
-    await prisma.user.create({
-      data: {
-        id: MOCK_USER_ID,
-        email: MOCK_USER_EMAIL,
-        username: 'mockuser',
-        name: 'Mock User',
-        provider: 'email',
-        // createdAt/updatedAt are auto-set
-      },
-    });
-    console.log('Mock user created');
-  } else {
-    console.log('Mock user already exists');
+    throw new Error('RaedZein user not found in database. Please ensure the user exists.');
   }
+  console.log(`✅ Found user: ${user.name} (${user.username}) - ${user.email}`);
+  return user;
 }
 
-async function clearDatabase() {
-  console.log('Clearing existing content...');
-  
-  // Delete all content in reverse order of dependencies
-  await prisma.contentTag.deleteMany({});
-  await prisma.contentLibrary.deleteMany({});
-  await prisma.tag.deleteMany({});
-  
-  console.log('Database cleared successfully');
-}
+// Database is already empty, no need to clear
 
 async function importContent() {
   try {
@@ -62,7 +42,7 @@ async function importContent() {
           location: item.location,
           skills: JSON.stringify(item.skills),
           achievements: JSON.stringify(item.achievements),
-          userId: MOCK_USER_ID,
+          userId: RAED_USER_ID,
         },
       });
 
@@ -71,12 +51,12 @@ async function importContent() {
         for (const tagName of item.tagIds) {
           // Find or create the tag
           const tag = await prisma.tag.findFirst({
-            where: { userId: MOCK_USER_ID, name: tagName },
+            where: { userId: RAED_USER_ID, name: tagName },
           }) || await prisma.tag.create({
             data: {
               name: tagName,
               color: '#3B82F6', // Default blue color
-              userId: MOCK_USER_ID,
+              userId: RAED_USER_ID,
             },
           });
 
@@ -105,8 +85,7 @@ async function importContent() {
 
 async function main() {
   try {
-    await ensureMockUser();
-    await clearDatabase();
+    await ensureRaedUser();
     await importContent();
   } catch (error) {
     console.error('Error in main process:', error);

@@ -1,6 +1,8 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
+import { UserLLMSettingsService } from "@/server/user/user-llm-settings.service";
+
 import {
   ChatMessage,
   ContentMatchResult,
@@ -11,6 +13,7 @@ import {
 } from "./interfaces/llm-provider.interface";
 import { AnthropicProvider } from "./providers/anthropic.provider";
 import { OpenAIProvider } from "./providers/openai.provider";
+import { LocalLLMProvider } from "./providers/local.provider";
 
 @Injectable()
 export class LLMService {
@@ -21,7 +24,10 @@ export class LLMService {
     private configService: ConfigService,
     private anthropicProvider: AnthropicProvider,
     private openaiProvider: OpenAIProvider,
+    private localLLMProvider: LocalLLMProvider,
+    private userLLMSettingsService: UserLLMSettingsService,
   ) {
+    // Initialize with default provider (fallback)
     this.initializeProvider();
   }
 
@@ -263,5 +269,89 @@ export class LLMService {
 
     this.logger.log(`Switched from ${currentProvider} to ${this.provider.name}`);
     return true;
+  }
+
+  /**
+   * Get a provider configured with user-specific settings
+   */
+  async getProviderForUser(userId: string): Promise<LLMProvider> {
+    try {
+      const settings = await this.userLLMSettingsService.getEffectiveSettings(userId);
+      
+      switch (settings.provider) {
+        case "ANTHROPIC": {
+          if (settings.anthropicApiKey) {
+            // Create a configured Anthropic provider for this user
+            const userProvider = new (this.anthropicProvider.constructor as any)();
+            userProvider.configure({
+              apiKey: settings.anthropicApiKey,
+              model: settings.anthropicModel,
+              maxTokens: settings.maxTokens,
+              temperature: settings.temperature,
+            });
+            return userProvider;
+          }
+          break;
+        }
+        case "OPENAI": {
+          if (settings.openaiApiKey) {
+            // Create a configured OpenAI provider for this user
+            const userProvider = new (this.openaiProvider.constructor as any)();
+            userProvider.configure({
+              apiKey: settings.openaiApiKey,
+              model: settings.openaiModel,
+              baseUrl: settings.openaiBaseUrl,
+              maxTokens: settings.maxTokens,
+              temperature: settings.temperature,
+            });
+            return userProvider;
+          }
+          break;
+        }
+        case "OLLAMA": {
+          if (settings.ollamaBaseUrl) {
+            // Create a configured local/Ollama provider for this user
+            const userProvider = new (this.localLLMProvider.constructor as any)();
+            userProvider.configure({
+              apiKey: settings.ollamaApiKey,
+              baseUrl: settings.ollamaBaseUrl,
+              model: settings.ollamaModel,
+              maxTokens: settings.maxTokens,
+              temperature: settings.temperature,
+            });
+            return userProvider;
+          }
+          break;
+        }
+      }
+      
+      // Fallback to default provider if user settings are not configured
+      this.logger.warn(`User ${userId} does not have valid LLM configuration, using default provider`);
+      return this.provider;
+    } catch (error) {
+      this.logger.error(`Error getting provider for user ${userId}:`, error);
+      return this.provider;
+    }
+  }
+
+  /**
+   * Analyze a job posting with user-specific settings
+   */
+  async analyzeJobPostingForUser(userId: string, jobText: string): Promise<LLMResponse<JobAnalysisResult>> {
+    const provider = await this.getProviderForUser(userId);
+    return provider.analyzeJobPosting(jobText);
+  }
+
+  /**
+   * Match content to job with user-specific settings
+   */
+  async matchContentToJobForUser(
+    userId: string,
+    jobRequirements: string[],
+    userContent: any[],
+    jobDescription: string,
+  ): Promise<LLMResponse<ContentMatchResult[]>> {
+    const provider = await this.getProviderForUser(userId);
+    return provider.matchContent(jobRequirements, userContent, jobDescription);
   }
 }

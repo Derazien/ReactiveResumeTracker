@@ -137,9 +137,9 @@ export const JobApplicationCard = ({ application }: Props) => {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant="secondary" className={cn("text-xs", getStatusColor(application.status))}>
-              {getStatusLabel(application.status)}
-            </Badge>
+          <Badge variant="secondary" className={cn("text-xs", getStatusColor(application.status))}>
+            {getStatusLabel(application.status)}
+          </Badge>
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

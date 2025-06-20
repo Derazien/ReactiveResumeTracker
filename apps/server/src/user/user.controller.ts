@@ -12,13 +12,19 @@ import {
 } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
-import { UpdateUserDto, UserDto } from "@reactive-resume/dto";
+import { 
+  CreateUserLLMSettingsDto,
+  UpdateUserDto, 
+  UpdateUserLLMSettingsDto,
+  UserDto,
+} from "@reactive-resume/dto";
 import { ErrorMessage } from "@reactive-resume/utils";
 import type { Response } from "express";
 
 import { AuthService } from "../auth/auth.service";
 import { TwoFactorGuard } from "../auth/guards/two-factor.guard";
 import { User } from "./decorators/user.decorator";
+import { UserLLMSettingsService } from "./user-llm-settings.service";
 import { UserService } from "./user.service";
 
 @ApiTags("User")
@@ -27,6 +33,7 @@ export class UserController {
   constructor(
     private readonly authService: AuthService,
     private readonly userService: UserService,
+    private readonly userLLMSettingsService: UserLLMSettingsService,
   ) {}
 
   @Get("me")
@@ -76,5 +83,27 @@ export class UserController {
     response.clearCookie("Refresh");
 
     response.status(200).send({ message: "Sorry to see you go, goodbye!" });
+  }
+
+  @Get("llm-settings")
+  @UseGuards(TwoFactorGuard)
+  async getLLMSettings(@User("id") userId: string) {
+    return await this.userLLMSettingsService.getEffectiveSettings(userId);
+  }
+
+  @Patch("llm-settings")
+  @UseGuards(TwoFactorGuard)
+  async updateLLMSettings(
+    @User("id") userId: string, 
+    @Body() data: UpdateUserLLMSettingsDto
+  ) {
+    return await this.userLLMSettingsService.upsert(userId, data as CreateUserLLMSettingsDto);
+  }
+
+  @Delete("llm-settings")
+  @UseGuards(TwoFactorGuard)
+  async deleteLLMSettings(@User("id") userId: string) {
+    await this.userLLMSettingsService.delete(userId);
+    return { message: "LLM settings deleted successfully" };
   }
 }

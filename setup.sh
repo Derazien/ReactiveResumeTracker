@@ -224,7 +224,144 @@ EOF
         print_success "Database migrations completed"
     fi
 
-    # Step 5: Build Project (if not skipped)
+    # Step 5: Check for existing users and create initial user if needed
+    print_step "Checking for existing users..."
+    
+    # Create a temporary script to check for users
+    cat > temp-check-users.js << 'EOF'
+const { PrismaClient } = require('@prisma/client');
+
+async function checkUsers() {
+    const prisma = new PrismaClient();
+    
+    try {
+        const userCount = await prisma.user.count();
+        console.log(userCount);
+    } catch (error) {
+        console.error('Error checking users:', error);
+        process.exit(1);
+    } finally {
+        await prisma.$disconnect();
+    }
+}
+
+checkUsers();
+EOF
+
+    if USER_COUNT=$(node temp-check-users.js 2>/dev/null); then
+        rm -f temp-check-users.js
+        
+        if [ "$USER_COUNT" = "0" ]; then
+            print_warning "No users found in database. Creating initial user..."
+            echo ""
+            
+            # Prompt for user details
+            while true; do
+                read -p "Enter username for the initial user: " username
+                if [ -n "$username" ]; then
+                    break
+                else
+                    print_error "Username cannot be empty"
+                fi
+            done
+            
+            while true; do
+                read -p "Enter email for the initial user: " email
+                if [[ "$email" =~ ^[^@]+@[^@]+\.[^@]+$ ]]; then
+                    break
+                else
+                    print_error "Please enter a valid email address"
+                fi
+            done
+            
+            while true; do
+                read -p "Enter full name for the initial user: " fullname
+                if [ -n "$fullname" ]; then
+                    break
+                else
+                    print_error "Full name cannot be empty"
+                fi
+            done
+            
+            # Prompt for password securely
+            while true; do
+                read -s -p "Enter password for the initial user (min 6 chars): " password
+                echo ""
+                if [ ${#password} -ge 6 ]; then
+                    break
+                else
+                    print_error "Password must be at least 6 characters long"
+                fi
+            done
+            
+            # Create user creation script
+            cat > temp-create-user.js << EOF
+const { PrismaClient } = require('@prisma/client');
+const bcrypt = require('bcryptjs');
+
+async function createUser() {
+    const prisma = new PrismaClient();
+    
+    try {
+        // Hash the password
+        const hashedPassword = await bcrypt.hash('$password', 10);
+        
+        // Create the user
+        const user = await prisma.user.create({
+            data: {
+                name: '$fullname',
+                email: '$email',
+                username: '$username',
+                provider: 'email',
+                emailVerified: true,
+                secrets: {
+                    create: {
+                        password: hashedPassword
+                    }
+                }
+            },
+            include: {
+                secrets: true
+            }
+        });
+        
+        console.log('User created successfully with ID:', user.id);
+    } catch (error) {
+        console.error('Error creating user:', error);
+        process.exit(1);
+    } finally {
+        await prisma.\$disconnect();
+    }
+}
+
+createUser();
+EOF
+            
+            # Install bcryptjs if not already installed
+            print_info "Installing bcryptjs for password hashing..."
+            pnpm add bcryptjs
+            
+            # Run the user creation script
+            if node temp-create-user.js; then
+                rm -f temp-create-user.js
+                print_success "Initial user created successfully!"
+                echo ""
+                echo -e "${WHITE}You can now login with:${NC}"
+                echo -e "${GREEN}  Username: $username${NC}"
+                echo -e "${GREEN}  Email: $email${NC}"
+            else
+                rm -f temp-create-user.js
+                error_exit "Failed to create initial user"
+            fi
+        else
+            print_success "Found $USER_COUNT existing user(s) in database"
+        fi
+    else
+        rm -f temp-check-users.js
+        error_exit "Error checking users in database"
+    fi
+
+    # Step 6: Build Project (if not skipped)
     if [ "$SKIP_BUILD" = false ]; then
         print_step "Building project..."
         print_info "Building all applications and libraries..."
@@ -235,7 +372,7 @@ EOF
         print_warning "Build skipped (--skip-build flag used)"
     fi
 
-    # Step 6: Setup Complete
+    # Step 7: Setup Complete
     print_header "Setup Complete!"
     print_success "ReactiveResumeTracker is ready for development"
     

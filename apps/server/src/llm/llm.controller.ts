@@ -1,11 +1,11 @@
-import { Body, Controller, Get, Post } from "@nestjs/common";
+import { Body, Controller, Get, Post, UseGuards } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
+
+import { TwoFactorGuard } from "@/server/auth/guards/two-factor.guard";
+import { User } from "@/server/user/decorators/user.decorator";
 
 import { ChatMessage } from "./interfaces/llm-provider.interface";
 import { LLMService } from "./llm.service";
-
-// TODO: Re-enable authentication when adding back user management
-// import { TwoFactorGuard } from "@/server/auth/guards/two-factor.guard";
 
 // Types for request bodies
 type AnalyzeJobRequest = {
@@ -42,26 +42,25 @@ type ChatRequest = {
 
 @ApiTags("LLM")
 @Controller("llm")
-// TODO: Re-enable authentication when adding back user management
-// @UseGuards(TwoFactorGuard)
+@UseGuards(TwoFactorGuard)
 export class LLMController {
   constructor(private readonly llmService: LLMService) {}
 
   @Get("provider")
   @ApiOperation({ summary: "Get current LLM provider information" })
-  getProviderInfo() {
+  getProviderInfo(@User("id") userId: string) {
     return this.llmService.getProviderInfo();
   }
 
   @Post("analyze-job")
   @ApiOperation({ summary: "Analyze job posting and extract structured data" })
-  async analyzeJobPosting(@Body() body: AnalyzeJobRequest) {
+  async analyzeJobPosting(@User("id") userId: string, @Body() body: AnalyzeJobRequest) {
     return this.llmService.analyzeJobPosting(body.jobText);
   }
 
   @Post("match-content")
   @ApiOperation({ summary: "Match user content to job requirements" })
-  async matchContent(@Body() body: MatchContentRequest) {
+  async matchContent(@User("id") userId: string, @Body() body: MatchContentRequest) {
     return this.llmService.matchContentToJob(
       body.jobRequirements,
       body.userContent,
@@ -71,7 +70,7 @@ export class LLMController {
 
   @Post("generate-resume-summary")
   @ApiOperation({ summary: "Generate tailored resume summary" })
-  async generateResumeSummary(@Body() body: GenerateResumeSummaryRequest) {
+  async generateResumeSummary(@User("id") userId: string, @Body() body: GenerateResumeSummaryRequest) {
     return this.llmService.generateResumeSummary(
       body.jobDescription,
       body.selectedContent,
@@ -81,7 +80,7 @@ export class LLMController {
 
   @Post("generate-cover-letter")
   @ApiOperation({ summary: "Generate personalized cover letter" })
-  async generateCoverLetter(@Body() body: GenerateCoverLetterRequest) {
+  async generateCoverLetter(@User("id") userId: string, @Body() body: GenerateCoverLetterRequest) {
     return this.llmService.generateCoverLetter(
       body.jobDescription,
       body.company,
@@ -92,13 +91,13 @@ export class LLMController {
 
   @Post("generate-interview-questions")
   @ApiOperation({ summary: "Generate interview practice questions" })
-  async generateInterviewQuestions(@Body() body: GenerateInterviewQuestionsRequest) {
+  async generateInterviewQuestions(@User("id") userId: string, @Body() body: GenerateInterviewQuestionsRequest) {
     return this.llmService.generateInterviewQuestions(body.jobDescription, body.userContent);
   }
 
   @Post("chat")
   @ApiOperation({ summary: "General purpose chat interface" })
-  async chat(@Body() body: ChatRequest) {
+  async chat(@User("id") userId: string, @Body() body: ChatRequest) {
     return this.llmService.chat(body.messages);
   }
 }

@@ -9,3 +9,4 @@ export * from "./secrets";
 export * from "./statistics";
 export * from "./tag";
 export * from "./user";
+export * from "./user/user-llm-settings";

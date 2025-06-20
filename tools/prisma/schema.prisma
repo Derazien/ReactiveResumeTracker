@@ -68,6 +68,7 @@ model User {
   contentLibrary   ContentLibrary[]
   jobApplications  JobApplication[]
   tags             Tag[]
+  llmSettings      UserLLMSettings?
 }
 
 model Secrets {
@@ -82,6 +83,36 @@ model Secrets {
   userId               String   @unique
   user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@unique([userId, id])
+}
+
+model UserLLMSettings {
+  id          String       @id @default(cuid())
+  provider    LLMProvider  @default(OPENAI)
+  
+  // OpenAI Settings
+  openaiApiKey    String?
+  openaiModel     String?  @default("gpt-4-turbo-preview")
+  openaiBaseUrl   String?  // For custom OpenAI endpoints
+  
+  // Anthropic Settings
+  anthropicApiKey String?
+  anthropicModel  String?  @default("claude-3-5-sonnet-20241022")
+  
+  // Ollama/Local Settings
+  ollamaApiKey    String?  @default("sk-1234567890abcdef")
+  ollamaBaseUrl   String?  @default("http://localhost:11434/v1")
+  ollamaModel     String?  @default("llama3:8b")
+  
+  // Common Settings
+  maxTokens       Int      @default(4000)
+  temperature     Float    @default(0.1)
+  
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
   @@unique([userId, id])
 }
 

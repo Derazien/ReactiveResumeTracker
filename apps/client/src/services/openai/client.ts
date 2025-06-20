@@ -1,27 +1,27 @@
 import { t } from "@lingui/macro";
 import { OpenAI } from "openai";
 
-import { useOpenAiStore } from "@/client/stores/openai";
+import { useLLMStore } from "@/client/stores/llm";
 
 export const openai = () => {
-  const { apiKey, baseURL } = useOpenAiStore.getState();
+  const settings = useLLMStore.getState().getCurrentProviderSettings();
 
-  if (!apiKey) {
+  if (!settings || settings.apiKey === null) {
     throw new Error(
-      t`Your OpenAI API Key has not been set yet. Please go to your account settings to enable OpenAI Integration.`,
+      t`Your AI API Key has not been set yet. Please go to your account settings to configure AI Integration.`,
     );
   }
 
-  if (baseURL) {
+  if (settings.baseUrl) {
     return new OpenAI({
-      apiKey,
-      baseURL,
+      apiKey: settings.apiKey,
+      baseURL: settings.baseUrl,
       dangerouslyAllowBrowser: true,
     });
   }
 
   return new OpenAI({
-    apiKey,
+    apiKey: settings.apiKey,
     dangerouslyAllowBrowser: true,
   });
 };

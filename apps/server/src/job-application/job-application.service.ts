@@ -180,8 +180,8 @@ export class JobApplicationService {
   }> {
     this.logger.log(`Analyzing job posting for user ${userId}`);
 
-    // Step 1: Analyze the job posting with LLM
-    const analysisResult = await this.llmService.analyzeJobPosting(jobText);
+    // Step 1: Analyze the job posting with LLM using user's settings
+    const analysisResult = await this.llmService.analyzeJobPostingForUser(userId, jobText);
 
     if (!analysisResult.success) {
       throw new Error(`Job analysis failed: ${analysisResult.error}`);
@@ -205,8 +205,9 @@ export class JobApplicationService {
     // Step 3: Get user's content library
     const userContent = await this.contentLibraryService.findAll(userId);
 
-    // Step 4: Match content to job requirements
-    const contentMatches = await this.llmService.matchContentToJob(
+    // Step 4: Match content to job requirements using user's settings
+    const contentMatches = await this.llmService.matchContentToJobForUser(
+      userId,
       jobData.requirements,
       userContent,
       jobData.description,

@@ -148,7 +148,142 @@ if ($LASTEXITCODE -ne 0) {
 }
 Write-Host "Database schema synced successfully" -ForegroundColor Green
 
-# Step 5: Build Project
+# Step 5: Check for existing users and create initial user if needed
+Write-Host ""
+Write-Host "Checking for existing users..." -ForegroundColor Yellow
+
+# Create a temporary script to check for users
+$checkUsersScript = @"
+const { PrismaClient } = require('@prisma/client');
+
+async function checkUsers() {
+    const prisma = new PrismaClient();
+    
+    try {
+        const userCount = await prisma.user.count();
+        console.log(userCount);
+    } catch (error) {
+        console.error('Error checking users:', error);
+        process.exit(1);
+    } finally {
+        await prisma.`$disconnect();
+    }
+}
+
+checkUsers();
+"@
+
+Set-Content -Path "temp-check-users.js" -Value $checkUsersScript
+
+try {
+    $userCount = node temp-check-users.js
+    Remove-Item "temp-check-users.js" -Force
+    
+    if ($userCount -eq "0") {
+        Write-Host "No users found in database. Creating initial user..." -ForegroundColor Yellow
+        Write-Host ""
+        
+        # Prompt for user details
+        $username = Read-Host "Enter username for the initial user"
+        while ([string]::IsNullOrWhiteSpace($username)) {
+            Write-Host "Username cannot be empty" -ForegroundColor Red
+            $username = Read-Host "Enter username for the initial user"
+        }
+        
+        $email = Read-Host "Enter email for the initial user"
+        while ([string]::IsNullOrWhiteSpace($email) -or $email -notmatch "^[^@]+@[^@]+\.[^@]+$") {
+            Write-Host "Please enter a valid email address" -ForegroundColor Red
+            $email = Read-Host "Enter email for the initial user"
+        }
+        
+        $fullName = Read-Host "Enter full name for the initial user"
+        while ([string]::IsNullOrWhiteSpace($fullName)) {
+            Write-Host "Full name cannot be empty" -ForegroundColor Red
+            $fullName = Read-Host "Enter full name for the initial user"
+        }
+        
+        # Prompt for password securely
+        $password = Read-Host "Enter password for the initial user" -AsSecureString
+        $passwordText = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($password))
+        
+        while ([string]::IsNullOrWhiteSpace($passwordText) -or $passwordText.Length -lt 6) {
+            Write-Host "Password must be at least 6 characters long" -ForegroundColor Red
+            $password = Read-Host "Enter password for the initial user" -AsSecureString
+            $passwordText = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($password))
+        }
+        
+        # Create user creation script
+        $createUserScript = @"
+const { PrismaClient } = require('@prisma/client');
+const bcrypt = require('bcryptjs');
+
+async function createUser() {
+    const prisma = new PrismaClient();
+    
+    try {
+        // Hash the password
+        const hashedPassword = await bcrypt.hash('$passwordText', 10);
+        
+        // Create the user
+        const user = await prisma.user.create({
+            data: {
+                name: '$fullName',
+                email: '$email',
+                username: '$username',
+                provider: 'email',
+                emailVerified: true,
+                secrets: {
+                    create: {
+                        password: hashedPassword
+                    }
+                }
+            },
+            include: {
+                secrets: true
+            }
+        });
+        
+        console.log('User created successfully with ID:', user.id);
+    } catch (error) {
+        console.error('Error creating user:', error);
+        process.exit(1);
+    } finally {
+        await prisma.`$disconnect();
+    }
+}
+
+createUser();
+"@
+        
+        Set-Content -Path "temp-create-user.js" -Value $createUserScript
+        
+        # Install bcryptjs if not already installed
+        Write-Host "Installing bcryptjs for password hashing..." -ForegroundColor White
+        pnpm add bcryptjs
+        
+        # Run the user creation script
+        node temp-create-user.js
+        Remove-Item "temp-create-user.js" -Force
+        
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "Initial user created successfully!" -ForegroundColor Green
+            Write-Host "You can now login with:" -ForegroundColor White
+            Write-Host "  Username: $username" -ForegroundColor Green
+            Write-Host "  Email: $email" -ForegroundColor Green
+        } else {
+            Write-Host "Failed to create initial user" -ForegroundColor Red
+            exit 1
+        }
+    } else {
+        Write-Host "Found $userCount existing user(s) in database" -ForegroundColor Green
+    }
+} catch {
+    Write-Host "Error checking users: $($_.Exception.Message)" -ForegroundColor Red
+    Remove-Item "temp-check-users.js" -Force -ErrorAction SilentlyContinue
+    exit 1
+}
+
+# Step 6: Build Project
 if ($SkipBuild) {
     Write-Host ""
     Write-Host "Build skipped (-SkipBuild flag used)" -ForegroundColor Yellow
@@ -165,7 +300,7 @@ if ($SkipBuild) {
     Write-Host "Project built successfully" -ForegroundColor Green
 }
 
-# Step 6: Setup Complete
+# Step 7: Setup Complete
 Write-Host ""
 Write-Host "Setup Complete!" -ForegroundColor Cyan
 Write-Host "===============" -ForegroundColor Cyan

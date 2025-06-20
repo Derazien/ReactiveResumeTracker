@@ -7,6 +7,7 @@ import { helmetContext } from "../constants/helmet";
 import { queryClient } from "../libs/query-client";
 import { AuthRefreshProvider } from "./auth-refresh";
 import { DialogProvider } from "./dialog";
+import { LLMProvider } from "./llm";
 import { LocaleProvider } from "./locale";
 import { ThemeProvider } from "./theme";
 import { Toaster } from "./toaster";
@@ -16,15 +17,17 @@ export const Providers = () => (
     <HelmetProvider context={helmetContext}>
       <QueryClientProvider client={queryClient}>
         <AuthRefreshProvider>
-          <ThemeProvider>
-            <TooltipProvider>
-              <DialogProvider>
-                <Outlet />
+          <LLMProvider>
+            <ThemeProvider>
+              <TooltipProvider>
+                <DialogProvider>
+                  <Outlet />
 
-                <Toaster />
-              </DialogProvider>
-            </TooltipProvider>
-          </ThemeProvider>
+                  <Toaster />
+                </DialogProvider>
+              </TooltipProvider>
+            </ThemeProvider>
+          </LLMProvider>
         </AuthRefreshProvider>
       </QueryClientProvider>
     </HelmetProvider>

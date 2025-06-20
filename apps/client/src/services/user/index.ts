@@ -23,27 +23,22 @@ export const useUser = () => {
     queryKey: [USER_KEY],
     queryFn: fetchUser,
     enabled: !user, // Only fetch if user is not already set
-    retry: (failureCount, error: unknown) => {
-      // In development mode, try to auto-authenticate
-      if (import.meta.env.DEV && failureCount === 0) {
-        return true;
-      }
-      return false;
-    },
+    retry: false, // No automatic retry on auth failures
   });
 
-  // Auto-set user in development mode when data is fetched
-  if (import.meta.env.DEV && data && !user) {
+  // Set user when data is successfully fetched
+  if (data && !user) {
     setUser(data);
   }
 
   return { 
     user: user ?? data, 
     loading: loading && !user, 
-    error: import.meta.env.DEV ? null : error // Suppress errors in dev mode
+    error
   };
 };
 
 export * from "./delete-user";
 export * from "./update-user";
 export * from "./user";
+export * from "./llm-settings";
