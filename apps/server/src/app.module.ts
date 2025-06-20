@@ -8,14 +8,18 @@ import { ZodValidationPipe } from "nestjs-zod";
 
 import { AuthModule } from "./auth/auth.module";
 import { ConfigModule } from "./config/config.module";
+import { ContentLibraryModule } from "./content-library/content-library.module";
 import { ContributorsModule } from "./contributors/contributors.module";
 import { DatabaseModule } from "./database/database.module";
 import { FeatureModule } from "./feature/feature.module";
 import { HealthModule } from "./health/health.module";
+import { JobApplicationModule } from "./job-application/job-application.module";
+import { LLMModule } from "./llm/llm.module";
 import { MailModule } from "./mail/mail.module";
 import { PrinterModule } from "./printer/printer.module";
 import { ResumeModule } from "./resume/resume.module";
 import { StorageModule } from "./storage/storage.module";
+import { TagModule } from "./tag/tag.module";
 import { TranslationModule } from "./translation/translation.module";
 import { UserModule } from "./user/user.module";
 
@@ -32,6 +36,10 @@ import { UserModule } from "./user/user.module";
     AuthModule.register(),
     UserModule,
     ResumeModule,
+    JobApplicationModule,
+    ContentLibraryModule,
+    TagModule,
+    LLMModule,
     StorageModule,
     PrinterModule,
     FeatureModule,

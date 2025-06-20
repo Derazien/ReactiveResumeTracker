@@ -1,5 +1,10 @@
 import { t } from "@lingui/macro";
-import { FadersHorizontal, ReadCvLogo } from "@phosphor-icons/react";
+import {
+  Briefcase,
+  FadersHorizontal,
+  Database,
+  FileText,
+} from "@phosphor-icons/react";
 import { Button, KeyboardShortcut, Separator } from "@reactive-resume/ui";
 import { cn } from "@reactive-resume/utils";
 import { motion } from "framer-motion";
@@ -75,6 +80,16 @@ export const Sidebar = ({ setOpen }: SidebarProps) => {
     setOpen?.(false);
   });
 
+  useKeyboardShortcut(["shift", "j"], () => {
+    void navigate("/dashboard/job-applications");
+    setOpen?.(false);
+  });
+
+  useKeyboardShortcut(["shift", "c"], () => {
+    void navigate("/dashboard/content-library");
+    setOpen?.(false);
+  });
+
   useKeyboardShortcut(["shift", "s"], () => {
     void navigate("/dashboard/settings");
     setOpen?.(false);
@@ -85,7 +100,19 @@ export const Sidebar = ({ setOpen }: SidebarProps) => {
       path: "/dashboard/resumes",
       name: t`Resumes`,
       shortcut: "⇧R",
-      icon: <ReadCvLogo />,
+      icon: <FileText />,
+    },
+    {
+      path: "/dashboard/job-applications",
+      name: t`Job Applications`,
+      shortcut: "⇧J",
+      icon: <Briefcase />,
+    },
+    {
+      path: "/dashboard/content-library",
+      name: t`Content Library`,
+      shortcut: "⇧C",
+      icon: <Database />,
     },
     {
       path: "/dashboard/settings",

@@ -3,22 +3,6 @@
 # If these ports are changed, ensure that the env vars passed to the app are also changed accordingly.
 
 services:
-  # Database (Postgres)
-  postgres:
-    image: postgres:16-alpine
-    restart: unless-stopped
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    environment:
-      POSTGRES_DB: postgres
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   # Storage (for image uploads)
   minio:
     image: minio/minio:latest
@@ -51,7 +35,6 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - postgres
       - minio
       - chrome
     environment:
@@ -67,8 +50,8 @@ services:
       CHROME_TOKEN: chrome_token
       CHROME_URL: ws://chrome:3000
 
-      # -- Database (Postgres) --
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres
+      # -- Database (SQLite) --
+      DATABASE_URL: file:./dev.db
 
       # -- Auth --
       ACCESS_TOKEN_SECRET: access_token_secret
@@ -119,4 +102,4 @@ services:
 
 volumes:
   minio_data:
-  postgres_data:
+#  postgres_data: (removed)

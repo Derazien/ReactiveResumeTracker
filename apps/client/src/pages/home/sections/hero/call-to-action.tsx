@@ -8,7 +8,6 @@ import { useAuthStore } from "@/client/stores/auth";
 
 export const HeroCTA = () => {
   const { logout } = useLogout();
-
   const isLoggedIn = useAuthStore((state) => !!state.user);
 
   if (isLoggedIn) {

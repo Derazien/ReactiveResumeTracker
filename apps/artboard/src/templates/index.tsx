@@ -9,6 +9,7 @@ import { Glalie } from "./glalie";
 import { Kakuna } from "./kakuna";
 import { Leafish } from "./leafish";
 import { Nosepass } from "./nosepass";
+import { NovoResume } from "./novoresume";
 import { Onyx } from "./onyx";
 import { Pikachu } from "./pikachu";
 import { Rhyhorn } from "./rhyhorn";
@@ -41,6 +42,9 @@ export const getTemplate = (template: Template) => {
     }
     case "nosepass": {
       return Nosepass;
+    }
+    case "novoresume": {
+      return NovoResume;
     }
     case "onyx": {
       return Onyx;

@@ -10,6 +10,11 @@ import { VerifyEmailPage } from "../pages/auth/verify-email/page";
 import { VerifyOtpPage } from "../pages/auth/verify-otp/page";
 import { BuilderLayout } from "../pages/builder/layout";
 import { builderLoader, BuilderPage } from "../pages/builder/page";
+import ContentLibraryPage from "../pages/dashboard/content-library/page";
+import { JobApplicationDetailPage } from "../pages/dashboard/job-applications/[id]/page";
+import { JobApplicationEditPage } from "../pages/dashboard/job-applications/[id]/edit/page";
+import { NewJobApplicationPage } from "../pages/dashboard/job-applications/new/page";
+import { JobApplicationsPage } from "../pages/dashboard/job-applications/page";
 import { DashboardLayout } from "../pages/dashboard/layout";
 import { ResumesPage } from "../pages/dashboard/resumes/page";
 import { SettingsPage } from "../pages/dashboard/settings/page";
@@ -18,9 +23,9 @@ import { HomePage } from "../pages/home/page";
 import { ErrorPage } from "../pages/public/error";
 import { publicLoader, PublicResumePage } from "../pages/public/page";
 import { Providers } from "../providers";
+import { authLoader } from "./loaders/auth";
 import { AuthGuard } from "./guards/auth";
 import { GuestGuard } from "./guards/guest";
-import { authLoader } from "./loaders/auth";
 
 export const routes = createRoutesFromElements(
   <Route element={<Providers />}>
@@ -64,6 +69,11 @@ export const routes = createRoutesFromElements(
         <Route element={<AuthGuard />}>
           <Route element={<DashboardLayout />}>
             <Route path="resumes" element={<ResumesPage />} />
+            <Route path="job-applications" element={<JobApplicationsPage />} />
+            <Route path="job-applications/new" element={<NewJobApplicationPage />} />
+            <Route path="job-applications/:id" element={<JobApplicationDetailPage />} />
+            <Route path="job-applications/:id/edit" element={<JobApplicationEditPage />} />
+            <Route path="content-library" element={<ContentLibraryPage />} />
             <Route path="settings" element={<SettingsPage />} />
 
             <Route index element={<Navigate replace to="/dashboard/resumes" />} />

@@ -4,7 +4,6 @@ import {
   InternalServerErrorException,
   Logger,
 } from "@nestjs/common";
-import { Prisma } from "@prisma/client";
 import { CreateResumeDto, ImportResumeDto, ResumeDto, UpdateResumeDto } from "@reactive-resume/dto";
 import { defaultResumeData, ResumeData } from "@reactive-resume/schema";
 import type { DeepPartial } from "@reactive-resume/utils";
@@ -25,6 +24,14 @@ export class ResumeService {
     private readonly storageService: StorageService,
   ) {}
 
+  // Helper method to transform raw database resume to ResumeDto
+  private transformToResumeDto(resume: any): ResumeDto {
+    return {
+      ...resume,
+      data: typeof resume.data === 'string' ? JSON.parse(resume.data) : resume.data,
+    };
+  }
+
   async create(userId: string, createResumeDto: CreateResumeDto) {
     const { name, email, picture } = await this.prisma.user.findUniqueOrThrow({
       where: { id: userId },
@@ -37,7 +44,7 @@ export class ResumeService {
 
     return this.prisma.resume.create({
       data: {
-        data,
+        data: JSON.stringify(data),
         userId,
         title: createResumeDto.title,
         visibility: createResumeDto.visibility,
@@ -53,7 +60,7 @@ export class ResumeService {
       data: {
         userId,
         visibility: "private",
-        data: importResumeDto.data,
+        data: JSON.stringify(importResumeDto.data),
         title: importResumeDto.title ?? randomTitle,
         slug: importResumeDto.slug ?? slugify(randomTitle),
       },
@@ -64,12 +71,24 @@ export class ResumeService {
     return this.prisma.resume.findMany({ where: { userId }, orderBy: { updatedAt: "desc" } });
   }
 
+  // New method that returns properly transformed ResumeDto array
+  async findAllAsDto(userId: string): Promise<ResumeDto[]> {
+    const resumes = await this.findAll(userId);
+    return resumes.map(resume => this.transformToResumeDto(resume));
+  }
+
   findOne(id: string, userId?: string) {
     if (userId) {
       return this.prisma.resume.findUniqueOrThrow({ where: { userId_id: { userId, id } } });
     }
 
     return this.prisma.resume.findUniqueOrThrow({ where: { id } });
+  }
+
+  // New method that returns properly transformed ResumeDto
+  async findOneAsDto(id: string, userId?: string): Promise<ResumeDto> {
+    const resume = await this.findOne(id, userId);
+    return this.transformToResumeDto(resume);
   }
 
   async findOneStatistics(id: string) {
@@ -101,6 +120,12 @@ export class ResumeService {
     return resume;
   }
 
+  // New method that returns properly transformed ResumeDto
+  async findOneByUsernameSlugAsDto(username: string, slug: string, userId?: string): Promise<ResumeDto> {
+    const resume = await this.findOneByUsernameSlug(username, slug, userId);
+    return this.transformToResumeDto(resume);
+  }
+
   async update(userId: string, id: string, updateResumeDto: UpdateResumeDto) {
     try {
       const { locked } = await this.prisma.resume.findUniqueOrThrow({
@@ -115,7 +140,7 @@ export class ResumeService {
           title: updateResumeDto.title,
           slug: updateResumeDto.slug,
           visibility: updateResumeDto.visibility,
-          data: updateResumeDto.data as Prisma.JsonObject,
+          data: updateResumeDto.data ? JSON.stringify(updateResumeDto.data) : undefined,
         },
         where: { userId_id: { userId, id } },
       });

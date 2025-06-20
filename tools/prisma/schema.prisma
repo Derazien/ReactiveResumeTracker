@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -17,6 +17,38 @@ enum Provider {
 enum Visibility {
   public
   private
+}
+
+enum ContentType {
+  WORK_EXPERIENCE
+  PROJECT
+  TECHNICAL_SKILL
+  SOFT_SKILL
+  EDUCATION
+  CERTIFICATION
+  VOLUNTEER_EXPERIENCE
+  PUBLICATION
+  AWARD
+  LANGUAGE
+  INTEREST
+}
+
+enum ApplicationStatus {
+  DRAFT
+  APPLIED
+  INTERVIEW_SCHEDULED
+  INTERVIEWED
+  OFFER_RECEIVED
+  REJECTED
+  ACCEPTED
+  WITHDRAWN
+}
+
+enum LLMProvider {
+  OPENAI
+  ANTHROPIC
+  GOOGLE
+  OLLAMA
 }
 
 model User {
@@ -33,6 +65,9 @@ model User {
   provider         Provider
   secrets          Secrets?
   resumes          Resume[]
+  contentLibrary   ContentLibrary[]
+  jobApplications  JobApplication[]
+  tags             Tag[]
 }
 
 model Secrets {
@@ -41,7 +76,7 @@ model Secrets {
   lastSignedIn         DateTime @default(now())
   verificationToken    String?
   twoFactorSecret      String?
-  twoFactorBackupCodes String[] @default([])
+  twoFactorBackupCodes String   @default("[]")
   refreshToken         String?
   resetToken           String?  @unique
   userId               String   @unique
@@ -51,17 +86,19 @@ model Secrets {
 }
 
 model Resume {
-  id         String      @id @default(cuid())
-  title      String
-  slug       String
-  data       Json        @default("{}")
-  visibility Visibility  @default(private)
-  locked     Boolean     @default(false)
-  statistics Statistics?
-  userId     String
-  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  id              String          @id @default(cuid())
+  title           String
+  slug            String
+  data            String          @default("{}")
+  visibility      Visibility      @default(private)
+  locked          Boolean         @default(false)
+  statistics      Statistics?
+  userId          String
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobApplicationId String?
+  jobApplication  JobApplication? @relation(fields: [jobApplicationId], references: [id])
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 
   @@unique([userId, id])
   @@unique([userId, slug])
@@ -78,4 +115,115 @@ model Statistics {
   updatedAt DateTime @updatedAt
 
   @@unique([resumeId, id])
+}
+
+model ContentLibrary {
+  id          String        @id @default(cuid())
+  title       String
+  description String?
+  content     String        @default("{}")
+  type        ContentType
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tags        ContentTag[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  // Specific fields for different content types
+  company     String?       // For work experience
+  position    String?       // For work experience/education
+  startDate   DateTime?
+  endDate     DateTime?
+  location    String?
+  skills      String        @default("[]")
+  achievements String       @default("[]")
+  
+  @@index(fields: [userId, type])
+  @@index(fields: [userId, createdAt])
+}
+
+model Tag {
+  id        String       @id @default(cuid())
+  name      String
+  color     String?      // Hex color for UI
+  userId    String
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   ContentTag[]
+  createdAt DateTime     @default(now())
+  
+  @@unique([userId, name])
+  @@index(fields: [userId])
+}
+
+model ContentTag {
+  id        String         @id @default(cuid())
+  contentId String
+  tagId     String
+  content   ContentLibrary @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  tag       Tag            @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  
+  @@unique([contentId, tagId])
+}
+
+model JobApplication {
+  id                String            @id @default(cuid())
+  title             String            // Job title
+  company           String
+  description       String?           // Job description
+  requirements      String            @default("[]")
+  extractedTags     String            @default("[]")
+  url               String?           // Job posting URL
+  status            ApplicationStatus @default(DRAFT)
+  appliedDate       DateTime?
+  notes             String?
+  userId            String
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resumes           Resume[]
+  coverLetters      CoverLetter[]
+  interviews        Interview[]
+  generatedContent  GeneratedContent[]
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  
+  @@index(fields: [userId, status])
+  @@index(fields: [userId, createdAt])
+}
+
+model CoverLetter {
+  id               String         @id @default(cuid())
+  content          String
+  jobApplicationId String
+  jobApplication   JobApplication @relation(fields: [jobApplicationId], references: [id], onDelete: Cascade)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  
+  @@index(fields: [jobApplicationId])
+}
+
+model Interview {
+  id               String         @id @default(cuid())
+  type             String         // "voice", "text", "video"
+  content          String?        // Interview transcript/notes
+  audioUrl         String?        // URL to audio file if voice interview
+  insights         String?        // AI-generated insights
+  jobApplicationId String
+  jobApplication   JobApplication @relation(fields: [jobApplicationId], references: [id], onDelete: Cascade)
+  createdAt        DateTime       @default(now())
+  
+  @@index(fields: [jobApplicationId])
+}
+
+model GeneratedContent {
+  id               String         @id @default(cuid())
+  type             String         // "resume", "cover_letter"
+  prompt           String         // The prompt used for generation
+  response         String         // The generated content
+  llmProvider      LLMProvider    // Which LLM was used
+  model            String         // Specific model (e.g., "gpt-4", "claude-3")
+  contentIds       String         @default("[]")
+  jobApplicationId String
+  jobApplication   JobApplication @relation(fields: [jobApplicationId], references: [id], onDelete: Cascade)
+  createdAt        DateTime       @default(now())
+  
+  @@index(fields: [jobApplicationId])
 }
