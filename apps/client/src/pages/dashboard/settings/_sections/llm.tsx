@@ -4,6 +4,7 @@ import { FloppyDisk, TrashSimple, Check, X } from "@phosphor-icons/react";
 import {
   Alert,
   Button,
+  Checkbox,
   Form,
   FormControl,
   FormDescription,
@@ -27,6 +28,7 @@ import { useLLMSettings, useUpdateLLMSettings, useDeleteLLMSettings } from "@/cl
 
 const formSchema = z.object({
   provider: z.enum(["OPENAI", "ANTHROPIC", "OLLAMA"]).default("OPENAI"),
+  useSystemDefaultAsBackup: z.boolean().default(false),
   openaiApiKey: z.string().optional(),
   openaiModel: z.string().default("gpt-4-turbo-preview"),
   openaiBaseUrl: z.string().optional(),
@@ -51,6 +53,7 @@ export const LLMSettings = () => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       provider: "OPENAI",
+      useSystemDefaultAsBackup: false,
       openaiApiKey: "",
       openaiModel: "gpt-4-turbo-preview",
       openaiBaseUrl: "",
@@ -71,13 +74,14 @@ export const LLMSettings = () => {
     if (settings) {
       form.reset({
         provider: settings.provider,
-        openaiApiKey: settings.openaiApiKey || "",
+        useSystemDefaultAsBackup: settings.useSystemDefaultAsBackup ?? false,
+        openaiApiKey: settings.openaiApiKey ?? "",
         openaiModel: settings.openaiModel,
-        openaiBaseUrl: settings.openaiBaseUrl || "",
-        anthropicApiKey: settings.anthropicApiKey || "",
+        openaiBaseUrl: settings.openaiBaseUrl ?? "",
+        anthropicApiKey: settings.anthropicApiKey ?? "",
         anthropicModel: settings.anthropicModel,
-        ollamaApiKey: settings.ollamaApiKey || "sk-1234567890abcdef",
-        ollamaBaseUrl: settings.ollamaBaseUrl || "http://localhost:11434/v1",
+        ollamaApiKey: settings.ollamaApiKey ?? "sk-1234567890abcdef",
+        ollamaBaseUrl: settings.ollamaBaseUrl ?? "http://localhost:11434/v1",
         ollamaModel: settings.ollamaModel,
         maxTokens: settings.maxTokens,
         temperature: settings.temperature,
@@ -89,13 +93,14 @@ export const LLMSettings = () => {
     try {
       const updateData = {
         provider: data.provider,
-        openaiApiKey: data.openaiApiKey || null,
+        useSystemDefaultAsBackup: data.useSystemDefaultAsBackup,
+        openaiApiKey: data.openaiApiKey ?? null,
         openaiModel: data.openaiModel,
-        openaiBaseUrl: data.openaiBaseUrl || null,
-        anthropicApiKey: data.anthropicApiKey || null,
+        openaiBaseUrl: data.openaiBaseUrl ?? null,
+        anthropicApiKey: data.anthropicApiKey ?? null,
         anthropicModel: data.anthropicModel,
-        ollamaApiKey: data.ollamaApiKey || null,
-        ollamaBaseUrl: data.ollamaBaseUrl || null,
+        ollamaApiKey: data.ollamaApiKey ?? null,
+        ollamaBaseUrl: data.ollamaBaseUrl ?? null,
         ollamaModel: data.ollamaModel,
         maxTokens: data.maxTokens,
         temperature: data.temperature,
@@ -268,6 +273,30 @@ export const LLMSettings = () => {
               />
             </div>
           )}
+
+          {/* System Backup Option */}
+          <FormField
+            name="useSystemDefaultAsBackup"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel>
+                    {t`Use System Default as Backup`}
+                  </FormLabel>
+                  <p className="text-sm text-muted-foreground">
+                    {t`Automatically fall back to the system's configured AI provider if your personal API keys fail or are unavailable. System provider is determined by server configuration.`}
+                  </p>
+                </div>
+              </FormItem>
+            )}
+          />
 
           {/* Action Buttons */}
           <div className="flex items-center space-x-2">

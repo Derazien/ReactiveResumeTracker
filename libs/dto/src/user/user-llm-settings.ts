@@ -9,6 +9,9 @@ export const userLLMSettingsSchema = z.object({
   id: idSchema,
   provider: llmProviderSchema.default("OPENAI"),
   
+  // System Fallback Settings
+  useSystemDefaultAsBackup: z.boolean().default(false),
+  
   // OpenAI Settings
   openaiApiKey: z.string().nullable(),
   openaiModel: z.string().default("gpt-4-turbo-preview").nullable(),

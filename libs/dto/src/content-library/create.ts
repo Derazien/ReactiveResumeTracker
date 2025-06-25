@@ -17,6 +17,9 @@ export const createContentLibrarySchema = z.object({
     "AWARD",
     "LANGUAGE",
     "INTEREST",
+    "SUMMARY",
+    "CONTACT_INFO",
+    "REFERENCE",
   ]),
   company: z.string().optional(),
   position: z.string().optional(),
@@ -25,6 +28,17 @@ export const createContentLibrarySchema = z.object({
   location: z.string().optional(),
   skills: z.array(z.string()).default([]),
   achievements: z.array(z.string()).default([]),
+  // New fields for NovoResume compatibility
+  proficiencyLevel: z.number().min(0).max(100).optional(),
+  category: z.string().optional(),
+  issuer: z.string().optional(),
+  url: z.string().optional(),
+  contactPerson: z.string().optional(),
+  contactInfo: z.string().optional(),
+  isPresent: z.boolean().optional(),
+  courses: z.array(z.string()).default([]),
+  score: z.string().optional(),
+  keywords: z.array(z.string()).default([]),
   tagIds: z.array(z.string()).default([]), // Tags to associate
 });
 

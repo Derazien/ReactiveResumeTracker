@@ -32,6 +32,14 @@ type UserProfile = {
   metadata?: Record<string, unknown>;
 };
 
+// Retry configuration
+type RetryConfig = {
+  maxRetries: number;
+  baseDelay: number;
+  maxDelay: number;
+  backoffFactor: number;
+};
+
 @Injectable()
 export class AnthropicProvider implements LLMProvider {
   private readonly logger = new Logger(AnthropicProvider.name);
@@ -39,6 +47,14 @@ export class AnthropicProvider implements LLMProvider {
 
   readonly name = "anthropic";
   readonly model: string;
+
+  // Default retry configuration
+  private readonly retryConfig: RetryConfig = {
+    maxRetries: 5,
+    baseDelay: 1_000, // 1 second
+    maxDelay: 30_000, // 30 seconds
+    backoffFactor: 2,
+  };
 
   constructor() {
     this.client = new Anthropic({
@@ -52,41 +68,166 @@ export class AnthropicProvider implements LLMProvider {
     return text.replace(/^```(?:json)?\n/, '').replace(/\n```$/, '');
   }
 
+  /**
+   * Check if an error is retryable
+   */
+  private isRetryableError(error: unknown): boolean {
+    if (!error) return false;
+    
+    // Check for specific error types that should be retried
+    let errorMessage = '';
+    let errorCode: number | undefined;
+    
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    } else if (typeof error === 'string') {
+      errorMessage = error;
+    } else {
+      errorMessage = JSON.stringify(error);
+    }
+    
+    if (typeof error === 'object' && error !== null && !Array.isArray(error)) {
+      const errorObj = error as { status?: number; code?: number };
+      errorCode = errorObj.status ?? errorObj.code;
+    }
+    
+    // Retryable HTTP status codes
+    const retryableStatusCodes = [
+      429, // Too Many Requests
+      500, // Internal Server Error
+      502, // Bad Gateway
+      503, // Service Unavailable
+      504, // Gateway Timeout
+      529, // Overloaded (Anthropic specific)
+    ];
+    
+    // Check for status codes
+    if (errorCode && retryableStatusCodes.includes(errorCode)) {
+      return true;
+    }
+    
+    // Check for specific error messages
+    const retryableMessages = [
+      'overloaded',
+      'rate limit',
+      'timeout',
+      'connection',
+      'network',
+      'temporary',
+      'unavailable',
+    ];
+    
+    return retryableMessages.some(msg => 
+      errorMessage.toLowerCase().includes(msg.toLowerCase())
+    );
+  }
+
+  /**
+   * Calculate delay for exponential backoff with jitter
+   */
+  private calculateDelay(attempt: number): number {
+    const delay = Math.min(
+      this.retryConfig.baseDelay * Math.pow(this.retryConfig.backoffFactor, attempt),
+      this.retryConfig.maxDelay
+    );
+    
+    // Add jitter (random variation) to prevent thundering herd
+    const jitter = Math.random() * 0.3 * delay;
+    return Math.floor(delay + jitter);
+  }
+
+  /**
+   * Sleep for specified milliseconds
+   */
+  private sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Execute API call with retry logic
+   */
+  private async executeWithRetry<T>(
+    operation: () => Promise<T>,
+    operationName: string
+  ): Promise<T> {
+    let lastError: unknown;
+    
+    for (let attempt = 0; attempt <= this.retryConfig.maxRetries; attempt++) {
+      try {
+        if (attempt > 0) {
+          const delay = this.calculateDelay(attempt - 1);
+          this.logger.warn(
+            `${operationName} attempt ${attempt + 1}/${this.retryConfig.maxRetries + 1} after ${delay}ms delay`
+          );
+          await this.sleep(delay);
+        }
+        
+        return await operation();
+      } catch (error) {
+        lastError = error;
+        
+        if (attempt === this.retryConfig.maxRetries) {
+          this.logger.error(
+            `${operationName} failed after ${this.retryConfig.maxRetries + 1} attempts: ${error instanceof Error ? error.message : 'Unknown error'}`
+          );
+          break;
+        }
+        
+        if (!this.isRetryableError(error)) {
+          this.logger.error(
+            `${operationName} failed with non-retryable error: ${error instanceof Error ? error.message : 'Unknown error'}`
+          );
+          break;
+        }
+        
+        this.logger.warn(
+          `${operationName} attempt ${attempt + 1} failed (retryable): ${error instanceof Error ? error.message : 'Unknown error'}`
+        );
+      }
+    }
+    
+    throw lastError;
+  }
+
   async chat(messages: ChatMessage[], options?: ChatOptions): Promise<LLMResponse<string>> {
     try {
       this.logger.debug(`Sending chat request to Anthropic with ${messages.length} messages`);
       
-      // Separate system message from conversation messages
-      const systemMessage = messages.find((m) => m.role === "system");
-      const conversationMessages = messages.filter((m) => m.role !== "system");
+      const result = await this.executeWithRetry(async () => {
+        // Separate system message from conversation messages
+        const systemMessage = messages.find((m) => m.role === "system");
+        const conversationMessages = messages.filter((m) => m.role !== "system");
 
-      const response = await this.client.messages.create({
-        model: this.model,
-        max_tokens: options?.maxTokens ?? 1000,
-        temperature: options?.temperature ?? 0.7,
-        system: systemMessage?.content ?? "",
-        messages: conversationMessages.map((msg) => ({
-          role: msg.role as "user" | "assistant",
-          content: msg.content,
-        })),
-      });
+        const response = await this.client.messages.create({
+          model: this.model,
+          max_tokens: options?.maxTokens ?? 1000,
+          temperature: options?.temperature ?? 0.7,
+          system: systemMessage?.content ?? "",
+          messages: conversationMessages.map((msg) => ({
+            role: msg.role as "user" | "assistant",
+            content: msg.content,
+          })),
+        });
 
-      this.logger.debug(`Received response from Anthropic: ${JSON.stringify(response, null, 2)}`);
+        this.logger.debug(`Received response from Anthropic: ${JSON.stringify(response, null, 2)}`);
 
-      const content = response.content[0];
-      if (content.type !== "text") {
-        throw new Error("Unexpected response type from Anthropic API");
-      }
+        const content = response.content[0];
+        if (content.type !== "text") {
+          throw new Error("Unexpected response type from Anthropic API");
+        }
 
-      return {
-        success: true,
-        data: content.text,
-        usage: {
-          promptTokens: response.usage.input_tokens,
-          completionTokens: response.usage.output_tokens,
-          totalTokens: response.usage.input_tokens + response.usage.output_tokens,
-        },
-      };
+        return {
+          success: true,
+          data: content.text,
+          usage: {
+            promptTokens: response.usage.input_tokens,
+            completionTokens: response.usage.output_tokens,
+            totalTokens: response.usage.input_tokens + response.usage.output_tokens,
+          },
+        };
+      }, 'Anthropic Chat API');
+
+      return result;
     } catch (error) {
       this.logger.error(`Anthropic API error: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
       return {

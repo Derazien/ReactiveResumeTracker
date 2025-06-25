@@ -14,6 +14,7 @@ export const resumeSchema = z.object({
   locked: z.boolean().default(false),
   userId: idSchema,
   user: userSchema.optional(),
+  jobApplicationId: idSchema.nullable().optional(),
   createdAt: dateSchema,
   updatedAt: dateSchema,
 });

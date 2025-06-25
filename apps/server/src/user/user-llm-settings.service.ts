@@ -67,7 +67,7 @@ export class UserLLMSettingsService {
   }
 
   /**
-   * Get user's current LLM configuration or return default OpenAI settings
+   * Get user's current LLM configuration or return default settings
    */
   async getEffectiveSettings(userId: string) {
     const settings = await this.findByUserId(userId);
@@ -75,6 +75,7 @@ export class UserLLMSettingsService {
     if (!settings) {
       return {
         provider: "OPENAI" as const,
+        useSystemDefaultAsBackup: false,
         openaiApiKey: null,
         openaiModel: "gpt-4-turbo-preview",
         openaiBaseUrl: null,
@@ -97,15 +98,32 @@ export class UserLLMSettingsService {
   async hasValidConfiguration(userId: string): Promise<boolean> {
     const settings = await this.getEffectiveSettings(userId);
     
+    // Check if user has their own API keys
+    const hasUserKeys = this.hasUserApiKeys(settings);
+    
+    // User can use LLM if they have either:
+    // 1. Their own API keys, OR
+    // 2. System backup enabled (system environment keys available)
+    return hasUserKeys || settings.useSystemDefaultAsBackup;
+  }
+
+  /**
+   * Check if user has valid API keys for their selected provider
+   */
+  private hasUserApiKeys(settings: any): boolean {
     switch (settings.provider) {
-      case "OPENAI":
+      case "OPENAI": {
         return !!settings.openaiApiKey;
-      case "ANTHROPIC":
+      }
+      case "ANTHROPIC": {
         return !!settings.anthropicApiKey;
-      case "OLLAMA":
+      }
+      case "OLLAMA": {
         return !!settings.ollamaBaseUrl; // Ollama might not need API key
-      default:
+      }
+      default: {
         return false;
+      }
     }
   }
 } 

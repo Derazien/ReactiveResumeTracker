@@ -8,6 +8,9 @@ export type UserLLMSettings = {
   id?: string;
   provider: LLMProvider;
   
+  // System Fallback Settings
+  useSystemDefaultAsBackup: boolean;
+  
   // OpenAI Settings
   openaiApiKey: string | null;
   openaiModel: string;

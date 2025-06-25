@@ -1,6 +1,6 @@
-import type { ContentLibraryDto } from "@reactive-resume/dto";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { AxiosResponse } from "axios";
+import type { ContentLibraryDto } from "@reactive-resume/dto";
 
 import { JOB_APPLICATIONS_KEY } from "@/client/constants/query-keys";
 import { axios } from "@/client/libs/axios";
@@ -10,7 +10,18 @@ export type GenerateResumeRequest = {
 };
 
 export type GenerateResumeResponse = {
-  resumeSummary: string;
+  resume: {
+    id: string;
+    title: string;
+    slug: string;
+    data: string;
+    visibility: string;
+    locked: boolean;
+    userId: string;
+    jobApplicationId: string;
+    createdAt: string;
+    updatedAt: string;
+  };
   selectedContent: ContentLibraryDto[];
   suggestions: string[];
 };

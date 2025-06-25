@@ -112,11 +112,16 @@ export const JobApplicationDetailPage = () => {
       
       toast({
         title: t`CV Generated Successfully`,
-        description: t`A tailored CV has been generated with ${result.selectedContent.length} content pieces. You can now view and edit it.`,
+        description: t`A tailored CV has been created with ${result.selectedContent.length} relevant content pieces. Opening resume builder...`,
       });
 
-      // Refresh the job application data to show the new resume
-      window.location.reload();
+      // Show suggestions to the user
+      if (result.suggestions.length > 0) {
+        console.log('Resume generation suggestions:', result.suggestions);
+      }
+
+      // Navigate directly to the resume builder for editing
+      navigate(`/builder/${result.resume.id}`);
       
     } catch (error: any) {
       toast({

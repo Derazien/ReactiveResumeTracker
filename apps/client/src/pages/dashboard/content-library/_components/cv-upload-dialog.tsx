@@ -10,6 +10,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  Checkbox,
   Dialog,
   DialogContent,
   DialogDescription,
@@ -17,17 +18,12 @@ import {
   DialogTitle,
 } from "@reactive-resume/ui";
 
-type ExtractedContent = {
-  id: string;
-  type: string;
-  title: string;
-  description: string;
-  content: Record<string, unknown>;
-  skills: string[];
-  achievements: string[];
-  tags: string[];
-  confidence: number;
-};
+import { useToast } from "@/client/hooks/use-toast";
+import { 
+  useExtractCVContent, 
+  useSaveExtractedContent,
+  type ExtractedContent 
+} from "@/client/services/content-library/cv-extraction";
 
 type CVUploadDialogProps = {
   open: boolean;
@@ -35,164 +31,119 @@ type CVUploadDialogProps = {
 };
 
 export const CVUploadDialog = ({ open, onOpenChange }: CVUploadDialogProps) => {
+  const { toast } = useToast();
+  const extractMutation = useExtractCVContent();
+  const saveMutation = useSaveExtractedContent();
+  
   const [file, setFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [extracting, setExtracting] = useState(false);
   const [extractedContent, setExtractedContent] = useState<ExtractedContent[]>([]);
-  const [progress, setProgress] = useState(0);
-  const [error, setError] = useState<string | null>(null);
   const [stage, setStage] = useState<"upload" | "extract" | "review" | "complete">("upload");
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
     if (selectedFile) {
       setFile(selectedFile);
-      setError(null);
     }
   };
 
   const handleUploadAndExtract = async () => {
     if (!file) return;
 
-    setUploading(true);
-    setProgress(0);
-    setError(null);
-
+    setStage("extract");
+    
     try {
-      // Stage 1: Upload file
-      setStage("upload");
-      const formData = new FormData();
-      formData.append('cv', file);
+      const result = await extractMutation.mutateAsync(file);
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Content extraction failed');
+      }
 
-      setProgress(25);
+      // Add selection state - unique content selected by default, duplicates deselected
+      const contentWithSelection = result.data.map((item) => ({
+        ...item,
+        id: item.id || `temp-${Date.now()}-${Math.random()}`,
+        selected: !item.isDuplicate, // Select unique content by default
+      }));
 
-      // Stage 2: Extract content using LLM
-      setStage("extract");
-      setExtracting(true);
-      setProgress(50);
-
-      // For now, simulate LLM extraction with mock data
-      // In production, this would call the actual LLM service
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      const mockExtractedContent: ExtractedContent[] = [
-        {
-          id: '1',
-          type: 'WORK_EXPERIENCE',
-          title: t`Senior Software Engineer at TechCorp`,
-          description: t`Led development of scalable web applications`,
-          content: {
-            responsibilities: [
-              t`Developed React applications`,
-              t`Led team of 5 developers`,
-              t`Implemented CI/CD pipelines`
-            ],
-            technologies: ['React', 'Node.js', 'TypeScript', 'AWS']
-          },
-          skills: ['React', 'Node.js', 'TypeScript', 'Leadership'],
-          achievements: [t`40% performance improvement`, t`Led successful product launch`],
-          tags: ['frontend', 'leadership', 'senior-level', 'react'],
-          confidence: 0.95
-        },
-        {
-          id: '2',
-          type: 'PROJECT',
-          title: t`E-commerce Platform`,
-          description: t`Built full-stack e-commerce solution`,
-          content: {
-            features: [t`User authentication`, t`Payment processing`, t`Inventory management`],
-            technologies: ['React', 'Node.js', 'MongoDB', 'Stripe']
-          },
-          skills: ['React', 'Node.js', 'MongoDB', 'Payment Integration'],
-          achievements: [t`Handles 10K+ users`, t`99.9% uptime`],
-          tags: ['fullstack', 'ecommerce', 'mongodb', 'stripe'],
-          confidence: 0.88
-        },
-        {
-          id: '3',
-          type: 'TECHNICAL_SKILL',
-          title: t`JavaScript/TypeScript`,
-          description: t`Advanced proficiency in JavaScript and TypeScript`,
-          content: {
-            proficiencyLevel: 'Expert',
-            yearsOfExperience: 8,
-            projects: ['E-commerce Platform', 'Analytics Dashboard']
-          },
-          skills: ['JavaScript', 'TypeScript'],
-          achievements: [t`8+ years experience`, t`Expert level`],
-          tags: ['javascript', 'typescript', 'programming', 'expert'],
-          confidence: 0.92
-        }
-      ];
-
-      setExtractedContent(mockExtractedContent);
-      setProgress(100);
+      setExtractedContent(contentWithSelection);
       setStage("review");
 
     } catch (err) {
-      setError(err instanceof Error ? err.message : t`Failed to process CV`);
-    } finally {
-      setUploading(false);
-      setExtracting(false);
+      toast({
+        variant: "error",
+        title: t`CV Processing Failed`,
+        description: err instanceof Error ? err.message : t`Failed to process CV`,
+      });
+      setStage("upload");
     }
   };
 
+  const handleToggleSelection = (contentId: string) => {
+    setExtractedContent(prev => 
+      prev.map(item => 
+        item.id === contentId 
+          ? { ...item, selected: !item.selected }
+          : item
+      )
+    );
+  };
+
+  const handleSelectAll = () => {
+    setExtractedContent(prev => 
+      prev.map(item => ({ ...item, selected: true }))
+    );
+  };
+
+  const handleDeselectAll = () => {
+    setExtractedContent(prev => 
+      prev.map(item => ({ ...item, selected: false }))
+    );
+  };
+
+  const handleSelectUnique = () => {
+    setExtractedContent(prev => 
+      prev.map(item => ({ ...item, selected: !item.isDuplicate }))
+    );
+  };
+
   const handleSaveContent = async () => {
+    const selectedContent = extractedContent.filter(item => item.selected);
+    
+    if (selectedContent.length === 0) {
+      toast({
+        variant: "error",
+        title: t`No Content Selected`,
+        description: t`Please select at least one content item to save`,
+      });
+      return;
+    }
+
     try {
-      // Save all extracted content to the database
-      for (const content of extractedContent) {
-        const response = await fetch('/api/content-library', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            title: content.title,
-            description: content.description,
-            content: content.content,
-            type: content.type,
-            skills: content.skills,
-            achievements: content.achievements,
-          }),
-        });
+      const result = await saveMutation.mutateAsync(selectedContent);
 
-        if (!response.ok) {
-          throw new Error(t`Failed to save ${content.title}`);
-        }
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to save content');
       }
 
-      // Create tags
-      const allTags = [...new Set(extractedContent.flatMap(c => c.tags))];
-      for (const tagName of allTags) {
-        try {
-          await fetch('/api/tags', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              name: tagName,
-              color: '#3B82F6',
-            }),
-          });
-        } catch {
-          // Tag might already exist
-        }
-      }
+      toast({
+        variant: "success",
+        title: t`Content Saved Successfully`,
+        description: t`Saved ${result.data.saved} items to your content library`,
+      });
 
       setStage("complete");
     } catch (err) {
-      setError(err instanceof Error ? err.message : t`Failed to save content`);
+      toast({
+        variant: "error",
+        title: t`Save Failed`,
+        description: err instanceof Error ? err.message : t`Failed to save content`,
+      });
     }
   };
 
   const resetDialog = () => {
     setFile(null);
-    setUploading(false);
-    setExtracting(false);
     setExtractedContent([]);
-    setProgress(0);
-    setError(null);
     setStage("upload");
   };
 
@@ -211,6 +162,10 @@ export const CVUploadDialog = ({ open, onOpenChange }: CVUploadDialogProps) => {
     }
   };
 
+  const selectedCount = extractedContent.filter(item => item.selected).length;
+  const duplicateCount = extractedContent.filter(item => item.isDuplicate).length;
+  const uniqueCount = extractedContent.length - duplicateCount;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -225,33 +180,13 @@ export const CVUploadDialog = ({ open, onOpenChange }: CVUploadDialogProps) => {
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Progress Bar */}
-          {stage !== "upload" && (
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>{t`Progress`}</span>
-                <span>{progress}%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
-                  className="bg-primary h-2 rounded-full transition-all duration-300" 
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
+          {extractMutation.isError && (
+            <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-800 font-medium">{t`Error`}</p>
+              <p className="text-red-600 text-sm">{extractMutation.error?.message}</p>
             </div>
           )}
 
-          {/* Error Alert */}
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <div className="flex items-center gap-2">
-                <X className="h-4 w-4 text-red-600" />
-                <p className="text-red-800">{error}</p>
-              </div>
-            </div>
-          )}
-
-          {/* Stage Content */}
           <AnimatePresence mode="wait">
             {stage === "upload" && (
               <motion.div
@@ -276,7 +211,7 @@ export const CVUploadDialog = ({ open, onOpenChange }: CVUploadDialogProps) => {
                         {t`Click to upload your CV`}
                       </p>
                       <p className="text-sm text-gray-500">
-                        {t`Supports PDF, DOCX, DOC, and TXT files`}
+                        {t`Supports PDF, DOCX, DOC, and TXT files (up to 10MB)`}
                       </p>
                     </div>
                   </label>
@@ -311,17 +246,35 @@ export const CVUploadDialog = ({ open, onOpenChange }: CVUploadDialogProps) => {
                   </Button>
                   <Button
                     onClick={handleUploadAndExtract}
-                    disabled={!file || uploading}
+                    disabled={!file || extractMutation.isPending}
                     className="flex items-center gap-2"
                   >
                     <Sparkle className="h-4 w-4" />
-                    {uploading ? t`Processing...` : t`Extract Content`}
+                    {extractMutation.isPending ? t`Processing...` : t`Extract Content`}
                   </Button>
                 </div>
               </motion.div>
             )}
 
-            {(stage === "extract" || stage === "review") && extractedContent.length > 0 && (
+            {stage === "extract" && (
+              <motion.div
+                key="extract"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="text-center py-8"
+              >
+                <Sparkle className="h-16 w-16 text-primary mx-auto mb-4 animate-pulse" />
+                <h3 className="text-xl font-semibold mb-2">
+                  {t`AI is analyzing your CV...`}
+                </h3>
+                <p className="text-gray-600">
+                  {t`This may take a few moments while we extract and analyze your professional content.`}
+                </p>
+              </motion.div>
+            )}
+
+            {stage === "review" && (
               <motion.div
                 key="review"
                 initial={{ opacity: 0, y: 20 }}
@@ -335,52 +288,105 @@ export const CVUploadDialog = ({ open, onOpenChange }: CVUploadDialogProps) => {
                     {t`Extracted ${extractedContent.length} pieces of content`}
                   </h3>
                   <p className="text-gray-600">
-                    {t`Review the content below and save to your library`}
+                    {t`Found ${uniqueCount} unique items and ${duplicateCount} potential duplicates`}
                   </p>
+                </div>
+
+                {/* Selection Controls */}
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-4">
+                    <span className="text-sm font-medium">
+                      {t`Selected: ${selectedCount}/${extractedContent.length}`}
+                    </span>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="secondary" onClick={handleSelectAll}>
+                        {t`Select All`}
+                      </Button>
+                      <Button size="sm" variant="secondary" onClick={handleSelectUnique}>
+                        {t`Select Unique`}
+                      </Button>
+                      <Button size="sm" variant="secondary" onClick={handleDeselectAll}>
+                        {t`Deselect All`}
+                      </Button>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="grid gap-4 max-h-96 overflow-y-auto">
                   {extractedContent.map((content) => (
-                    <Card key={content.id} className="border-l-4 border-l-primary">
+                    <Card 
+                      key={content.id} 
+                      className={`border-l-4 ${
+                        content.isDuplicate 
+                          ? 'border-l-orange-500 bg-orange-50/50' 
+                          : 'border-l-primary'
+                      } ${
+                        content.selected ? 'ring-2 ring-primary/20' : ''
+                      }`}
+                    >
                       <CardHeader className="pb-3">
                         <div className="flex items-start justify-between">
-                          <div>
-                            <CardTitle className="text-base">{content.title}</CardTitle>
-                            <p className="text-sm text-gray-600 mt-1">
-                              {content.description}
-                            </p>
+                          <div className="flex items-start gap-3 flex-1">
+                            <Checkbox
+                              checked={content.selected}
+                              onCheckedChange={() => handleToggleSelection(content.id!)}
+                              className="mt-1"
+                            />
+                            <div className="flex-1">
+                              <CardTitle className="text-base">{content.title}</CardTitle>
+                              <p className="text-sm text-gray-600 mt-1">
+                                {content.description}
+                              </p>
+                              {content.company && (
+                                <p className="text-sm text-gray-500 mt-1">
+                                  {content.company} {content.location && `• ${content.location}`}
+                                </p>
+                              )}
+                            </div>
                           </div>
                           <div className="flex items-center gap-2">
                             <Badge variant="secondary">{content.type.replace('_', ' ')}</Badge>
                             <Badge variant={content.confidence > 0.9 ? "primary" : "secondary"}>
                               {Math.round(content.confidence * 100)}% {t`confidence`}
                             </Badge>
+                            {content.isDuplicate && (
+                              <Badge variant="warning" className="text-orange-600">
+                                {t`Potential Duplicate`}
+                              </Badge>
+                            )}
                           </div>
                         </div>
                       </CardHeader>
-                      <CardContent className="space-y-3">
-                        {/* Skills */}
-                        <div>
-                          <p className="text-sm font-medium mb-2">{t`Skills:`}</p>
-                          <div className="flex flex-wrap gap-1">
-                            {content.skills.map((skill, idx) => (
-                              <Badge key={idx} variant="secondary" className="text-xs">
-                                {skill}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Tags */}
-                        <div>
-                          <p className="text-sm font-medium mb-2">{t`AI-Generated Tags:`}</p>
-                          <div className="flex flex-wrap gap-1">
-                            {content.tags.map((tag, idx) => (
-                              <Badge key={idx} variant="secondary" className="text-xs">
-                                #{tag}
-                              </Badge>
-                            ))}
-                          </div>
+                      <CardContent className="pt-0">
+                        <div className="space-y-2">
+                          {content.skills.length > 0 && (
+                            <div>
+                              <p className="text-sm font-medium text-gray-700 mb-1">{t`Skills:`}</p>
+                              <div className="flex flex-wrap gap-1">
+                                {content.skills.slice(0, 5).map((skill, index) => (
+                                  <Badge key={index} variant="secondary" className="text-xs">
+                                    {skill}
+                                  </Badge>
+                                ))}
+                                {content.skills.length > 5 && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    +{content.skills.length - 5} more
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {content.isDuplicate && content.reason && (
+                            <div className="p-2 bg-orange-100 rounded text-sm text-orange-800">
+                              <strong>{t`Similarity:`}</strong> {content.reason}
+                              {content.similarTo && (
+                                <span className="block text-xs mt-1">
+                                  {t`Similar to: ${content.similarTo}`}
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
@@ -388,12 +394,16 @@ export const CVUploadDialog = ({ open, onOpenChange }: CVUploadDialogProps) => {
                 </div>
 
                 <div className="flex justify-end gap-2">
-                  <Button variant="secondary" onClick={resetDialog}>
-                    {t`Start Over`}
+                  <Button variant="secondary" onClick={handleClose}>
+                    {t`Cancel`}
                   </Button>
-                  <Button onClick={handleSaveContent} className="flex items-center gap-2">
+                  <Button
+                    onClick={handleSaveContent}
+                    disabled={selectedCount === 0 || saveMutation.isPending}
+                    className="flex items-center gap-2"
+                  >
                     <CheckCircle className="h-4 w-4" />
-                    {t`Save to Library`}
+                    {saveMutation.isPending ? t`Saving...` : t`Save ${selectedCount} Selected Items`}
                   </Button>
                 </div>
               </motion.div>
