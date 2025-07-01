@@ -179,6 +179,8 @@ try {
     $userCount = node temp-check-users.js
     Remove-Item "temp-check-users.js" -Force
     
+    $shouldImportContent = $false
+    
     if ($userCount -eq "0") {
         Write-Host "No users found in database. Creating initial user..." -ForegroundColor Yellow
         Write-Host ""
@@ -270,6 +272,7 @@ createUser();
             Write-Host "You can now login with:" -ForegroundColor White
             Write-Host "  Username: $username" -ForegroundColor Green
             Write-Host "  Email: $email" -ForegroundColor Green
+            $shouldImportContent = $true
         } else {
             Write-Host "Failed to create initial user" -ForegroundColor Red
             exit 1
@@ -277,6 +280,57 @@ createUser();
     } else {
         Write-Host "Found $userCount existing user(s) in database" -ForegroundColor Green
     }
+    
+    # Import content if we created a new user or if no content exists
+    Write-Host ""
+    Write-Host "Checking for existing content..." -ForegroundColor Yellow
+    
+    $checkContentScript = @"
+const { PrismaClient } = require('@prisma/client');
+
+async function checkContent() {
+    const prisma = new PrismaClient();
+    
+    try {
+        const contentCount = await prisma.content.count();
+        console.log(contentCount);
+    } catch (error) {
+        console.error('Error checking content:', error);
+        process.exit(1);
+    } finally {
+        await prisma.`$disconnect();
+    }
+}
+
+checkContent();
+"@
+    
+    Set-Content -Path "temp-check-content.js" -Value $checkContentScript
+    $contentCount = node temp-check-content.js
+    Remove-Item "temp-check-content.js" -Force
+    
+    if ($shouldImportContent -or $contentCount -eq "0") {
+        Write-Host "Importing sample content library..." -ForegroundColor Yellow
+        
+        # Check if the sample content file exists
+        if (Test-Path "extracted_fullstack.json") {
+            Write-Host "Found sample content file. Importing..." -ForegroundColor White
+            node tools/db-scripts/import-content.js
+            
+            if ($LASTEXITCODE -eq 0) {
+                Write-Host "Sample content imported successfully!" -ForegroundColor Green
+            } else {
+                Write-Host "Warning: Content import failed, but continuing..." -ForegroundColor Yellow
+            }
+        } else {
+            Write-Host "No sample content file found (extracted_fullstack.json)" -ForegroundColor Yellow
+            Write-Host "You can manually import content later using:" -ForegroundColor White
+            Write-Host "  node tools/db-scripts/import-content.js" -ForegroundColor Green
+        }
+    } else {
+        Write-Host "Found $contentCount existing content items" -ForegroundColor Green
+    }
+    
 } catch {
     Write-Host "Error checking users: $($_.Exception.Message)" -ForegroundColor Red
     Remove-Item "temp-check-users.js" -Force -ErrorAction SilentlyContinue
@@ -319,30 +373,48 @@ if ($OnlySetup) {
     Write-Host ""
     Write-Host "Starting development servers..." -ForegroundColor Yellow
     Write-Host ""
-    Write-Host "The application will be available at:" -ForegroundColor White
+    Write-Host "🌐 APPLICATION URLS:" -ForegroundColor Cyan
     Write-Host "   Frontend (Client): http://localhost:5173" -ForegroundColor Green
     Write-Host "   Backend (Server): http://localhost:3000" -ForegroundColor Green  
     Write-Host "   Artboard (PDF): http://localhost:5174" -ForegroundColor Green
     Write-Host ""
-    Write-Host "LLM Integration Features:" -ForegroundColor White
-    Write-Host "   Job posting analysis from URLs" -ForegroundColor Green
-    Write-Host "   AI-powered resume generation" -ForegroundColor Green
-    Write-Host "   Smart content matching" -ForegroundColor Green
-    Write-Host "   Interview question generation" -ForegroundColor Green
+    Write-Host "🤖 AI/LLM INTEGRATION FEATURES:" -ForegroundColor Cyan
+    Write-Host "   ✅ Job posting analysis from URLs" -ForegroundColor Green
+    Write-Host "   ✅ AI-powered resume generation" -ForegroundColor Green
+    Write-Host "   ✅ Smart content matching" -ForegroundColor Green
+    Write-Host "   ✅ Interview question generation" -ForegroundColor Green
     Write-Host ""
-    Write-Host "Configuration Notes:" -ForegroundColor White
-    Write-Host "   Set LLM_PROVIDER in .env (anthropic/openai/local)" -ForegroundColor White
-    Write-Host "   Configure API keys for your chosen provider" -ForegroundColor White
-    Write-Host "   Update DATABASE_URL for production use" -ForegroundColor White
+    Write-Host "📊 CONTENT LIBRARY:" -ForegroundColor Cyan
+    if ($contentCount -gt "0") {
+        Write-Host "   ✅ $contentCount content items available" -ForegroundColor Green
+        Write-Host "   ✅ Visit http://localhost:5173/dashboard/content-library to view" -ForegroundColor Green
+    } else {
+        Write-Host "   ℹ️  No content items found" -ForegroundColor Yellow
+        Write-Host "   💡 Import content using: node tools/db-scripts/import-content.js" -ForegroundColor White
+    }
     Write-Host ""
-    Write-Host "Data Import:" -ForegroundColor White
-    Write-Host "   Your resume content is already imported!" -ForegroundColor Green
-    Write-Host "   Visit http://localhost:5173/dashboard/content-library to view" -ForegroundColor Green
+    Write-Host "⚙️  CONFIGURATION NOTES:" -ForegroundColor Cyan
+    Write-Host "   Database: apps/server/prisma/dev.db" -ForegroundColor White
+    Write-Host "   Environment: .env (project root)" -ForegroundColor White
+    Write-Host "   LLM Provider: Check .env file for current setting" -ForegroundColor White
     Write-Host ""
-    Write-Host "Press Ctrl+C to stop all servers" -ForegroundColor Yellow
+    Write-Host "🚀 GETTING STARTED:" -ForegroundColor Cyan
+    Write-Host "   1. Wait for all servers to start" -ForegroundColor White
+    Write-Host "   2. Open http://localhost:5173 in your browser" -ForegroundColor White
+    Write-Host "   3. Login with your credentials" -ForegroundColor White
+    Write-Host "   4. Create a new resume or explore the content library" -ForegroundColor White
     Write-Host ""
-    Write-Host "Starting development servers..." -ForegroundColor White
+    Write-Host "⚠️  IMPORTANT:" -ForegroundColor Yellow
+    Write-Host "   • Press Ctrl+C to stop all servers" -ForegroundColor White
+    Write-Host "   • All data is saved locally in the SQLite database" -ForegroundColor White
+    Write-Host "   • Configure LLM API keys in .env for AI features" -ForegroundColor White
+    Write-Host ""
+    Write-Host "Starting all development servers..." -ForegroundColor White
+    Write-Host "This will start:" -ForegroundColor White
+    Write-Host "  • Client (React frontend)" -ForegroundColor Green
+    Write-Host "  • Server (NestJS backend)" -ForegroundColor Green
+    Write-Host "  • Artboard (PDF generation)" -ForegroundColor Green
+    Write-Host ""
     
     # Start development servers
     pnpm dev
-} 

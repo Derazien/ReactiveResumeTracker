@@ -31,14 +31,14 @@ export const useUser = () => {
     setUser(data);
   }
 
-  return { 
-    user: user ?? data, 
-    loading: loading && !user, 
-    error
+  return {
+    user: user ?? data,
+    loading: loading && !user,
+    error,
   };
 };
 
 export * from "./delete-user";
+export * from "./llm-settings";
 export * from "./update-user";
 export * from "./user";
-export * from "./llm-settings";

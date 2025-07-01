@@ -158,7 +158,7 @@ if (-not (Test-Path ".env")) {
         
         $envContent = @"
 # Database
-DATABASE_URL="file:./dev.db"
+DATABASE_URL="file:../apps/server/prisma/dev.db"
 
 # Security
 ACCESS_TOKEN_SECRET="your-secret-key-here"
@@ -222,7 +222,7 @@ if (-not $SkipPrismaGenerate) {
 # Handle database setup
 Write-Host "[STEP] Setting up database..." -ForegroundColor Yellow
 
-if ($ResetDatabase -or (Test-Path "tools/prisma/dev.db")) {
+if ($ResetDatabase -or (Test-Path "../apps/server/prisma/dev.db")) {
     if ($ResetDatabase) {
         Write-Host "[INFO] Resetting database as requested..." -ForegroundColor Yellow
     } else {

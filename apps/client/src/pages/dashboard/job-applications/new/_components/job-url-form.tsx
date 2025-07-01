@@ -1,6 +1,3 @@
-import { useState } from "react";
-import { useNavigate } from "react-router";
-
 import { t } from "@lingui/macro";
 import { Link, MagnifyingGlass, Sparkle } from "@phosphor-icons/react";
 import {
@@ -13,16 +10,22 @@ import {
   Label,
   RichInput,
 } from "@reactive-resume/ui";
+import { useState } from "react";
+import { useNavigate } from "react-router";
 
 import { useToast } from "@/client/hooks/use-toast";
-import { useAnalyzeJobPosting, useCreateFromAnalysis, JobAnalysisResult } from "@/client/services/job-application/analyze-job";
+import type { JobAnalysisResult } from "@/client/services/job-application/analyze-job";
+import {
+  useAnalyzeJobPosting,
+  useCreateFromAnalysis,
+} from "@/client/services/job-application/analyze-job";
 
 export const JobUrlForm = () => {
   const [url, setUrl] = useState("");
   const [extractedData, setExtractedData] = useState<JobAnalysisResult | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
-  
+
   const { analyzeJobPosting, loading: isAnalyzing } = useAnalyzeJobPosting();
   const { createFromAnalysis, loading: isCreating } = useCreateFromAnalysis();
 
@@ -31,13 +34,13 @@ export const JobUrlForm = () => {
 
     try {
       const result = await analyzeJobPosting({ jobText: url });
-      
+
       setExtractedData(result.analysisResult);
-        toast({
+      toast({
         title: t`Success`,
         description: t`Job posting analyzed successfully`,
-        });
-    } catch (error) {
+      });
+    } catch {
       toast({
         variant: "error",
         title: t`Error`,
@@ -83,20 +86,18 @@ export const JobUrlForm = () => {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="url">{t`Job Posting URL`}</Label>
-              <Input
-                id="url"
+            <Input
+              id="url"
               type="url"
               placeholder="https://company.com/jobs/position"
-                value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              />
+              value={url}
+              onChange={(e) => {
+                setUrl(e.target.value);
+              }}
+            />
           </div>
 
-          <Button 
-            onClick={handleAnalyze} 
-            disabled={!url.trim() || isAnalyzing}
-            className="w-full"
-          >
+          <Button disabled={!url.trim() || isAnalyzing} className="w-full" onClick={handleAnalyze}>
             <MagnifyingGlass size={16} className="mr-2" />
             {isAnalyzing ? t`Analyzing...` : t`Analyze Job Posting`}
           </Button>
@@ -115,37 +116,39 @@ export const JobUrlForm = () => {
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label>{t`Job Title`}</Label>
-                <div className="p-2 bg-muted rounded">{extractedData.title}</div>
+                <div className="bg-muted rounded p-2">{extractedData.title}</div>
               </div>
               <div className="space-y-2">
                 <Label>{t`Company`}</Label>
-                <div className="p-2 bg-muted rounded">{extractedData.company}</div>
+                <div className="bg-muted rounded p-2">{extractedData.company}</div>
               </div>
             </div>
 
             {extractedData.location && (
               <div className="space-y-2">
-              <Label>{t`Location`}</Label>
-                <div className="p-2 bg-muted rounded">{extractedData.location}</div>
-            </div>
+                <Label>{t`Location`}</Label>
+                <div className="bg-muted rounded p-2">{extractedData.location}</div>
+              </div>
             )}
 
             <div className="space-y-2">
               <Label>{t`Job Description`}</Label>
               <RichInput
                 content={extractedData.description}
-                onChange={() => {}} // Read-only
                 className="min-h-32"
+                onChange={() => {}} // Read-only
               />
             </div>
 
             {extractedData.requirements.length > 0 && (
               <div className="space-y-2">
-              <Label>{t`Requirements`}</Label>
-                <ul className="list-disc list-inside space-y-1 p-2 bg-muted rounded">
+                <Label>{t`Requirements`}</Label>
+                <ul className="bg-muted list-inside list-disc space-y-1 rounded p-2">
                   {extractedData.requirements.map((req, index) => (
-                    <li key={index} className="text-sm">{req}</li>
-                ))}
+                    <li key={index} className="text-sm">
+                      {req}
+                    </li>
+                  ))}
                 </ul>
               </div>
             )}
@@ -155,22 +158,21 @@ export const JobUrlForm = () => {
                 <Label>{t`Key Skills & Tags`}</Label>
                 <div className="flex flex-wrap gap-2">
                   {extractedData.extractedTags.map((tag, index) => (
-                    <span key={index} className="px-2 py-1 bg-primary/10 text-primary rounded-full text-xs">
-                    {tag}
+                    <span
+                      key={index}
+                      className="rounded-full bg-primary/10 px-2 py-1 text-xs text-primary"
+                    >
+                      {tag}
                     </span>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
             )}
 
-              <Button
-              onClick={handleCreateApplication}
-                disabled={isCreating}
-              className="w-full"
-            >
+            <Button disabled={isCreating} className="w-full" onClick={handleCreateApplication}>
               <Sparkle size={16} className="mr-2" />
               {isCreating ? t`Creating Application...` : t`Create Job Application`}
-              </Button>
+            </Button>
           </CardContent>
         </Card>
       )}

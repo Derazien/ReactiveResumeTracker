@@ -55,7 +55,9 @@ export class JobApplicationController {
 
   @Post("analyze")
   @ApiOperation({ summary: "Analyze job posting text using LLM - NO creation" })
-  async analyzeJobPosting(@Body() body: { jobText: string; url?: string }): Promise<{ analysisResult: JobAnalysisResult }> {
+  async analyzeJobPosting(
+    @Body() body: { jobText: string; url?: string },
+  ): Promise<{ analysisResult: JobAnalysisResult }> {
     return this.jobApplicationService.analyzeJobPosting(body.jobText, body.url);
   }
 
@@ -63,13 +65,15 @@ export class JobApplicationController {
   @ApiOperation({ summary: "Create job application from previously analyzed data" })
   async createFromAnalysis(
     @User("id") userId: string,
-    @Body() body: { analysisData: JobAnalysisResult; url?: string }
+    @Body() body: { analysisData: JobAnalysisResult; url?: string },
   ): Promise<JobApplication> {
     return this.jobApplicationService.createFromAnalysis(userId, body.analysisData, body.url);
   }
 
   @Post(":id/generate-resume")
-  @ApiOperation({ summary: "Generate tailored resume for job application - includes content matching" })
+  @ApiOperation({
+    summary: "Generate tailored resume for job application - includes content matching",
+  })
   async generateTailoredResume(
     @User("id") userId: string,
     @Param("id") id: string,

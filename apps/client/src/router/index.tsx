@@ -11,8 +11,8 @@ import { VerifyOtpPage } from "../pages/auth/verify-otp/page";
 import { BuilderLayout } from "../pages/builder/layout";
 import { builderLoader, BuilderPage } from "../pages/builder/page";
 import ContentLibraryPage from "../pages/dashboard/content-library/page";
-import { JobApplicationDetailPage } from "../pages/dashboard/job-applications/[id]/page";
 import { JobApplicationEditPage } from "../pages/dashboard/job-applications/[id]/edit/page";
+import { JobApplicationDetailPage } from "../pages/dashboard/job-applications/[id]/page";
 import { NewJobApplicationPage } from "../pages/dashboard/job-applications/new/page";
 import { JobApplicationsPage } from "../pages/dashboard/job-applications/page";
 import { DashboardLayout } from "../pages/dashboard/layout";
@@ -23,9 +23,9 @@ import { HomePage } from "../pages/home/page";
 import { ErrorPage } from "../pages/public/error";
 import { publicLoader, PublicResumePage } from "../pages/public/page";
 import { Providers } from "../providers";
-import { authLoader } from "./loaders/auth";
 import { AuthGuard } from "./guards/auth";
 import { GuestGuard } from "./guards/guest";
+import { authLoader } from "./loaders/auth";
 
 export const routes = createRoutesFromElements(
   <Route element={<Providers />}>

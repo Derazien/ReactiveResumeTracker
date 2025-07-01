@@ -3,6 +3,8 @@ import { ScrollArea, Separator } from "@reactive-resume/ui";
 import { motion } from "framer-motion";
 import { Helmet } from "react-helmet-async";
 
+import { Copyright } from "@/client/components/copyright";
+
 import { AccountSettings } from "./_sections/account";
 import { DangerZoneSettings } from "./_sections/danger";
 import { LLMSettings } from "./_sections/llm";
@@ -37,6 +39,11 @@ export const SettingsPage = () => (
           <LLMSettings />
           <Separator />
           <DangerZoneSettings />
+
+          {/* Hidden copyright section - only visible when scrolled to bottom */}
+          <div className="pt-8 opacity-30 transition-opacity hover:opacity-70">
+            <Copyright />
+          </div>
         </div>
       </ScrollArea>
     </div>

@@ -28,18 +28,18 @@ const Header = () => {
   const basics = useArtboardStore((state) => state.resume.basics);
 
   return (
-    <div className="relative bg-gradient-to-r from-slate-50 to-slate-100 p-6 rounded-lg mb-6">
+    <div className="relative mb-6 rounded-lg bg-gradient-to-r from-slate-50 to-slate-100 p-6">
       {/* Subtle background pattern */}
       <div className="absolute inset-0 opacity-5">
-        <div className="h-full w-full bg-[radial-gradient(circle_at_1px_1px,_rgb(0_0_0)_1px,_transparent_0)] bg-[length:20px_20px]"></div>
+        <div className="size-full bg-[radial-gradient(circle_at_1px_1px,_rgb(0_0_0)_1px,_transparent_0)] bg-[length:20px_20px]"></div>
       </div>
-      
+
       <div className="relative flex items-center space-x-6">
         <Picture className="rounded-full border-4 border-white shadow-lg" />
 
         <div className="space-y-2">
           <div className="text-3xl font-bold text-slate-800">{basics.name}</div>
-          <div className="text-lg text-slate-600 font-medium">{basics.headline}</div>
+          <div className="text-lg font-medium text-slate-600">{basics.headline}</div>
 
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
             {basics.location && (
@@ -51,7 +51,12 @@ const Header = () => {
             {basics.phone && (
               <div className="flex items-center gap-x-2">
                 <i className="ph ph-bold ph-phone text-blue-600" />
-                <a href={`tel:${basics.phone}`} target="_blank" rel="noreferrer" className="text-slate-700 hover:text-blue-600">
+                <a
+                  href={`tel:${basics.phone}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-slate-700 hover:text-blue-600"
+                >
                   {basics.phone}
                 </a>
               </div>
@@ -59,7 +64,12 @@ const Header = () => {
             {basics.email && (
               <div className="flex items-center gap-x-2">
                 <i className="ph ph-bold ph-at text-blue-600" />
-                <a href={`mailto:${basics.email}`} target="_blank" rel="noreferrer" className="text-slate-700 hover:text-blue-600">
+                <a
+                  href={`mailto:${basics.email}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-slate-700 hover:text-blue-600"
+                >
                   {basics.email}
                 </a>
               </div>
@@ -69,11 +79,18 @@ const Header = () => {
               <div key={item.id} className="flex items-center gap-x-2">
                 <i className={cn(`ph ph-bold ph-${item.icon}`, "text-blue-600")} />
                 {isUrl(item.value) ? (
-                  <a href={item.value} target="_blank" rel="noreferrer noopener nofollow" className="text-slate-700 hover:text-blue-600">
+                  <a
+                    href={item.value}
+                    target="_blank"
+                    rel="noreferrer noopener nofollow"
+                    className="text-slate-700 hover:text-blue-600"
+                  >
                     {item.name || item.value}
                   </a>
                 ) : (
-                  <span className="text-slate-700">{[item.name, item.value].filter(Boolean).join(": ")}</span>
+                  <span className="text-slate-700">
+                    {[item.name, item.value].filter(Boolean).join(": ")}
+                  </span>
                 )}
               </div>
             ))}
@@ -91,14 +108,14 @@ const Summary = () => {
 
   return (
     <section id={section.id} className="mb-6">
-      <h4 className="mb-3 text-lg font-bold text-slate-800 border-b-2 border-blue-600 pb-1 inline-block">
+      <h4 className="mb-3 inline-block border-b-2 border-blue-600 pb-1 text-lg font-bold text-slate-800">
         {section.name}
       </h4>
 
       <div
         dangerouslySetInnerHTML={{ __html: sanitize(section.content) }}
         style={{ columns: section.columns }}
-        className="wysiwyg text-slate-700 leading-relaxed"
+        className="wysiwyg leading-relaxed text-slate-700"
       />
     </section>
   );
@@ -113,7 +130,7 @@ const Rating = ({ level }: RatingProps) => (
         key={index}
         className={cn(
           "size-2.5 rounded-full border border-blue-600",
-          level > index ? "bg-blue-600" : "bg-slate-200"
+          level > index ? "bg-blue-600" : "bg-slate-200",
         )}
       />
     ))}
@@ -191,7 +208,7 @@ const Section = <T,>({
 
   return (
     <section id={section.id} className="mb-6">
-      <h4 className="mb-4 text-lg font-bold text-slate-800 border-b-2 border-blue-600 pb-1 inline-block">
+      <h4 className="mb-4 inline-block border-b-2 border-blue-600 pb-1 text-lg font-bold text-slate-800">
         {section.name}
       </h4>
 
@@ -217,7 +234,7 @@ const Section = <T,>({
                 {summary !== undefined && !isEmptyString(summary) && (
                   <div
                     dangerouslySetInnerHTML={{ __html: sanitize(summary) }}
-                    className="wysiwyg text-slate-700 text-sm leading-relaxed"
+                    className="wysiwyg text-sm leading-relaxed text-slate-700"
                   />
                 )}
 
@@ -228,7 +245,7 @@ const Section = <T,>({
                     {keywords.map((keyword, index) => (
                       <span
                         key={index}
-                        className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                        className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800"
                       >
                         {keyword}
                       </span>
@@ -269,20 +286,20 @@ const Experience = () => {
     <Section<Experience> section={section} urlKey="url" summaryKey="summary">
       {(item) => (
         <div className="border-l-4 border-blue-600 pl-4">
-          <div className="flex items-start justify-between mb-2">
+          <div className="mb-2 flex items-start justify-between">
             <div className="text-left">
               <LinkedEntity
                 name={item.company}
                 url={item.url}
                 separateLinks={section.separateLinks}
-                className="font-bold text-slate-800 text-base"
+                className="text-base font-bold text-slate-800"
               />
-              <div className="text-slate-600 font-medium">{item.position}</div>
+              <div className="font-medium text-slate-600">{item.position}</div>
             </div>
 
             <div className="shrink-0 text-right">
               <div className="font-semibold text-blue-600">{item.date}</div>
-              <div className="text-slate-600 text-sm">{item.location}</div>
+              <div className="text-sm text-slate-600">{item.location}</div>
             </div>
           </div>
         </div>
@@ -298,21 +315,21 @@ const Education = () => {
     <Section<Education> section={section} urlKey="url" summaryKey="summary">
       {(item) => (
         <div className="border-l-4 border-blue-600 pl-4">
-          <div className="flex items-start justify-between mb-2">
+          <div className="mb-2 flex items-start justify-between">
             <div className="text-left">
               <LinkedEntity
                 name={item.institution}
                 url={item.url}
                 separateLinks={section.separateLinks}
-                className="font-bold text-slate-800 text-base"
+                className="text-base font-bold text-slate-800"
               />
-              <div className="text-slate-600 font-medium">{item.area}</div>
-              {item.score && <div className="text-slate-600 text-sm">{item.score}</div>}
+              <div className="font-medium text-slate-600">{item.area}</div>
+              {item.score && <div className="text-sm text-slate-600">{item.score}</div>}
             </div>
 
             <div className="shrink-0 text-right">
               <div className="font-semibold text-blue-600">{item.date}</div>
-              <div className="text-slate-600 text-sm">{item.studyType}</div>
+              <div className="text-sm text-slate-600">{item.studyType}</div>
             </div>
           </div>
         </div>
@@ -356,9 +373,9 @@ const Certifications = () => {
         <div className="flex items-start justify-between">
           <div className="text-left">
             <div className="font-bold text-slate-800">{item.name}</div>
-            <LinkedEntity 
-              name={item.issuer} 
-              url={item.url} 
+            <LinkedEntity
+              name={item.issuer}
+              url={item.url}
               separateLinks={section.separateLinks}
               className="text-slate-600"
             />
@@ -381,7 +398,7 @@ const Skills = () => {
       {(item) => (
         <div>
           <div className="font-bold text-slate-800">{item.name}</div>
-          {item.description && <div className="text-slate-600 text-sm">{item.description}</div>}
+          {item.description && <div className="text-sm text-slate-600">{item.description}</div>}
         </div>
       )}
     </Section>
@@ -443,7 +460,7 @@ const Volunteer = () => {
 
           <div className="shrink-0 text-right">
             <div className="font-semibold text-blue-600">{item.date}</div>
-            <div className="text-slate-600 text-sm">{item.location}</div>
+            <div className="text-sm text-slate-600">{item.location}</div>
           </div>
         </div>
       )}
@@ -459,7 +476,7 @@ const Languages = () => {
       {(item) => (
         <div className="space-y-1">
           <div className="font-bold text-slate-800">{item.name}</div>
-          {item.description && <div className="text-slate-600 text-sm">{item.description}</div>}
+          {item.description && <div className="text-sm text-slate-600">{item.description}</div>}
         </div>
       )}
     </Section>
@@ -480,7 +497,7 @@ const Projects = () => {
               separateLinks={section.separateLinks}
               className="font-bold text-slate-800"
             />
-            <div className="text-slate-600 text-sm">{item.description}</div>
+            <div className="text-sm text-slate-600">{item.description}</div>
           </div>
 
           <div className="shrink-0 text-right">
@@ -505,7 +522,7 @@ const References = () => {
             separateLinks={section.separateLinks}
             className="font-bold text-slate-800"
           />
-          <div className="text-slate-600 text-sm">{item.description}</div>
+          <div className="text-sm text-slate-600">{item.description}</div>
         </div>
       )}
     </Section>
@@ -531,7 +548,7 @@ const Custom = ({ id }: { id: string }) => {
               separateLinks={section.separateLinks}
               className="font-bold text-slate-800"
             />
-            <div className="text-slate-600 text-sm">{item.description}</div>
+            <div className="text-sm text-slate-600">{item.description}</div>
           </div>
 
           <div className="shrink-0 text-right">
@@ -600,7 +617,7 @@ export const NovoResume = ({ columns, isFirstPage = false }: TemplateProps) => {
       <Header />
 
       <div
-        className="grid gap-y-4 gap-x-6"
+        className="grid gap-x-6 gap-y-4"
         style={{ gridTemplateColumns: `repeat(${columns.length}, 1fr)` }}
       >
         {columns.map((column, columnIndex) => (
@@ -613,4 +630,4 @@ export const NovoResume = ({ columns, isFirstPage = false }: TemplateProps) => {
       </div>
     </div>
   );
-}; 
+};

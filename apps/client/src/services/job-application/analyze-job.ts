@@ -33,12 +33,20 @@ export type CreateFromAnalysisRequest = {
 };
 
 export const analyzeJobPosting = async (data: AnalyzeJobRequest): Promise<AnalyzeJobResponse> => {
-  const response = await axios.post<AnalyzeJobResponse, AxiosResponse<AnalyzeJobResponse>>("/job-applications/analyze", data);
+  const response = await axios.post<AnalyzeJobResponse, AxiosResponse<AnalyzeJobResponse>>(
+    "/job-applications/analyze",
+    data,
+  );
   return response.data;
 };
 
-export const createJobApplicationFromAnalysis = async (data: CreateFromAnalysisRequest): Promise<JobApplicationDto> => {
-  const response = await axios.post<JobApplicationDto, AxiosResponse<JobApplicationDto>>("/job-applications/create-from-analysis", data);
+export const createJobApplicationFromAnalysis = async (
+  data: CreateFromAnalysisRequest,
+): Promise<JobApplicationDto> => {
+  const response = await axios.post<JobApplicationDto, AxiosResponse<JobApplicationDto>>(
+    "/job-applications/create-from-analysis",
+    data,
+  );
   return response.data;
 };
 
@@ -69,4 +77,4 @@ export const useCreateFromAnalysis = () => {
   });
 
   return { createFromAnalysis: createFromAnalysisFn, loading, error };
-}; 
+};

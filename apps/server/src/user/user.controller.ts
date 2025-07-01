@@ -12,9 +12,9 @@ import {
 } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
-import { 
+import {
   CreateUserLLMSettingsDto,
-  UpdateUserDto, 
+  UpdateUserDto,
   UpdateUserLLMSettingsDto,
   UserDto,
 } from "@reactive-resume/dto";
@@ -24,8 +24,8 @@ import type { Response } from "express";
 import { AuthService } from "../auth/auth.service";
 import { TwoFactorGuard } from "../auth/guards/two-factor.guard";
 import { User } from "./decorators/user.decorator";
-import { UserLLMSettingsService } from "./user-llm-settings.service";
 import { UserService } from "./user.service";
+import { UserLLMSettingsService } from "./user-llm-settings.service";
 
 @ApiTags("User")
 @Controller("user")
@@ -93,10 +93,7 @@ export class UserController {
 
   @Patch("llm-settings")
   @UseGuards(TwoFactorGuard)
-  async updateLLMSettings(
-    @User("id") userId: string, 
-    @Body() data: UpdateUserLLMSettingsDto
-  ) {
+  async updateLLMSettings(@User("id") userId: string, @Body() data: UpdateUserLLMSettingsDto) {
     return await this.userLLMSettingsService.upsert(userId, data as CreateUserLLMSettingsDto);
   }
 

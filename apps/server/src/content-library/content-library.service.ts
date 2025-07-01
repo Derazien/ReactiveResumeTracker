@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { ContentLibrary, ContentType, Prisma } from "@prisma/client";
+import { Content, Prisma } from "@prisma/client";
 import { CreateContentLibraryDto, UpdateContentLibraryDto } from "@reactive-resume/dto";
 import { PrismaService } from "nestjs-prisma";
 
@@ -7,20 +7,19 @@ import { PrismaService } from "nestjs-prisma";
 export class ContentLibraryService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(
-    userId: string,
-    createContentLibraryDto: CreateContentLibraryDto,
-  ): Promise<ContentLibrary> {
-    const { tagIds, content, skills, achievements, courses, keywords, ...contentData } = createContentLibraryDto;
+  async create(userId: string, createContentLibraryDto: CreateContentLibraryDto): Promise<Content> {
+    const { tagIds, content, skills, achievements, courses, keywords, sectionId, ...contentData } =
+      createContentLibraryDto;
 
-    const contentLibrary = await this.prisma.contentLibrary.create({
+    const contentItem = await this.prisma.content.create({
       data: {
         ...contentData,
         content: JSON.stringify(content),
         skills: JSON.stringify(skills),
         achievements: JSON.stringify(achievements),
-        courses: JSON.stringify(courses ?? []),
-        keywords: JSON.stringify(keywords ?? []),
+        courses: JSON.stringify(courses || []),
+        keywords: JSON.stringify(keywords || []),
+        sectionId,
         userId,
         tags:
           tagIds.length > 0
@@ -30,8 +29,9 @@ export class ContentLibraryService {
                 })),
               }
             : undefined,
-      } as Prisma.ContentLibraryUncheckedCreateInput,
+      } as Prisma.ContentUncheckedCreateInput,
       include: {
+        section: true,
         tags: {
           include: {
             tag: true,
@@ -40,22 +40,22 @@ export class ContentLibraryService {
       },
     });
 
-    return contentLibrary;
+    return contentItem;
   }
 
   async findAll(
     userId: string,
     options?: {
-      type?: ContentType;
+      sectionId?: string;
       search?: string;
       tags?: string[];
       skip?: number;
       take?: number;
     },
-  ): Promise<ContentLibrary[]> {
-    const where: Prisma.ContentLibraryWhereInput = {
+  ): Promise<Content[]> {
+    const where: Prisma.ContentWhereInput = {
       userId,
-      ...(options?.type && { type: options.type }),
+      ...(options?.sectionId && { sectionId: options.sectionId }),
       ...(options?.search && {
         OR: [
           { title: { contains: options.search } },
@@ -75,9 +75,10 @@ export class ContentLibraryService {
       }),
     };
 
-    return this.prisma.contentLibrary.findMany({
+    return await this.prisma.content.findMany({
       where,
       include: {
+        section: true,
         tags: {
           include: {
             tag: true,
@@ -90,10 +91,11 @@ export class ContentLibraryService {
     });
   }
 
-  async findOne(id: string, userId: string): Promise<ContentLibrary | null> {
-    return this.prisma.contentLibrary.findFirst({
+  async findOne(id: string, userId: string): Promise<Content | null> {
+    return await this.prisma.content.findFirst({
       where: { id, userId },
       include: {
+        section: true,
         tags: {
           include: {
             tag: true,
@@ -107,8 +109,9 @@ export class ContentLibraryService {
     id: string,
     userId: string,
     updateContentLibraryDto: UpdateContentLibraryDto,
-  ): Promise<ContentLibrary> {
-    const { tagIds, content, skills, achievements, courses, keywords, ...updateData } = updateContentLibraryDto;
+  ): Promise<Content> {
+    const { tagIds, content, skills, achievements, courses, keywords, ...updateData } =
+      updateContentLibraryDto;
 
     // Convert arrays and objects to JSON strings
     const processedUpdateData = {
@@ -138,10 +141,11 @@ export class ContentLibraryService {
       }
     }
 
-    return this.prisma.contentLibrary.update({
+    return await this.prisma.content.update({
       where: { id, userId },
       data: processedUpdateData,
       include: {
+        section: true,
         tags: {
           include: {
             tag: true,
@@ -151,14 +155,14 @@ export class ContentLibraryService {
     });
   }
 
-  async remove(id: string, userId: string): Promise<ContentLibrary> {
-    return this.prisma.contentLibrary.delete({
+  async remove(id: string, userId: string): Promise<Content> {
+    return await this.prisma.content.delete({
       where: { id, userId },
     });
   }
 
-  async findByTags(userId: string, tags: string[]): Promise<ContentLibrary[]> {
-    return this.prisma.contentLibrary.findMany({
+  async findByTags(userId: string, tags: string[]): Promise<Content[]> {
+    return await this.prisma.content.findMany({
       where: {
         userId,
         tags: {
@@ -170,6 +174,7 @@ export class ContentLibraryService {
         },
       },
       include: {
+        section: true,
         tags: {
           include: {
             tag: true,
@@ -180,10 +185,11 @@ export class ContentLibraryService {
     });
   }
 
-  async getContentByType(userId: string, type: ContentType): Promise<ContentLibrary[]> {
-    return this.prisma.contentLibrary.findMany({
-      where: { userId, type },
+  async getContentBySection(userId: string, sectionId: string): Promise<Content[]> {
+    return await this.prisma.content.findMany({
+      where: { userId, sectionId },
       include: {
+        section: true,
         tags: {
           include: {
             tag: true,
@@ -191,6 +197,22 @@ export class ContentLibraryService {
         },
       },
       orderBy: { createdAt: "desc" },
+    });
+  }
+
+  // New method to get available sections
+  async getAvailableSections() {
+    return await this.prisma.section.findMany({
+      orderBy: { order: "asc" },
+    });
+  }
+
+  // New method to get sections by activity status
+  async getSectionsByStatus(isActive?: boolean) {
+    const where = isActive === undefined ? {} : { isActive };
+    return await this.prisma.section.findMany({
+      where,
+      orderBy: { order: "asc" },
     });
   }
 }

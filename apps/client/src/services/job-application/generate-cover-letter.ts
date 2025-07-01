@@ -14,12 +14,12 @@ export type GenerateCoverLetterResponse = {
 
 export const generateCoverLetter = async (
   jobApplicationId: string,
-  data: GenerateCoverLetterRequest
+  data: GenerateCoverLetterRequest,
 ): Promise<GenerateCoverLetterResponse> => {
-  const response = await axios.post<GenerateCoverLetterResponse, AxiosResponse<GenerateCoverLetterResponse>>(
-    `/job-applications/${jobApplicationId}/generate-cover-letter`,
-    data
-  );
+  const response = await axios.post<
+    GenerateCoverLetterResponse,
+    AxiosResponse<GenerateCoverLetterResponse>
+  >(`/job-applications/${jobApplicationId}/generate-cover-letter`, data);
 
   return response.data;
 };
@@ -32,12 +32,17 @@ export const useGenerateCoverLetter = () => {
     isPending: loading,
     mutateAsync: generateCoverLetterFn,
   } = useMutation({
-    mutationFn: ({ jobApplicationId, data }: { jobApplicationId: string; data: GenerateCoverLetterRequest }) =>
-      generateCoverLetter(jobApplicationId, data),
+    mutationFn: ({
+      jobApplicationId,
+      data,
+    }: {
+      jobApplicationId: string;
+      data: GenerateCoverLetterRequest;
+    }) => generateCoverLetter(jobApplicationId, data),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: JOB_APPLICATIONS_KEY });
     },
   });
 
   return { generateCoverLetter: generateCoverLetterFn, loading, error };
-}; 
+};

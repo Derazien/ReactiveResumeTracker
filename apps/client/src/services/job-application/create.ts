@@ -6,7 +6,10 @@ import { JOB_APPLICATIONS_KEY } from "@/client/constants/query-keys";
 import { axios } from "@/client/libs/axios";
 
 export const createJobApplication = async (data: CreateJobApplicationDto) => {
-  const response = await axios.post<JobApplicationDto, AxiosResponse<JobApplicationDto>>("/job-applications", data);
+  const response = await axios.post<JobApplicationDto, AxiosResponse<JobApplicationDto>>(
+    "/job-applications",
+    data,
+  );
 
   return response.data;
 };
@@ -26,4 +29,4 @@ export const useCreateJobApplication = () => {
   });
 
   return { createJobApplication: createJobApplicationFn, loading, error };
-}; 
+};

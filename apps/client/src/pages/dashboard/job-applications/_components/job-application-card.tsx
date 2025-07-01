@@ -1,7 +1,16 @@
 import { t } from "@lingui/macro";
-import { Building, Calendar, DotsThreeVertical, Eye, FileText, Pencil, Trash, Warning } from "@phosphor-icons/react";
+import {
+  Building,
+  Calendar,
+  DotsThreeVertical,
+  Eye,
+  FileText,
+  Pencil,
+  Trash,
+  Warning,
+} from "@phosphor-icons/react";
 import type { JobApplicationDto } from "@reactive-resume/dto";
-import { 
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -11,17 +20,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-  Badge, 
-  Button, 
-  Card, 
-  CardContent, 
-  CardFooter, 
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardFooter,
   CardHeader,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from "@reactive-resume/ui";
 import { cn } from "@reactive-resume/utils";
 import { Link } from "react-router";
@@ -104,7 +113,7 @@ export const JobApplicationCard = ({ application }: Props) => {
   const handleDelete = async () => {
     try {
       await deleteJobApplication(application.id);
-      
+
       toast({
         title: t`Success`,
         description: t`Job application deleted successfully`,
@@ -137,13 +146,16 @@ export const JobApplicationCard = ({ application }: Props) => {
             </div>
           </div>
           <div className="flex items-center gap-2">
-          <Badge variant="secondary" className={cn("text-xs", getStatusColor(application.status))}>
-            {getStatusLabel(application.status)}
-          </Badge>
-            
+            <Badge
+              variant="secondary"
+              className={cn("text-xs", getStatusColor(application.status))}
+            >
+              {getStatusLabel(application.status)}
+            </Badge>
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <Button variant="ghost" size="sm" className="size-8 p-0">
                   <DotsThreeVertical size={16} />
                 </Button>
               </DropdownMenuTrigger>
@@ -163,9 +175,11 @@ export const JobApplicationCard = ({ application }: Props) => {
                 <DropdownMenuSeparator />
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <DropdownMenuItem 
-                      onSelect={(e) => e.preventDefault()}
+                    <DropdownMenuItem
                       className="text-red-600 focus:text-red-600"
+                      onSelect={(e) => {
+                        e.preventDefault();
+                      }}
                     >
                       <Trash size={16} className="mr-2" />
                       {t`Delete`}
@@ -184,9 +198,9 @@ export const JobApplicationCard = ({ application }: Props) => {
                     <AlertDialogFooter>
                       <AlertDialogCancel>{t`Cancel`}</AlertDialogCancel>
                       <AlertDialogAction
-                        onClick={handleDelete}
                         disabled={isDeleting}
                         className="bg-red-600 text-white hover:bg-red-700"
+                        onClick={handleDelete}
                       >
                         {isDeleting ? t`Deleting...` : t`Delete`}
                       </AlertDialogAction>
@@ -246,7 +260,7 @@ export const JobApplicationCard = ({ application }: Props) => {
               </span>
             ))}
             {application.extractedTags.length > 3 && (
-              <span className="text-xs text-muted-foreground self-center">
+              <span className="text-muted-foreground self-center text-xs">
                 +{application.extractedTags.length - 3} more
               </span>
             )}
@@ -256,7 +270,7 @@ export const JobApplicationCard = ({ application }: Props) => {
         {/* Show description preview if available */}
         {application.description && (
           <p className="text-muted-foreground line-clamp-2 text-sm">
-            {application.description.replace(/<[^>]*>/g, '').slice(0, 100)}...
+            {application.description.replace(/<[^>]*>/g, "").slice(0, 100)}...
           </p>
         )}
       </CardContent>

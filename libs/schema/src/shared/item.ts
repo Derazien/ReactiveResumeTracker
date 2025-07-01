@@ -6,6 +6,8 @@ import { idSchema } from "./id";
 export const itemSchema = z.object({
   id: idSchema,
   visible: z.boolean(),
+  contentLibraryId: idSchema.nullable().optional(),
+  sourceContentLibraryId: idSchema.nullable().optional(),
 });
 
 // Type
@@ -15,4 +17,6 @@ export type Item = z.infer<typeof itemSchema>;
 export const defaultItem: Item = {
   id: "",
   visible: true,
+  contentLibraryId: null,
+  sourceContentLibraryId: null,
 };

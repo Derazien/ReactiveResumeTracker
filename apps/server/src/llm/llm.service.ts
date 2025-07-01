@@ -2,9 +2,8 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
 import { UserLLMSettingsService } from "@/server/user/user-llm-settings.service";
-import { ContentLibraryService } from "../content-library/content-library.service";
-import { TagExtractionService } from './tag-extraction.service';
 
+import { ContentLibraryService } from "../content-library/content-library.service";
 import {
   ChatMessage,
   ContentMatchResult,
@@ -14,8 +13,9 @@ import {
   LLMResponse,
 } from "./interfaces/llm-provider.interface";
 import { AnthropicProvider } from "./providers/anthropic.provider";
-import { OpenAIProvider } from "./providers/openai.provider";
 import { LocalLLMProvider } from "./providers/local.provider";
+import { OpenAIProvider } from "./providers/openai.provider";
+import { TagExtractionService } from "./tag-extraction.service";
 
 @Injectable()
 export class LLMService {
@@ -26,10 +26,10 @@ export class LLMService {
    * Helper function to parse array values that might be JSON strings
    */
   private parseArray(value: any): any[] {
-    if (typeof value === 'string') {
+    if (typeof value === "string") {
       try {
         return JSON.parse(value);
-      } catch (e) {
+      } catch {
         return [];
       }
     }
@@ -118,22 +118,22 @@ export class LLMService {
 
     // Layer 1: Keyword-based pre-filtering (reduces content by 60-80%)
     const keywordFilteredContent = this.preFilterContentByKeywords(
-      jobRequirements, 
-      userContent, 
-      jobDescription
+      jobRequirements,
+      userContent,
+      jobDescription,
     );
-    
+
     this.logger.log(`Pre-filter: ${userContent.length} → ${keywordFilteredContent.length} items`);
 
     if (keywordFilteredContent.length === 0) {
       return {
         success: true,
-        data: userContent.map(item => ({
+        data: userContent.map((item) => ({
           contentId: item.id,
           score: 0,
           reasons: ["No keyword matches found"],
-          suggestions: ["Consider adding relevant skills or keywords"]
-        }))
+          suggestions: ["Consider adding relevant skills or keywords"],
+        })),
       };
     }
 
@@ -141,7 +141,7 @@ export class LLMService {
     const lightweightMatches = await this.lightweightContentScoring(
       jobRequirements,
       keywordFilteredContent,
-      jobDescription
+      jobDescription,
     );
 
     if (!lightweightMatches.success) {
@@ -149,19 +149,19 @@ export class LLMService {
     }
 
     // Layer 3: Detailed analysis only for high-scoring content (score ≥ 60)
-    const highScoringContent = keywordFilteredContent.filter((_, index) => 
-      lightweightMatches.data![index]?.score >= 60
+    const highScoringContent = keywordFilteredContent.filter(
+      (_, index) => lightweightMatches.data![index]?.score >= 60,
     );
 
     let detailedResults: ContentMatchResult[] = [];
-    
+
     if (highScoringContent.length > 0) {
       this.logger.log(`Detailed analysis for ${highScoringContent.length} high-scoring items`);
-      
+
       const detailedMatches = await this.detailedContentAnalysis(
         jobRequirements,
         highScoringContent,
-        jobDescription
+        jobDescription,
       );
 
       if (detailedMatches.success) {
@@ -170,32 +170,32 @@ export class LLMService {
     }
 
     // Combine results: detailed for high-scoring, lightweight for others
-    const finalResults = userContent.map(item => {
-      const keywordIndex = keywordFilteredContent.findIndex(filtered => filtered.id === item.id);
-      
+    const finalResults = userContent.map((item) => {
+      const keywordIndex = keywordFilteredContent.findIndex((filtered) => filtered.id === item.id);
+
       if (keywordIndex === -1) {
         // Not in pre-filtered results
         return {
           contentId: item.id,
           score: 0,
           reasons: ["No relevant keywords found"],
-          suggestions: ["Add relevant skills or technologies"]
+          suggestions: ["Add relevant skills or technologies"],
         };
       }
 
       const lightweightResult = lightweightMatches.data![keywordIndex];
-      const detailedResult = detailedResults.find(detailed => detailed.contentId === item.id);
+      const detailedResult = detailedResults.find((detailed) => detailed.contentId === item.id);
 
       // Use detailed result if available, otherwise lightweight
       return detailedResult || lightweightResult;
     });
 
-    const highScores = finalResults.filter(match => match.score >= 70).length;
+    const highScores = finalResults.filter((match) => match.score >= 70).length;
     this.logger.log(`Optimized matching complete: ${highScores} high-relevance matches found`);
 
     return {
       success: true,
-      data: finalResults
+      data: finalResults,
     };
   }
 
@@ -206,27 +206,24 @@ export class LLMService {
   private preFilterContentByKeywords(
     jobRequirements: string[],
     userContent: any[],
-    jobDescription: string
+    jobDescription: string,
   ): any[] {
     // Extract keywords from job requirements and description
-    const jobKeywords = this.extractKeywords([
-      ...jobRequirements,
-      jobDescription
-    ]);
+    const jobKeywords = this.extractKeywords([...jobRequirements, jobDescription]);
 
-    return userContent.filter(item => {
+    return userContent.filter((item) => {
       const contentKeywords = this.extractKeywords([
-        item.title || '',
-        item.description || '',
-        ...(JSON.parse(item.skills || '[]')),
-        ...(JSON.parse(item.achievements || '[]')),
-        item.company || '',
-        item.position || ''
+        item.title || "",
+        item.description || "",
+        ...JSON.parse(item.skills || "[]"),
+        ...JSON.parse(item.achievements || "[]"),
+        item.company || "",
+        item.position || "",
       ]);
 
       // Calculate keyword overlap score
       const overlapScore = this.calculateKeywordOverlap(jobKeywords, contentKeywords);
-      
+
       // Keep content with at least 10% keyword overlap or specific type matches
       return overlapScore >= 0.1 || this.hasTypeRelevance(item, jobRequirements);
     });
@@ -237,7 +234,7 @@ export class LLMService {
    */
   private extractKeywords(texts: string[]): Set<string> {
     const keywords = new Set<string>();
-    
+
     // Common tech keywords and patterns
     const techPatterns = [
       // Programming languages
@@ -251,27 +248,27 @@ export class LLMService {
       // Skills
       /\b(leadership|management|agile|scrum|ci\/cd|testing|security)\b/gi,
       // Years of experience
-      /\b(\d+)\+?\s*(years?|yrs?)\b/gi
+      /\b(\d+)\+?\s*(years?|yrs?)\b/gi,
     ];
 
-    texts.forEach(text => {
-      if (!text) return;
-      
-      techPatterns.forEach(pattern => {
+    for (const text of texts) {
+      if (!text) continue;
+
+      for (const pattern of techPatterns) {
         const matches = text.match(pattern);
         if (matches) {
-          matches.forEach(match => keywords.add(match.toLowerCase()));
+          for (const match of matches) keywords.add(match.toLowerCase());
         }
-      });
+      }
 
       // Extract quoted skills and technologies
       const quotedMatches = text.match(/"([^"]+)"/g);
       if (quotedMatches) {
-        quotedMatches.forEach(match => {
-          keywords.add(match.replace(/"/g, '').toLowerCase());
-        });
+        for (const match of quotedMatches) {
+          keywords.add(match.replace(/"/g, "").toLowerCase());
+        }
       }
-    });
+    }
 
     return keywords;
   }
@@ -281,8 +278,8 @@ export class LLMService {
    */
   private calculateKeywordOverlap(jobKeywords: Set<string>, contentKeywords: Set<string>): number {
     if (jobKeywords.size === 0) return 0;
-    
-    const intersection = new Set([...jobKeywords].filter(k => contentKeywords.has(k)));
+
+    const intersection = new Set([...jobKeywords].filter((k) => contentKeywords.has(k)));
     return intersection.size / jobKeywords.size;
   }
 
@@ -290,18 +287,22 @@ export class LLMService {
    * Check if content type is relevant to job requirements
    */
   private hasTypeRelevance(item: any, jobRequirements: string[]): boolean {
-    const requirementText = jobRequirements.join(' ').toLowerCase();
-    
+    const requirementText = jobRequirements.join(" ").toLowerCase();
+
     // Leadership roles prefer work experience and soft skills
-    if (requirementText.includes('lead') || requirementText.includes('senior') || requirementText.includes('manager')) {
-      return ['WORK_EXPERIENCE', 'SOFT_SKILL'].includes(item.type);
+    if (
+      requirementText.includes("lead") ||
+      requirementText.includes("senior") ||
+      requirementText.includes("manager")
+    ) {
+      return ["WORK_EXPERIENCE", "SOFT_SKILL"].includes(item.type);
     }
-    
+
     // Technical roles prefer technical skills and projects
-    if (requirementText.includes('developer') || requirementText.includes('engineer')) {
-      return ['TECHNICAL_SKILL', 'PROJECT', 'WORK_EXPERIENCE'].includes(item.type);
+    if (requirementText.includes("developer") || requirementText.includes("engineer")) {
+      return ["TECHNICAL_SKILL", "PROJECT", "WORK_EXPERIENCE"].includes(item.type);
     }
-    
+
     return false;
   }
 
@@ -312,23 +313,22 @@ export class LLMService {
   private async lightweightContentScoring(
     jobRequirements: string[],
     filteredContent: any[],
-    jobDescription: string
+    jobDescription: string,
   ): Promise<LLMResponse<ContentMatchResult[]>> {
-    
     // Create lightweight content objects (reduce tokens by 70-80%)
-    const lightweightContent = filteredContent.map(item => ({
+    const lightweightContent = filteredContent.map((item) => ({
       id: item.id,
       title: item.title,
       type: item.type,
-      skills: JSON.parse(item.skills || '[]').slice(0, 8), // Max 8 skills
-      achievements: JSON.parse(item.achievements || '[]').slice(0, 3), // Max 3 achievements
+      skills: JSON.parse(item.skills || "[]").slice(0, 8), // Max 8 skills
+      achievements: JSON.parse(item.achievements || "[]").slice(0, 3), // Max 3 achievements
       company: item.company,
-      yearsExperience: this.estimateYearsExperience(item)
+      yearsExperience: this.estimateYearsExperience(item),
     }));
 
     const prompt = `Score content relevance (0-100) for job matching.
 
-Job Requirements: ${jobRequirements.slice(0, 10).join('; ')}
+Job Requirements: ${jobRequirements.slice(0, 10).join("; ")}
 
 Content: ${JSON.stringify(lightweightContent)}
 
@@ -343,7 +343,7 @@ Score fast based on:
     try {
       const result = await this.provider.chat([
         { role: "system", content: "Score content quickly. Return only JSON array." },
-        { role: "user", content: prompt }
+        { role: "user", content: prompt },
       ]);
 
       if (result.success) {
@@ -355,7 +355,7 @@ Score fast based on:
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : "Lightweight scoring failed"
+        error: error instanceof Error ? error.message : "Lightweight scoring failed",
       };
     }
   }
@@ -367,13 +367,12 @@ Score fast based on:
   private async detailedContentAnalysis(
     jobRequirements: string[],
     highScoringContent: any[],
-    jobDescription: string
+    jobDescription: string,
   ): Promise<LLMResponse<ContentMatchResult[]>> {
-    
     const prompt = `Provide detailed analysis for high-potential content matches.
 
 Job Requirements:
-${jobRequirements.join('\n- ')}
+${jobRequirements.join("\n- ")}
 
 Job Description Summary:
 ${jobDescription.slice(0, 500)}...
@@ -399,7 +398,7 @@ Focus on:
     try {
       const result = await this.provider.chat([
         { role: "system", content: "Provide detailed content analysis with actionable insights." },
-        { role: "user", content: prompt }
+        { role: "user", content: prompt },
       ]);
 
       if (result.success) {
@@ -411,7 +410,7 @@ Focus on:
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : "Detailed analysis failed"
+        error: error instanceof Error ? error.message : "Detailed analysis failed",
       };
     }
   }
@@ -421,13 +420,13 @@ Focus on:
    */
   private estimateYearsExperience(item: any): number {
     if (!item.startDate) return 0;
-    
+
     const startDate = new Date(item.startDate);
     const endDate = item.endDate ? new Date(item.endDate) : new Date();
-    
+
     const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
     const diffYears = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 365));
-    
+
     return diffYears;
   }
 
@@ -462,6 +461,60 @@ Focus on:
         error: error instanceof Error ? error.message : "Unknown error",
       };
     }
+  }
+
+  /**
+   * Tailor resume content using LLM to optimize for specific job requirements
+   */
+  async tailorResumeContent(
+    jobDescription: string,
+    jobRequirements: string[],
+    currentResumeData: any,
+    selectedContent: any[],
+  ): Promise<LLMResponse> {
+    this.logger.log("Tailoring resume content with LLM");
+
+    try {
+      const result = await this.provider.tailorResumeContent(
+        jobDescription,
+        jobRequirements,
+        currentResumeData,
+        selectedContent,
+      );
+
+      if (result.success) {
+        this.logger.log("Resume content tailored successfully");
+      } else {
+        this.logger.error(`Resume content tailoring failed: ${result.error}`);
+      }
+
+      return result;
+    } catch (error) {
+      this.logger.error("Resume content tailoring error:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      };
+    }
+  }
+
+  /**
+   * Tailor resume content for a specific user
+   */
+  async tailorResumeContentForUser(
+    userId: string,
+    jobDescription: string,
+    jobRequirements: string[],
+    currentResumeData: any,
+    selectedContent: any[],
+  ): Promise<LLMResponse> {
+    const provider = await this.getProviderForUserWithRetry(userId);
+    return provider.tailorResumeContent(
+      jobDescription,
+      jobRequirements,
+      currentResumeData,
+      selectedContent,
+    );
   }
 
   /**
@@ -644,16 +697,20 @@ ${cvText}
 `;
 
     try {
-      const result = await this.provider.chat([
+      const result = await this.provider.chat(
+        [
+          {
+            role: "system",
+            content:
+              "You are an expert CV parser that extracts structured content and returns only valid JSON.",
+          },
+          { role: "user", content: prompt },
+        ],
         {
-          role: "system",
-          content: "You are an expert CV parser that extracts structured content and returns only valid JSON.",
+          maxTokens: 4000, // Increased token limit for complex CV extraction
+          temperature: 0.3, // Lower temperature for more consistent JSON structure
         },
-        { role: "user", content: prompt },
-      ], {
-        maxTokens: 4000, // Increased token limit for complex CV extraction
-        temperature: 0.3, // Lower temperature for more consistent JSON structure
-      });
+      );
 
       if (result.success) {
         try {
@@ -662,9 +719,9 @@ ${cvText}
           if (!rawData) {
             throw new Error("No data received from LLM");
           }
-          
+
           let cleanedContent = rawData.trim();
-          
+
           // Remove markdown code blocks if present
           if (cleanedContent.startsWith("```json")) {
             cleanedContent = cleanedContent.replace(/```json\s*/, "").replace(/```\s*$/, "");
@@ -673,36 +730,40 @@ ${cvText}
           }
 
           // Try to fix truncated JSON by adding missing closing brackets
-          if (!cleanedContent.trim().endsWith(']')) {
+          if (!cleanedContent.trim().endsWith("]")) {
             this.logger.warn("JSON response appears truncated, attempting to fix");
-            
+
             // Count opening and closing brackets to determine what's missing
             const openBrackets = (cleanedContent.match(/\[/g) || []).length;
-            const closeBrackets = (cleanedContent.match(/\]/g) || []).length;
-            const openBraces = (cleanedContent.match(/\{/g) || []).length;
-            const closeBraces = (cleanedContent.match(/\}/g) || []).length;
-            
+            const closeBrackets = (cleanedContent.match(/]/g) || []).length;
+            const openBraces = (cleanedContent.match(/{/g) || []).length;
+            const closeBraces = (cleanedContent.match(/}/g) || []).length;
+
             // Add missing closing braces and brackets
             const missingBraces = openBraces - closeBraces;
             const missingBrackets = openBrackets - closeBrackets;
-            
+
             for (let i = 0; i < missingBraces; i++) {
-              cleanedContent += '}';
+              cleanedContent += "}";
             }
             for (let i = 0; i < missingBrackets; i++) {
-              cleanedContent += ']';
+              cleanedContent += "]";
             }
-            
-            this.logger.debug(`Fixed truncated JSON by adding ${missingBraces} braces and ${missingBrackets} brackets`);
+
+            this.logger.debug(
+              `Fixed truncated JSON by adding ${missingBraces} braces and ${missingBrackets} brackets`,
+            );
           }
 
           const extractedContent = JSON.parse(cleanedContent);
-          
+
           if (!Array.isArray(extractedContent)) {
-            throw new Error("Expected JSON array response");
+            throw new TypeError("Expected JSON array response");
           }
 
-          this.logger.log(`Successfully extracted ${extractedContent.length} content items from CV`);
+          this.logger.log(
+            `Successfully extracted ${extractedContent.length} content items from CV`,
+          );
           return {
             success: true,
             data: extractedContent,
@@ -737,7 +798,7 @@ ${cvText}
     try {
       const provider = await this.getProviderForUserWithRetry(userId);
       this.logger.log(`Starting CV extraction for user ${userId} with provider ${provider.name}`);
-      
+
       // Use the same prompt but with user's provider
       const prompt = `
 You are an expert CV/resume parser. Extract structured professional content from the following CV text.
@@ -826,16 +887,20 @@ ${cvText}
 """
 `;
 
-      const result = await provider.chat([
+      const result = await provider.chat(
+        [
+          {
+            role: "system",
+            content:
+              "You are an expert CV parser that extracts structured content and returns only valid JSON.",
+          },
+          { role: "user", content: prompt },
+        ],
         {
-          role: "system",
-          content: "You are an expert CV parser that extracts structured content and returns only valid JSON.",
+          maxTokens: 4000, // Increased token limit for complex CV extraction
+          temperature: 0.3, // Lower temperature for more consistent JSON structure
         },
-        { role: "user", content: prompt },
-      ], {
-        maxTokens: 4000, // Increased token limit for complex CV extraction
-        temperature: 0.3, // Lower temperature for more consistent JSON structure
-      });
+      );
 
       if (result.success) {
         try {
@@ -844,9 +909,9 @@ ${cvText}
           if (!rawData) {
             throw new Error("No data received from LLM");
           }
-          
+
           let cleanedContent = rawData.trim();
-          
+
           // Remove markdown code blocks if present
           if (cleanedContent.startsWith("```json")) {
             cleanedContent = cleanedContent.replace(/```json\s*/, "").replace(/```\s*$/, "");
@@ -855,36 +920,40 @@ ${cvText}
           }
 
           // Try to fix truncated JSON by adding missing closing brackets
-          if (!cleanedContent.trim().endsWith(']')) {
+          if (!cleanedContent.trim().endsWith("]")) {
             this.logger.warn("JSON response appears truncated, attempting to fix");
-            
+
             // Count opening and closing brackets to determine what's missing
             const openBrackets = (cleanedContent.match(/\[/g) || []).length;
-            const closeBrackets = (cleanedContent.match(/\]/g) || []).length;
-            const openBraces = (cleanedContent.match(/\{/g) || []).length;
-            const closeBraces = (cleanedContent.match(/\}/g) || []).length;
-            
+            const closeBrackets = (cleanedContent.match(/]/g) || []).length;
+            const openBraces = (cleanedContent.match(/{/g) || []).length;
+            const closeBraces = (cleanedContent.match(/}/g) || []).length;
+
             // Add missing closing braces and brackets
             const missingBraces = openBraces - closeBraces;
             const missingBrackets = openBrackets - closeBrackets;
-            
+
             for (let i = 0; i < missingBraces; i++) {
-              cleanedContent += '}';
+              cleanedContent += "}";
             }
             for (let i = 0; i < missingBrackets; i++) {
-              cleanedContent += ']';
+              cleanedContent += "]";
             }
-            
-            this.logger.debug(`Fixed truncated JSON by adding ${missingBraces} braces and ${missingBrackets} brackets`);
+
+            this.logger.debug(
+              `Fixed truncated JSON by adding ${missingBraces} braces and ${missingBrackets} brackets`,
+            );
           }
 
           const extractedContent = JSON.parse(cleanedContent);
-          
+
           if (!Array.isArray(extractedContent)) {
-            throw new Error("Expected JSON array response");
+            throw new TypeError("Expected JSON array response");
           }
 
-          this.logger.log(`Successfully extracted ${extractedContent.length} content items from CV for user ${userId}`);
+          this.logger.log(
+            `Successfully extracted ${extractedContent.length} content items from CV for user ${userId}`,
+          );
           return {
             success: true,
             data: extractedContent,
@@ -894,22 +963,25 @@ ${cvText}
           this.logger.error("Failed to parse LLM JSON response:", parseError);
           return {
             success: false,
-            error: "Failed to parse extracted content. The AI service may be experiencing issues. Please try again in a few moments.",
+            error:
+              "Failed to parse extracted content. The AI service may be experiencing issues. Please try again in a few moments.",
           };
         }
       } else {
         // Check if it's a retryable error and provide appropriate user feedback
-        const isOverloadError = result.error?.toLowerCase().includes('overloaded') || 
-                               result.error?.toLowerCase().includes('529');
-        
+        const isOverloadError =
+          result.error?.toLowerCase().includes("overloaded") ||
+          result.error?.toLowerCase().includes("529");
+
         if (isOverloadError) {
           this.logger.error(`CV extraction failed due to API overload: ${result.error}`);
           return {
             success: false,
-            error: "The AI service is currently experiencing high demand. Please try again in a few moments. If the issue persists, try again in 5-10 minutes.",
+            error:
+              "The AI service is currently experiencing high demand. Please try again in a few moments. If the issue persists, try again in 5-10 minutes.",
           };
         }
-        
+
         this.logger.error(`CV extraction failed: ${result.error}`);
         return {
           success: false,
@@ -918,19 +990,21 @@ ${cvText}
       }
     } catch (error) {
       this.logger.error("CV extraction error:", error);
-      
+
       // Provide user-friendly error messages
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      const isOverloadError = errorMessage.toLowerCase().includes('overloaded') || 
-                             errorMessage.toLowerCase().includes('529');
-      
+      const isOverloadError =
+        errorMessage.toLowerCase().includes("overloaded") ||
+        errorMessage.toLowerCase().includes("529");
+
       if (isOverloadError) {
         return {
           success: false,
-          error: "The AI service is currently experiencing high demand. Please try again in a few moments.",
+          error:
+            "The AI service is currently experiencing high demand. Please try again in a few moments.",
         };
       }
-      
+
       return {
         success: false,
         error: "An unexpected error occurred during CV extraction. Please try again.",
@@ -944,28 +1018,30 @@ ${cvText}
   async detectSimilarContent(
     userId: string,
     newContent: any[],
-    existingContent: any[]
+    existingContent: any[],
   ): Promise<LLMResponse<any[]>> {
-    this.logger.log(`Detecting similar content for ${newContent.length} new items against ${existingContent.length} existing items`);
+    this.logger.log(
+      `Detecting similar content for ${newContent.length} new items against ${existingContent.length} existing items`,
+    );
 
     if (existingContent.length === 0) {
       return {
         success: true,
-        data: newContent.map(item => ({ ...item, isDuplicate: false, similarity: 0 })),
+        data: newContent.map((item) => ({ ...item, isDuplicate: false, similarity: 0 })),
       };
     }
 
     try {
       // Real similarity analysis - only compare within same content types
-      const analysisResult = newContent.map(newItem => {
+      const analysisResult = newContent.map((newItem) => {
         let maxSimilarity = 0;
         let bestMatch: any = null;
         let isDuplicate = false;
         let reason = "No similar content found";
 
         // Filter existing content to only include items of the same type
-        const sameTypeContent = existingContent.filter(existingItem => 
-          existingItem.type === newItem.type
+        const sameTypeContent = existingContent.filter(
+          (existingItem) => existingItem.type === newItem.type,
         );
 
         if (sameTypeContent.length === 0) {
@@ -975,46 +1051,49 @@ ${cvText}
             isDuplicate: false,
             similarity: 0,
             similarTo: null,
-            reason: `No existing ${newItem.type} content to compare against`
+            reason: `No existing ${newItem.type} content to compare against`,
           };
         }
 
         // Compare against existing content of the same type only
-        sameTypeContent.forEach(existingItem => {
+        for (const existingItem of sameTypeContent) {
           const similarity = this.calculateComprehensiveSimilarity(newItem, existingItem);
-          
+
           if (similarity.score > maxSimilarity) {
             maxSimilarity = similarity.score;
             bestMatch = existingItem;
             isDuplicate = similarity.isDuplicate;
             reason = similarity.explanation;
           }
-        });
+        }
 
         return {
           ...newItem,
           isDuplicate,
           similarity: maxSimilarity,
-          similarTo: bestMatch ? `${bestMatch.title || 'Untitled'} (${bestMatch.company || 'Unknown'})` : null,
-          reason
+          similarTo: bestMatch
+            ? `${bestMatch.title || "Untitled"} (${bestMatch.company || "Unknown"})`
+            : null,
+          reason,
         };
       });
 
-      const duplicates = analysisResult.filter(item => item.isDuplicate).length;
-      const highSimilarity = analysisResult.filter(item => item.similarity > 0.5).length;
-      
-      this.logger.log(`Similarity analysis complete: ${duplicates} duplicates detected, ${highSimilarity} high-similarity items out of ${analysisResult.length} items`);
-      
+      const duplicates = analysisResult.filter((item) => item.isDuplicate).length;
+      const highSimilarity = analysisResult.filter((item) => item.similarity > 0.5).length;
+
+      this.logger.log(
+        `Similarity analysis complete: ${duplicates} duplicates detected, ${highSimilarity} high-similarity items out of ${analysisResult.length} items`,
+      );
+
       return {
         success: true,
         data: analysisResult,
       };
-
     } catch (error) {
-      this.logger.error('Similarity analysis failed:', error);
+      this.logger.error("Similarity analysis failed:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : "Similarity analysis failed"
+        error: error instanceof Error ? error.message : "Similarity analysis failed",
       };
     }
   }
@@ -1025,16 +1104,21 @@ ${cvText}
   private calculateComprehensiveSimilarity(newItem: any, existingItem: any) {
     // Use different algorithms based on content type
     switch (newItem.type) {
-      case 'WORK_EXPERIENCE':
+      case "WORK_EXPERIENCE": {
         return this.calculateWorkExperienceSimilarity(newItem, existingItem);
-      case 'PROJECT':
+      }
+      case "PROJECT": {
         return this.calculateProjectSimilarity(newItem, existingItem);
-      case 'TECHNICAL_SKILL':
+      }
+      case "TECHNICAL_SKILL": {
         return this.calculateSkillSimilarity(newItem, existingItem);
-      case 'EDUCATION':
+      }
+      case "EDUCATION": {
         return this.calculateEducationSimilarity(newItem, existingItem);
-      default:
+      }
+      default: {
         return this.calculateGenericSimilarity(newItem, existingItem);
+      }
     }
   }
 
@@ -1044,81 +1128,106 @@ ${cvText}
   private calculateWorkExperienceSimilarity(exp1: any, exp2: any) {
     // Company relationship mapping (could be from database in production)
     const companyRelationships = {
-      'Google': ['Alphabet', 'YouTube', 'DeepMind'],
-      'Microsoft': ['LinkedIn', 'GitHub', 'Skype'],
-      'Meta': ['Facebook', 'Instagram', 'WhatsApp']
+      Google: ["Alphabet", "YouTube", "DeepMind"],
+      Microsoft: ["LinkedIn", "GitHub", "Skype"],
+      Meta: ["Facebook", "Instagram", "WhatsApp"],
     };
 
     // Role hierarchy
     const roleHierarchy = {
-      'intern': 1, 'junior': 2, 'developer': 3, 'engineer': 3,
-      'senior': 4, 'lead': 5, 'principal': 6, 'staff': 6,
-      'architect': 7, 'director': 8, 'vp': 9, 'cto': 10
+      intern: 1,
+      junior: 2,
+      developer: 3,
+      engineer: 3,
+      senior: 4,
+      lead: 5,
+      principal: 6,
+      staff: 6,
+      architect: 7,
+      director: 8,
+      vp: 9,
+      cto: 10,
     };
 
     // Technology domains
     const technologyDomains = {
-      'mobile': ['android', 'ios', 'react-native', 'flutter', 'kotlin', 'swift'],
-      'web': ['react', 'angular', 'vue', 'javascript', 'typescript'],
-      'backend': ['java', 'python', 'node', 'go', 'rust', 'api'],
-      'devops': ['ci/cd', 'docker', 'kubernetes', 'aws', 'azure'],
-      'security': ['oauth', 'jwt', 'encryption', 'penetration'],
-      'hardware': ['nfc', 'bluetooth', 'iot', 'embedded'],
-      'ai': ['machine-learning', 'tensorflow', 'pytorch', 'llm']
+      mobile: ["android", "ios", "react-native", "flutter", "kotlin", "swift"],
+      web: ["react", "angular", "vue", "javascript", "typescript"],
+      backend: ["java", "python", "node", "go", "rust", "api"],
+      devops: ["ci/cd", "docker", "kubernetes", "aws", "azure"],
+      security: ["oauth", "jwt", "encryption", "penetration"],
+      hardware: ["nfc", "bluetooth", "iot", "embedded"],
+      ai: ["machine-learning", "tensorflow", "pytorch", "llm"],
     };
 
     // STEP 1: Company Context Analysis (CRITICAL)
     const companyAnalysis = this.analyzeCompanyContext(exp1, exp2, companyRelationships);
-    
+
     // STEP 2: Role and Seniority Analysis
     const roleAnalysis = this.analyzeRoleContext(exp1, exp2, roleHierarchy);
-    
+
     // STEP 3: Domain and Technology Analysis
     const domainAnalysis = this.analyzeTechnologyDomain(exp1, exp2, technologyDomains);
-    
+
     // STEP 4: Temporal Analysis
     const temporalAnalysis = this.analyzeTemporalOverlap(exp1, exp2);
-    
+
     // STEP 5: Content Similarity (conservative)
     const contentSimilarity = Math.min(
-      this.calculateFuzzyTextSimilarity(exp1.description || '', exp2.description || '') * 100, 
-      40 // Cap at 40%
+      this.calculateFuzzyTextSimilarity(exp1.description || "", exp2.description || "") * 100,
+      40, // Cap at 40%
     );
 
     // STEP 6: Calculate Final Score with Enterprise Business Rules
     let finalScore = 0;
-    let classification = 'Different';
-    let reasoning = '';
+    let classification = "Different";
+    let reasoning = "";
 
-    if (companyAnalysis.relationship === 'unrelated') {
-      // Different companies = major penalty, max 40% similarity
-      const maxScore = 40;
-      const baseScore = (roleAnalysis.score * 0.4) + (domainAnalysis.score * 0.4) + (contentSimilarity * 0.2);
-      finalScore = Math.min(baseScore, maxScore);
-      classification = finalScore > 30 ? 'Possibly Related' : 'Different';
-      reasoning = `Different companies limit similarity to ${maxScore}%. Role: ${roleAnalysis.score}%, Domain: ${domainAnalysis.score}%`;
-    }
-    else if (companyAnalysis.relationship === 'same') {
-      // Same company = higher potential similarity
-      let baseScore = (roleAnalysis.score * 0.5) + (domainAnalysis.score * 0.3) + (contentSimilarity * 0.2);
-      
-      if (temporalAnalysis.hasOverlap) {
-        baseScore += temporalAnalysis.score;
-        classification = baseScore > 80 ? 'Likely Duplicate' : baseScore > 60 ? 'Very Similar' : 'Related';
-        reasoning = `Same company with ${temporalAnalysis.overlapDays} days overlap. Role: ${roleAnalysis.score}%, Domain: ${domainAnalysis.score}%`;
-      } else {
-        classification = baseScore > 70 ? 'Very Similar' : baseScore > 50 ? 'Similar' : 'Related';
-        reasoning = `Same company, different periods. Role: ${roleAnalysis.score}%, Domain: ${domainAnalysis.score}%`;
+    switch (companyAnalysis.relationship) {
+      case "unrelated": {
+        // Different companies = major penalty, max 40% similarity
+        const maxScore = 40;
+        const baseScore =
+          roleAnalysis.score * 0.4 + domainAnalysis.score * 0.4 + contentSimilarity * 0.2;
+        finalScore = Math.min(baseScore, maxScore);
+        classification = finalScore > 30 ? "Possibly Related" : "Different";
+        reasoning = `Different companies limit similarity to ${maxScore}%. Role: ${roleAnalysis.score}%, Domain: ${domainAnalysis.score}%`;
+
+        break;
       }
-      
-      finalScore = Math.min(baseScore, 100);
-    }
-    else if (companyAnalysis.relationship === 'related') {
-      // Related companies
-      const baseScore = (companyAnalysis.score * 0.2) + (roleAnalysis.score * 0.4) + (domainAnalysis.score * 0.3) + (contentSimilarity * 0.1);
-      finalScore = baseScore;
-      classification = baseScore > 60 ? 'Similar' : 'Related';
-      reasoning = `Related companies. Role: ${roleAnalysis.score}%, Domain: ${domainAnalysis.score}%`;
+      case "same": {
+        // Same company = higher potential similarity
+        let baseScore =
+          roleAnalysis.score * 0.5 + domainAnalysis.score * 0.3 + contentSimilarity * 0.2;
+
+        if (temporalAnalysis.hasOverlap) {
+          baseScore += temporalAnalysis.score;
+          classification =
+            baseScore > 80 ? "Likely Duplicate" : baseScore > 60 ? "Very Similar" : "Related";
+          reasoning = `Same company with ${temporalAnalysis.overlapDays} days overlap. Role: ${roleAnalysis.score}%, Domain: ${domainAnalysis.score}%`;
+        } else {
+          classification = baseScore > 70 ? "Very Similar" : baseScore > 50 ? "Similar" : "Related";
+          reasoning = `Same company, different periods. Role: ${roleAnalysis.score}%, Domain: ${domainAnalysis.score}%`;
+        }
+
+        finalScore = Math.min(baseScore, 100);
+
+        break;
+      }
+      case "related": {
+        // Related companies
+        const baseScore =
+          companyAnalysis.score * 0.2 +
+          roleAnalysis.score * 0.4 +
+          domainAnalysis.score * 0.3 +
+          contentSimilarity * 0.1;
+        finalScore = baseScore;
+        classification = baseScore > 60 ? "Similar" : "Related";
+        reasoning = `Related companies. Role: ${roleAnalysis.score}%, Domain: ${domainAnalysis.score}%`;
+
+        break;
+      }
+      // No default
     }
 
     finalScore = Math.max(0, Math.min(finalScore, 100)) / 100; // Convert to 0-1 scale
@@ -1133,11 +1242,11 @@ ${cvText}
         contentScore: contentSimilarity,
         companyRelationship: companyAnalysis.relationship,
         roleRelationship: roleAnalysis.relationship,
-        domainRelationship: domainAnalysis.relationship
+        domainRelationship: domainAnalysis.relationship,
       },
       isDuplicate: finalScore > 0.75,
-      isHighSimilarity: finalScore > 0.50,
-      explanation: `${classification}: ${reasoning}`
+      isHighSimilarity: finalScore > 0.5,
+      explanation: `${classification}: ${reasoning}`,
     };
   }
 
@@ -1145,68 +1254,72 @@ ${cvText}
    * Analyze company context and relationships
    */
   private analyzeCompanyContext(exp1: any, exp2: any, companyRelationships: any) {
-    const company1 = (exp1.company || '').toLowerCase().trim();
-    const company2 = (exp2.company || '').toLowerCase().trim();
-    
+    const company1 = (exp1.company || "").toLowerCase().trim();
+    const company2 = (exp2.company || "").toLowerCase().trim();
+
     if (!company1 || !company2) {
-      return { relationship: 'unknown', score: 0 };
+      return { relationship: "unknown", score: 0 };
     }
-    
+
     if (company1 === company2) {
-      return { relationship: 'same', score: 100 };
+      return { relationship: "same", score: 100 };
     }
-    
+
     // Check for related companies
     for (const [parent, subsidiaries] of Object.entries(companyRelationships)) {
       const parentLower = parent.toLowerCase();
-      const subsidiariesLower = (subsidiaries as string[]).map((s: string) => s.toLowerCase());
-      
-      if ((company1 === parentLower || subsidiariesLower.includes(company1)) &&
-          (company2 === parentLower || subsidiariesLower.includes(company2))) {
-        return { relationship: 'related', score: 70 };
+      const subsidiariesLower = new Set(
+        (subsidiaries as string[]).map((s: string) => s.toLowerCase()),
+      );
+
+      if (
+        (company1 === parentLower || subsidiariesLower.has(company1)) &&
+        (company2 === parentLower || subsidiariesLower.has(company2))
+      ) {
+        return { relationship: "related", score: 70 };
       }
     }
-    
+
     // Check for similar company names
     const similarity = this.calculateSimpleTextSimilarity(company1, company2);
     if (similarity > 0.8) {
-      return { relationship: 'possibly-same', score: 60 };
+      return { relationship: "possibly-same", score: 60 };
     }
-    
-    return { relationship: 'unrelated', score: 0 };
+
+    return { relationship: "unrelated", score: 0 };
   }
 
   /**
    * Analyze role context and hierarchy
    */
   private analyzeRoleContext(exp1: any, exp2: any, roleHierarchy: any) {
-    const title1 = (exp1.title || '').toLowerCase();
-    const title2 = (exp2.title || '').toLowerCase();
-    
+    const title1 = (exp1.title || "").toLowerCase();
+    const title2 = (exp2.title || "").toLowerCase();
+
     // Extract seniority levels
     const seniority1 = this.extractSeniorityLevel(title1, roleHierarchy);
     const seniority2 = this.extractSeniorityLevel(title2, roleHierarchy);
-    
+
     // Extract role domains
     const domain1 = this.extractRoleDomain(title1);
     const domain2 = this.extractRoleDomain(title2);
-    
+
     // Same role and seniority
     if (seniority1.level === seniority2.level && domain1 === domain2) {
-      return { relationship: 'same-role', score: 90 };
+      return { relationship: "same-role", score: 90 };
     }
-    
+
     // Same seniority, different domain
     if (Math.abs(seniority1.rank - seniority2.rank) <= 1 && domain1 !== domain2) {
-      return { relationship: 'similar-seniority', score: 40 };
+      return { relationship: "similar-seniority", score: 40 };
     }
-    
+
     // Different seniority, same domain
     if (domain1 === domain2 && Math.abs(seniority1.rank - seniority2.rank) > 1) {
-      return { relationship: 'same-domain', score: 30 };
+      return { relationship: "same-domain", score: 30 };
     }
-    
-    return { relationship: 'different', score: 10 };
+
+    return { relationship: "different", score: 10 };
   }
 
   /**
@@ -1214,14 +1327,14 @@ ${cvText}
    */
   private extractSeniorityLevel(title: string, roleHierarchy: any) {
     const titleLower = title.toLowerCase();
-    
+
     for (const [level, rank] of Object.entries(roleHierarchy)) {
       if (titleLower.includes(level)) {
         return { level, rank: rank as number };
       }
     }
-    
-    return { level: 'engineer', rank: 3 }; // Default
+
+    return { level: "engineer", rank: 3 }; // Default
   }
 
   /**
@@ -1229,18 +1342,20 @@ ${cvText}
    */
   private extractRoleDomain(title: string) {
     const titleLower = title.toLowerCase();
-    
-    if (titleLower.includes('nfc') || titleLower.includes('hardware')) return 'hardware-engineer';
-    if (titleLower.includes('android') || titleLower.includes('mobile')) return 'mobile-engineer';
-    if (titleLower.includes('support') || titleLower.includes('monitoring')) return 'support-engineer';
-    if (titleLower.includes('backend') || titleLower.includes('api')) return 'backend-engineer';
-    if (titleLower.includes('frontend') || titleLower.includes('ui')) return 'frontend-engineer';
-    if (titleLower.includes('devops') || titleLower.includes('infrastructure')) return 'devops-engineer';
-    if (titleLower.includes('data') || titleLower.includes('analytics')) return 'data-engineer';
-    if (titleLower.includes('security')) return 'security-engineer';
-    if (titleLower.includes('consultant')) return 'consultant';
-    
-    return 'software-engineer'; // Default
+
+    if (titleLower.includes("nfc") || titleLower.includes("hardware")) return "hardware-engineer";
+    if (titleLower.includes("android") || titleLower.includes("mobile")) return "mobile-engineer";
+    if (titleLower.includes("support") || titleLower.includes("monitoring"))
+      return "support-engineer";
+    if (titleLower.includes("backend") || titleLower.includes("api")) return "backend-engineer";
+    if (titleLower.includes("frontend") || titleLower.includes("ui")) return "frontend-engineer";
+    if (titleLower.includes("devops") || titleLower.includes("infrastructure"))
+      return "devops-engineer";
+    if (titleLower.includes("data") || titleLower.includes("analytics")) return "data-engineer";
+    if (titleLower.includes("security")) return "security-engineer";
+    if (titleLower.includes("consultant")) return "consultant";
+
+    return "software-engineer"; // Default
   }
 
   /**
@@ -1251,34 +1366,44 @@ ${cvText}
     const skills2 = this.parseArray(exp2.skills).map((s: string) => s.toLowerCase());
     const tags1 = this.parseArray(exp1.tagIds).map((t: string) => t.toLowerCase());
     const tags2 = this.parseArray(exp2.tagIds).map((t: string) => t.toLowerCase());
-    
-    const allTerms1 = [...skills1, ...tags1, (exp1.title || '').toLowerCase(), (exp1.description || '').toLowerCase()];
-    const allTerms2 = [...skills2, ...tags2, (exp2.title || '').toLowerCase(), (exp2.description || '').toLowerCase()];
-    
+
+    const allTerms1 = [
+      ...skills1,
+      ...tags1,
+      (exp1.title || "").toLowerCase(),
+      (exp1.description || "").toLowerCase(),
+    ];
+    const allTerms2 = [
+      ...skills2,
+      ...tags2,
+      (exp2.title || "").toLowerCase(),
+      (exp2.description || "").toLowerCase(),
+    ];
+
     let domainOverlap = 0;
-    let sharedDomains: string[] = [];
-    
+    const sharedDomains: string[] = [];
+
     for (const [domain, technologies] of Object.entries(technologyDomains)) {
       const techArray = technologies as string[];
-      const hasDomain1 = techArray.some(tech => 
-        allTerms1.some(term => term.includes(tech) || tech.includes(term))
+      const hasDomain1 = techArray.some((tech) =>
+        allTerms1.some((term) => term.includes(tech) || tech.includes(term)),
       );
-      const hasDomain2 = techArray.some(tech => 
-        allTerms2.some(term => term.includes(tech) || tech.includes(term))
+      const hasDomain2 = techArray.some((tech) =>
+        allTerms2.some((term) => term.includes(tech) || tech.includes(term)),
       );
-      
+
       if (hasDomain1 && hasDomain2) {
         domainOverlap++;
         sharedDomains.push(domain);
       }
     }
-    
+
     const score = Math.min(domainOverlap * 25, 80); // 25% per shared domain, max 80%
-    
+
     return {
-      relationship: sharedDomains.length > 0 ? 'shared-domains' : 'different-domains',
+      relationship: sharedDomains.length > 0 ? "shared-domains" : "different-domains",
       score,
-      sharedDomains
+      sharedDomains,
     };
   }
 
@@ -1287,17 +1412,23 @@ ${cvText}
    */
   private calculateSimpleTextSimilarity(text1: string, text2: string): number {
     if (!text1 || !text2) return 0;
-    
-    const words1 = text1.toLowerCase().split(/\s+/).filter(w => w.length > 2);
-    const words2 = text2.toLowerCase().split(/\s+/).filter(w => w.length > 2);
-    
+
+    const words1 = text1
+      .toLowerCase()
+      .split(/\s+/)
+      .filter((w) => w.length > 2);
+    const words2 = text2
+      .toLowerCase()
+      .split(/\s+/)
+      .filter((w) => w.length > 2);
+
     if (words1.length === 0 || words2.length === 0) return 0;
-    
+
     const set1 = new Set(words1);
     const set2 = new Set(words2);
-    const intersection = new Set([...set1].filter(x => set2.has(x)));
+    const intersection = new Set([...set1].filter((x) => set2.has(x)));
     const union = new Set([...set1, ...set2]);
-    
+
     return intersection.size / union.size;
   }
 
@@ -1308,24 +1439,33 @@ ${cvText}
     // For projects, focus on technology stack and domain
     const analysis = {
       titleSimilarity: this.calculateFuzzyTextSimilarity(proj1.title, proj2.title),
-      descriptionSimilarity: this.calculateFuzzyTextSimilarity(proj1.description, proj2.description),
-      skillsSimilarity: this.calculateAdvancedArraySimilarity(this.parseArray(proj1.skills), this.parseArray(proj2.skills)),
-      tagsSimilarity: this.calculateAdvancedArraySimilarity(this.parseArray(proj1.tagIds), this.parseArray(proj2.tagIds))
+      descriptionSimilarity: this.calculateFuzzyTextSimilarity(
+        proj1.description,
+        proj2.description,
+      ),
+      skillsSimilarity: this.calculateAdvancedArraySimilarity(
+        this.parseArray(proj1.skills),
+        this.parseArray(proj2.skills),
+      ),
+      tagsSimilarity: this.calculateAdvancedArraySimilarity(
+        this.parseArray(proj1.tagIds),
+        this.parseArray(proj2.tagIds),
+      ),
     };
 
     // Conservative weights for projects
-    const finalScore = 
-      (analysis.skillsSimilarity * 0.4) +
-      (analysis.tagsSimilarity * 0.3) +
-      (analysis.titleSimilarity * 0.2) +
-      (analysis.descriptionSimilarity * 0.1);
+    const finalScore =
+      analysis.skillsSimilarity * 0.4 +
+      analysis.tagsSimilarity * 0.3 +
+      analysis.titleSimilarity * 0.2 +
+      analysis.descriptionSimilarity * 0.1;
 
     return {
       score: finalScore,
       breakdown: analysis,
       isDuplicate: finalScore > 0.8, // Higher threshold for projects
       isHighSimilarity: finalScore > 0.6, // Higher threshold for projects
-      explanation: `Project similarity: Skills ${(analysis.skillsSimilarity * 100).toFixed(1)}%, Tags ${(analysis.tagsSimilarity * 100).toFixed(1)}%`
+      explanation: `Project similarity: Skills ${(analysis.skillsSimilarity * 100).toFixed(1)}%, Tags ${(analysis.tagsSimilarity * 100).toFixed(1)}%`,
     };
   }
 
@@ -1335,24 +1475,33 @@ ${cvText}
   private calculateSkillSimilarity(skill1: any, skill2: any) {
     const analysis = {
       titleSimilarity: this.calculateFuzzyTextSimilarity(skill1.title, skill2.title),
-      descriptionSimilarity: this.calculateFuzzyTextSimilarity(skill1.description, skill2.description),
-      skillsSimilarity: this.calculateAdvancedArraySimilarity(this.parseArray(skill1.skills), this.parseArray(skill2.skills)),
-      tagsSimilarity: this.calculateAdvancedArraySimilarity(this.parseArray(skill1.tagIds), this.parseArray(skill2.tagIds))
+      descriptionSimilarity: this.calculateFuzzyTextSimilarity(
+        skill1.description,
+        skill2.description,
+      ),
+      skillsSimilarity: this.calculateAdvancedArraySimilarity(
+        this.parseArray(skill1.skills),
+        this.parseArray(skill2.skills),
+      ),
+      tagsSimilarity: this.calculateAdvancedArraySimilarity(
+        this.parseArray(skill1.tagIds),
+        this.parseArray(skill2.tagIds),
+      ),
     };
 
     // For skills, tags and actual skills are most important
-    const finalScore = 
-      (analysis.tagsSimilarity * 0.5) +
-      (analysis.skillsSimilarity * 0.3) +
-      (analysis.titleSimilarity * 0.15) +
-      (analysis.descriptionSimilarity * 0.05);
+    const finalScore =
+      analysis.tagsSimilarity * 0.5 +
+      analysis.skillsSimilarity * 0.3 +
+      analysis.titleSimilarity * 0.15 +
+      analysis.descriptionSimilarity * 0.05;
 
     return {
       score: finalScore,
       breakdown: analysis,
       isDuplicate: finalScore > 0.85, // High threshold for skills
-      isHighSimilarity: finalScore > 0.70, // High threshold for skills
-      explanation: `Skill similarity: Tags ${(analysis.tagsSimilarity * 100).toFixed(1)}%, Skills ${(analysis.skillsSimilarity * 100).toFixed(1)}%`
+      isHighSimilarity: finalScore > 0.7, // High threshold for skills
+      explanation: `Skill similarity: Tags ${(analysis.tagsSimilarity * 100).toFixed(1)}%, Skills ${(analysis.skillsSimilarity * 100).toFixed(1)}%`,
     };
   }
 
@@ -1363,23 +1512,26 @@ ${cvText}
     const analysis = {
       titleSimilarity: this.calculateFuzzyTextSimilarity(edu1.title, edu2.title),
       descriptionSimilarity: this.calculateFuzzyTextSimilarity(edu1.description, edu2.description),
-      companySimilarity: this.calculateFuzzyTextSimilarity(edu1.company || '', edu2.company || ''), // Institution
-      positionSimilarity: this.calculateFuzzyTextSimilarity(edu1.position || '', edu2.position || '') // Degree
+      companySimilarity: this.calculateFuzzyTextSimilarity(edu1.company || "", edu2.company || ""), // Institution
+      positionSimilarity: this.calculateFuzzyTextSimilarity(
+        edu1.position || "",
+        edu2.position || "",
+      ), // Degree
     };
 
     // For education, institution and degree type are most important
-    const finalScore = 
-      (analysis.companySimilarity * 0.4) + // Institution
-      (analysis.positionSimilarity * 0.3) + // Degree
-      (analysis.titleSimilarity * 0.2) +
-      (analysis.descriptionSimilarity * 0.1);
+    const finalScore =
+      analysis.companySimilarity * 0.4 + // Institution
+      analysis.positionSimilarity * 0.3 + // Degree
+      analysis.titleSimilarity * 0.2 +
+      analysis.descriptionSimilarity * 0.1;
 
     return {
       score: finalScore,
       breakdown: analysis,
       isDuplicate: finalScore > 0.9, // Very high threshold for education
       isHighSimilarity: finalScore > 0.7,
-      explanation: `Education similarity: Institution ${(analysis.companySimilarity * 100).toFixed(1)}%, Degree ${(analysis.positionSimilarity * 100).toFixed(1)}%`
+      explanation: `Education similarity: Institution ${(analysis.companySimilarity * 100).toFixed(1)}%, Degree ${(analysis.positionSimilarity * 100).toFixed(1)}%`,
     };
   }
 
@@ -1389,23 +1541,32 @@ ${cvText}
   private calculateGenericSimilarity(item1: any, item2: any) {
     const analysis = {
       titleSimilarity: this.calculateFuzzyTextSimilarity(item1.title, item2.title),
-      descriptionSimilarity: this.calculateFuzzyTextSimilarity(item1.description, item2.description),
-      skillsSimilarity: this.calculateAdvancedArraySimilarity(this.parseArray(item1.skills), this.parseArray(item2.skills)),
-      tagsSimilarity: this.calculateAdvancedArraySimilarity(this.parseArray(item1.tagIds), this.parseArray(item2.tagIds))
+      descriptionSimilarity: this.calculateFuzzyTextSimilarity(
+        item1.description,
+        item2.description,
+      ),
+      skillsSimilarity: this.calculateAdvancedArraySimilarity(
+        this.parseArray(item1.skills),
+        this.parseArray(item2.skills),
+      ),
+      tagsSimilarity: this.calculateAdvancedArraySimilarity(
+        this.parseArray(item1.tagIds),
+        this.parseArray(item2.tagIds),
+      ),
     };
 
-    const finalScore = 
-      (analysis.titleSimilarity * 0.3) +
-      (analysis.descriptionSimilarity * 0.3) +
-      (analysis.skillsSimilarity * 0.2) +
-      (analysis.tagsSimilarity * 0.2);
+    const finalScore =
+      analysis.titleSimilarity * 0.3 +
+      analysis.descriptionSimilarity * 0.3 +
+      analysis.skillsSimilarity * 0.2 +
+      analysis.tagsSimilarity * 0.2;
 
     return {
       score: finalScore,
       breakdown: analysis,
       isDuplicate: finalScore > 0.75,
-      isHighSimilarity: finalScore > 0.50,
-      explanation: `Generic similarity: ${(finalScore * 100).toFixed(1)}%`
+      isHighSimilarity: finalScore > 0.5,
+      explanation: `Generic similarity: ${(finalScore * 100).toFixed(1)}%`,
     };
   }
 
@@ -1463,11 +1624,13 @@ ${cvText}
    */
   async getProviderForUser(userId: string): Promise<LLMProvider> {
     const settings = await this.userLLMSettingsService.getEffectiveSettings(userId);
-    this.logger.log(`User ${userId} LLM settings: provider=${settings.provider}, hasBackup=${(settings as any).useSystemDefaultAsBackup}`);
-    
+    this.logger.log(
+      `User ${userId} LLM settings: provider=${settings.provider}, hasBackup=${(settings as any).useSystemDefaultAsBackup}`,
+    );
+
     // Check if user has their own API keys configured
     const hasUserKeys = await this.hasUserApiKeys(settings);
-    
+
     if (hasUserKeys) {
       try {
         // Try user's provider first
@@ -1476,7 +1639,7 @@ ${cvText}
         return userProvider;
       } catch (error) {
         this.logger.warn(`User ${userId} provider failed: ${error.message}`);
-        
+
         // Check if user wants system backup
         const useSystemBackup = (settings as any).useSystemDefaultAsBackup ?? false;
         if (useSystemBackup) {
@@ -1508,16 +1671,16 @@ ${cvText}
       case "ANTHROPIC": {
         if (settings.anthropicApiKey) {
           // Create a new Anthropic provider instance with user's API key
-          const { AnthropicProvider } = require('./providers/anthropic.provider');
+          const { AnthropicProvider } = require("./providers/anthropic.provider");
           const userProvider = new AnthropicProvider();
-          
+
           // Override the client with user's API key
-          const Anthropic = require('@anthropic-ai/sdk');
+          const Anthropic = require("@anthropic-ai/sdk");
           userProvider.client = new Anthropic({
             apiKey: settings.anthropicApiKey,
           });
           userProvider.model = settings.anthropicModel ?? "claude-3-sonnet-20240229";
-          
+
           return userProvider;
         }
         break;
@@ -1525,17 +1688,17 @@ ${cvText}
       case "OPENAI": {
         if (settings.openaiApiKey) {
           // Create a new OpenAI provider instance with user's API key
-          const { OpenAIProvider } = require('./providers/openai.provider');
+          const { OpenAIProvider } = require("./providers/openai.provider");
           const userProvider = new OpenAIProvider();
-          
+
           // Override the client with user's API key
-          const OpenAI = require('openai');
+          const OpenAI = require("openai");
           userProvider.client = new OpenAI({
             apiKey: settings.openaiApiKey,
             baseURL: settings.openaiBaseUrl ?? undefined,
           });
           userProvider.model = settings.openaiModel ?? "gpt-4-turbo-preview";
-          
+
           return userProvider;
         }
         break;
@@ -1543,19 +1706,19 @@ ${cvText}
       case "OLLAMA": {
         if (settings.ollamaBaseUrl) {
           // Create a new Local/Ollama provider instance
-          const { LocalLLMProvider } = require('./providers/local.provider');
+          const { LocalLLMProvider } = require("./providers/local.provider");
           const userProvider = new LocalLLMProvider();
-          
+
           // Configure with user's settings
           userProvider.baseUrl = settings.ollamaBaseUrl;
           userProvider.model = settings.ollamaModel ?? "llama3:8b";
-          
+
           return userProvider;
         }
         break;
       }
     }
-    
+
     throw new Error(`Invalid provider configuration for ${settings.provider}`);
   }
 
@@ -1582,7 +1745,10 @@ ${cvText}
   /**
    * Analyze a job posting with user-specific settings and fallback
    */
-  async analyzeJobPostingForUser(userId: string, jobText: string): Promise<LLMResponse<JobAnalysisResult>> {
+  async analyzeJobPostingForUser(
+    userId: string,
+    jobText: string,
+  ): Promise<LLMResponse<JobAnalysisResult>> {
     const provider = await this.getProviderForUserWithRetry(userId);
     return provider.analyzeJobPosting(jobText);
   }
@@ -1637,32 +1803,28 @@ ${cvText}
     try {
       // Step 1: Extract tags from job requirements (single cheap LLM call)
       const jobTags = await this.extractJobTags(jobDescription, userId);
-      
+
       if (jobTags.length === 0) {
         return { success: false, error: "Failed to extract job tags" };
       }
 
-      this.logger.log(`Extracted ${jobTags.length} job tags: ${jobTags.join(', ')}`);
+      this.logger.log(`Extracted ${jobTags.length} job tags: ${jobTags.join(", ")}`);
 
       // Step 2: Database query for content with matching tags (no LLM)
       const tagMatchedContent = await this.contentLibraryService.findByTags(userId, jobTags);
-      
+
       this.logger.log(`Found ${tagMatchedContent.length} content items with matching tags`);
 
       // Step 3: Score content based on tag overlap and relevance (no LLM)
-      const scoredContent = this.scoreContentByTags(
-        tagMatchedContent,
-        jobTags,
-        jobRequirements
-      );
+      const scoredContent = this.scoreContentByTags(tagMatchedContent, jobTags, jobRequirements);
 
       // Step 4: Get all user content for complete results
       const allUserContent = await this.contentLibraryService.findAll(userId);
-      
+
       // Create final results with scores
-      const finalResults: ContentMatchResult[] = allUserContent.map(content => {
-        const scored = scoredContent.find(scored => scored.contentId === content.id);
-        
+      const finalResults: ContentMatchResult[] = allUserContent.map((content) => {
+        const scored = scoredContent.find((scored) => scored.contentId === content.id);
+
         if (scored) {
           return scored;
         } else {
@@ -1671,24 +1833,23 @@ ${cvText}
             contentId: content.id,
             score: 0,
             reasons: ["No matching tags found"],
-            suggestions: ["Add relevant tags to improve matching"]
+            suggestions: ["Add relevant tags to improve matching"],
           };
         }
       });
 
-      const highScores = finalResults.filter(match => match.score >= 70).length;
+      const highScores = finalResults.filter((match) => match.score >= 70).length;
       this.logger.log(`RAG matching complete: ${highScores} high-relevance matches found`);
 
       return {
         success: true,
-        data: finalResults
+        data: finalResults,
       };
-
     } catch (error) {
       this.logger.error("RAG matching error:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : "RAG matching failed"
+        error: error instanceof Error ? error.message : "RAG matching failed",
       };
     }
   }
@@ -1697,36 +1858,38 @@ ${cvText}
    * Extract tags from job requirements using specialized NLP libraries
    * Much faster and more cost-effective than LLM calls
    */
-     async extractJobTags(jobDescription: string, userId?: string): Promise<string[]> {
-     this.logger.log('Extracting job tags using NLP libraries');
-     
-     try {
-       // Use specialized NLP libraries instead of LLM
-       const result = await this.tagExtractionService.extractJobTags(jobDescription);
-       
-       this.logger.log(`Successfully extracted ${result.tags.length} tags using ${result.method} in ${result.processingTime}ms`);
-       
-       return result.tags;
-     } catch (error) {
-       this.logger.error('Tag extraction failed:', error);
-       
-       // Fallback to LLM if NLP extraction fails completely
-       try {
-         this.logger.log('Falling back to LLM for tag extraction');
-         return await this.extractJobTagsWithLLM(jobDescription, userId ?? '');
-       } catch (llmError) {
-         this.logger.error('LLM fallback also failed:', llmError);
-         return []; // Return empty array if both methods fail
-       }
-     }
-   }
+  async extractJobTags(jobDescription: string, userId?: string): Promise<string[]> {
+    this.logger.log("Extracting job tags using NLP libraries");
+
+    try {
+      // Use specialized NLP libraries instead of LLM
+      const result = await this.tagExtractionService.extractJobTags(jobDescription);
+
+      this.logger.log(
+        `Successfully extracted ${result.tags.length} tags using ${result.method} in ${result.processingTime}ms`,
+      );
+
+      return result.tags;
+    } catch (error) {
+      this.logger.error("Tag extraction failed:", error);
+
+      // Fallback to LLM if NLP extraction fails completely
+      try {
+        this.logger.log("Falling back to LLM for tag extraction");
+        return await this.extractJobTagsWithLLM(jobDescription, userId ?? "");
+      } catch (llmError) {
+        this.logger.error("LLM fallback also failed:", llmError);
+        return []; // Return empty array if both methods fail
+      }
+    }
+  }
 
   /**
    * LLM-based tag extraction (fallback method)
    */
   private async extractJobTagsWithLLM(jobDescription: string, userId: string): Promise<string[]> {
     const provider = await this.getProviderForUser(userId);
-    
+
     const prompt = `Extract relevant tags from this job description. Return ONLY a comma-separated list of tags in lowercase, hyphenated format (e.g., "javascript, react, node-js, problem-solving").
 
 Job Description:
@@ -1736,13 +1899,16 @@ Tags:`;
 
     try {
       const result = await provider.chat([
-        { role: "system", content: "Extract tags for content matching. Return only comma-separated tags." },
-        { role: "user", content: prompt }
+        {
+          role: "system",
+          content: "Extract tags for content matching. Return only comma-separated tags.",
+        },
+        { role: "user", content: prompt },
       ]);
 
       if (result.success && result.data) {
         const tags = result.data
-          .split(',')
+          .split(",")
           .map((tag: string) => tag.trim().toLowerCase())
           .filter((tag: string) => tag.length > 0 && tag.length < 30)
           .slice(0, 15); // Limit to 15 tags
@@ -1752,7 +1918,7 @@ Tags:`;
         throw new Error(result.error ?? "Failed to extract tags with LLM");
       }
     } catch (error) {
-      this.logger.error('LLM tag extraction failed:', error);
+      this.logger.error("LLM tag extraction failed:", error);
       throw error;
     }
   }
@@ -1764,41 +1930,47 @@ Tags:`;
   private scoreContentByTags(
     tagMatchedContent: any[],
     jobTags: string[],
-    jobRequirements: string[]
+    jobRequirements: string[],
   ): ContentMatchResult[] {
-    
-    return tagMatchedContent.map(content => {
+    return tagMatchedContent.map((content) => {
       // Get content tags
       const contentTags = content.tags?.map((tag: any) => tag.tag.name) || [];
-      
+
       // Calculate tag overlap score (0-60 points)
       const tagOverlap = this.calculateTagOverlap(jobTags, contentTags);
       const tagScore = Math.round(tagOverlap * 60); // Max 60 points for tag matching
-      
+
       // Content type relevance score (0-25 points)
       const typeScore = this.calculateTypeRelevance(content.type, jobRequirements);
-      
+
       // Experience/recency bonus (0-15 points)
       const experienceScore = this.calculateExperienceScore(content);
-      
+
       // Total score
       const totalScore = Math.min(100, tagScore + typeScore + experienceScore);
-      
+
       // Generate reasons
       const reasons = this.generateScoringReasons(
-        tagScore, typeScore, experienceScore, contentTags, jobTags
+        tagScore,
+        typeScore,
+        experienceScore,
+        contentTags,
+        jobTags,
       );
-      
+
       // Generate suggestions
       const suggestions = this.generateImprovementSuggestions(
-        content, jobTags, contentTags, totalScore
+        content,
+        jobTags,
+        contentTags,
+        totalScore,
       );
 
       return {
         contentId: content.id,
         score: totalScore,
         reasons,
-        suggestions
+        suggestions,
       };
     });
   }
@@ -1808,12 +1980,12 @@ Tags:`;
    */
   private calculateTagOverlap(jobTags: string[], contentTags: string[]): number {
     if (jobTags.length === 0 || contentTags.length === 0) return 0;
-    
-    const jobTagsSet = new Set(jobTags.map(tag => tag.toLowerCase()));
-    const contentTagsSet = new Set(contentTags.map(tag => tag.toLowerCase()));
-    
-    const intersection = new Set([...jobTagsSet].filter(tag => contentTagsSet.has(tag)));
-    
+
+    const jobTagsSet = new Set(jobTags.map((tag) => tag.toLowerCase()));
+    const contentTagsSet = new Set(contentTags.map((tag) => tag.toLowerCase()));
+
+    const intersection = new Set([...jobTagsSet].filter((tag) => contentTagsSet.has(tag)));
+
     // Use the smaller set as denominator for more generous scoring
     const minSetSize = Math.min(jobTagsSet.size, contentTagsSet.size);
     return intersection.size / minSetSize;
@@ -1823,40 +1995,40 @@ Tags:`;
    * Calculate content type relevance score (0-25 points)
    */
   private calculateTypeRelevance(contentType: string, jobRequirements: string[]): number {
-    const requirementText = jobRequirements.join(' ').toLowerCase();
-    
-    const typeRelevanceMap: Record<string, { keywords: string[], score: number }> = {
-      'WORK_EXPERIENCE': { 
-        keywords: ['experience', 'years', 'worked', 'led', 'managed', 'senior', 'lead'], 
-        score: 25 
+    const requirementText = jobRequirements.join(" ").toLowerCase();
+
+    const typeRelevanceMap: Record<string, { keywords: string[]; score: number }> = {
+      WORK_EXPERIENCE: {
+        keywords: ["experience", "years", "worked", "led", "managed", "senior", "lead"],
+        score: 25,
       },
-      'TECHNICAL_SKILL': { 
-        keywords: ['skill', 'programming', 'development', 'technology', 'framework'], 
-        score: 20 
+      TECHNICAL_SKILL: {
+        keywords: ["skill", "programming", "development", "technology", "framework"],
+        score: 20,
       },
-      'PROJECT': { 
-        keywords: ['project', 'built', 'developed', 'created', 'portfolio'], 
-        score: 18 
+      PROJECT: {
+        keywords: ["project", "built", "developed", "created", "portfolio"],
+        score: 18,
       },
-      'SOFT_SKILL': { 
-        keywords: ['leadership', 'communication', 'team', 'management', 'collaboration'], 
-        score: 15 
+      SOFT_SKILL: {
+        keywords: ["leadership", "communication", "team", "management", "collaboration"],
+        score: 15,
       },
-      'EDUCATION': { 
-        keywords: ['education', 'degree', 'university', 'bachelor', 'master'], 
-        score: 10 
+      EDUCATION: {
+        keywords: ["education", "degree", "university", "bachelor", "master"],
+        score: 10,
       },
-      'CERTIFICATION': { 
-        keywords: ['certified', 'certification', 'license', 'credential'], 
-        score: 12 
-      }
+      CERTIFICATION: {
+        keywords: ["certified", "certification", "license", "credential"],
+        score: 12,
+      },
     };
 
     const typeInfo = typeRelevanceMap[contentType];
     if (!typeInfo) return 0;
 
-    const keywordMatches = typeInfo.keywords.filter(keyword => 
-      requirementText.includes(keyword)
+    const keywordMatches = typeInfo.keywords.filter((keyword) =>
+      requirementText.includes(keyword),
     ).length;
 
     // Scale score based on keyword matches
@@ -1869,30 +2041,32 @@ Tags:`;
    */
   private calculateExperienceScore(content: any): number {
     let score = 0;
-    
+
     // Recent content gets bonus points
     if (content.createdAt) {
-      const monthsOld = (Date.now() - new Date(content.createdAt).getTime()) / (1000 * 60 * 60 * 24 * 30);
-      if (monthsOld < 6) score += 5; // Recent content
+      const monthsOld =
+        (Date.now() - new Date(content.createdAt).getTime()) / (1000 * 60 * 60 * 24 * 30);
+      if (monthsOld < 6)
+        score += 5; // Recent content
       else if (monthsOld < 12) score += 3;
     }
-    
+
     // Work experience duration bonus
-    if (content.startDate && content.type === 'WORK_EXPERIENCE') {
+    if (content.startDate && content.type === "WORK_EXPERIENCE") {
       const yearsExp = this.estimateYearsExperience(content);
       if (yearsExp >= 3) score += 5;
       else if (yearsExp >= 1) score += 3;
     }
-    
+
     // Skills count bonus
-    const skillsCount = JSON.parse(content.skills || '[]').length;
+    const skillsCount = JSON.parse(content.skills || "[]").length;
     if (skillsCount >= 8) score += 3;
     else if (skillsCount >= 5) score += 2;
-    
+
     // Achievements bonus
-    const achievementsCount = JSON.parse(content.achievements || '[]').length;
+    const achievementsCount = JSON.parse(content.achievements || "[]").length;
     if (achievementsCount >= 3) score += 2;
-    
+
     return Math.min(15, score);
   }
 
@@ -1900,37 +2074,37 @@ Tags:`;
    * Generate human-readable scoring reasons
    */
   private generateScoringReasons(
-    tagScore: number, 
-    typeScore: number, 
+    tagScore: number,
+    typeScore: number,
     experienceScore: number,
     contentTags: string[],
-    jobTags: string[]
+    jobTags: string[],
   ): string[] {
     const reasons: string[] = [];
-    
+
     if (tagScore > 30) {
-      const matchingTags = contentTags.filter(tag => 
-        jobTags.some(jobTag => jobTag.toLowerCase() === tag.toLowerCase())
+      const matchingTags = contentTags.filter((tag) =>
+        jobTags.some((jobTag) => jobTag.toLowerCase() === tag.toLowerCase()),
       );
-      reasons.push(`Strong tag matches: ${matchingTags.slice(0, 3).join(', ')}`);
+      reasons.push(`Strong tag matches: ${matchingTags.slice(0, 3).join(", ")}`);
     } else if (tagScore > 15) {
       reasons.push(`Some relevant tags found`);
     } else {
       reasons.push(`Limited tag overlap`);
     }
-    
+
     if (typeScore > 15) {
       reasons.push(`Content type highly relevant to job requirements`);
     } else if (typeScore > 8) {
       reasons.push(`Content type moderately relevant`);
     }
-    
+
     if (experienceScore > 10) {
       reasons.push(`Recent and substantial experience`);
     } else if (experienceScore > 5) {
       reasons.push(`Good experience level`);
     }
-    
+
     return reasons;
   }
 
@@ -1941,31 +2115,34 @@ Tags:`;
     content: any,
     jobTags: string[],
     contentTags: string[],
-    totalScore: number
+    totalScore: number,
   ): string[] {
     const suggestions: string[] = [];
-    
+
     if (totalScore < 50) {
       // Find missing job tags
-      const missingTags = jobTags.filter(jobTag => 
-        !contentTags.some(contentTag => contentTag.toLowerCase() === jobTag.toLowerCase())
+      const missingTags = jobTags.filter(
+        (jobTag) =>
+          !contentTags.some((contentTag) => contentTag.toLowerCase() === jobTag.toLowerCase()),
       );
-      
+
       if (missingTags.length > 0) {
-        suggestions.push(`Consider adding these relevant tags: ${missingTags.slice(0, 3).join(', ')}`);
+        suggestions.push(
+          `Consider adding these relevant tags: ${missingTags.slice(0, 3).join(", ")}`,
+        );
       }
-      
+
       suggestions.push(`Enhance content with job-relevant keywords and skills`);
     }
-    
+
     if (totalScore >= 50 && totalScore < 80) {
       suggestions.push(`Good match - consider emphasizing shared technologies and achievements`);
     }
-    
+
     if (totalScore >= 80) {
       suggestions.push(`Excellent match - highlight this content prominently in your resume`);
     }
-    
+
     return suggestions;
   }
 
@@ -1976,30 +2153,30 @@ Tags:`;
     if (!exp1.startDate || !exp2.startDate) {
       return { hasOverlap: false, score: 0 };
     }
-    
+
     try {
       const start1 = new Date(exp1.startDate);
       const end1 = exp1.endDate ? new Date(exp1.endDate) : new Date();
       const start2 = new Date(exp2.startDate);
       const end2 = exp2.endDate ? new Date(exp2.endDate) : new Date();
-      
+
       const overlapStart = new Date(Math.max(start1.getTime(), start2.getTime()));
       const overlapEnd = new Date(Math.min(end1.getTime(), end2.getTime()));
-      
+
       if (overlapStart < overlapEnd) {
         const overlapDays = (overlapEnd.getTime() - overlapStart.getTime()) / (1000 * 60 * 60 * 24);
         const overlapScore = Math.min((overlapDays / 365) * 50, 50); // Max 50% for overlap
-        
+
         return {
           hasOverlap: true,
           overlapDays: Math.round(overlapDays),
-          score: overlapScore
+          score: overlapScore,
         };
       }
-    } catch (error) {
+    } catch {
       // Invalid dates
     }
-    
+
     return { hasOverlap: false, score: 0 };
   }
 
@@ -2017,12 +2194,12 @@ Tags:`;
     // Check each item in array1 against all items in array2
     for (const item1 of arr1) {
       let bestMatch = 0;
-      
+
       for (const item2 of arr2) {
         const similarity = this.calculateFuzzyTextSimilarity(String(item1), String(item2));
         bestMatch = Math.max(bestMatch, similarity);
       }
-      
+
       totalScore += bestMatch;
       comparisons++;
     }
@@ -2036,19 +2213,21 @@ Tags:`;
   private calculateFuzzyTextSimilarity(text1: string, text2: string): number {
     if (!text1 || !text2) return 0;
 
-    const normalize = (text: string) => text.toLowerCase()
-      .replace(/[^\w\s-]/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
+    const normalize = (text: string) =>
+      text
+        .toLowerCase()
+        .replace(/[^\s\w-]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
 
     const norm1 = normalize(text1);
     const norm2 = normalize(text2);
 
-    if (norm1 === norm2) return 1.0;
+    if (norm1 === norm2) return 1;
 
     // Conservative word-based similarity
-    const words1 = norm1.split(/\s+/).filter(w => w.length > 1);
-    const words2 = norm2.split(/\s+/).filter(w => w.length > 1);
+    const words1 = norm1.split(/\s+/).filter((w) => w.length > 1);
+    const words2 = norm2.split(/\s+/).filter((w) => w.length > 1);
 
     if (words1.length === 0 || words2.length === 0) return 0;
 
@@ -2068,16 +2247,16 @@ Tags:`;
 
     // Conservative semantic boost for technology terms
     const semanticGroups = [
-      ['lead', 'leader', 'leadership', 'management', 'manager', 'senior'],
-      ['engineering', 'engineer', 'development', 'developer'],
-      ['android', 'mobile', 'kotlin', 'java'],
-      ['nfc', 'technology', 'tech']
+      ["lead", "leader", "leadership", "management", "manager", "senior"],
+      ["engineering", "engineer", "development", "developer"],
+      ["android", "mobile", "kotlin", "java"],
+      ["nfc", "technology", "tech"],
     ];
 
     let semanticBoost = 0;
     for (const group of semanticGroups) {
-      const matches1 = group.filter(term => norm1.includes(term)).length;
-      const matches2 = group.filter(term => norm2.includes(term)).length;
+      const matches1 = group.filter((term) => norm1.includes(term)).length;
+      const matches2 = group.filter((term) => norm2.includes(term)).length;
 
       if (matches1 > 0 && matches2 > 0) {
         const groupBoost = (Math.min(matches1, matches2) / group.length) * 0.2; // Reduced boost
@@ -2085,6 +2264,6 @@ Tags:`;
       }
     }
 
-    return Math.min(wordSimilarity + semanticBoost, 1.0);
+    return Math.min(wordSimilarity + semanticBoost, 1);
   }
 }

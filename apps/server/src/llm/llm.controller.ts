@@ -12,7 +12,7 @@ type AnalyzeJobRequest = {
   jobText: string;
 };
 
-type MatchContentRequest = {  
+type MatchContentRequest = {
   jobRequirements: string[];
   userContent: Record<string, unknown>[];
   jobDescription: string;
@@ -70,7 +70,10 @@ export class LLMController {
 
   @Post("generate-resume-summary")
   @ApiOperation({ summary: "Generate tailored resume summary" })
-  async generateResumeSummary(@User("id") userId: string, @Body() body: GenerateResumeSummaryRequest) {
+  async generateResumeSummary(
+    @User("id") userId: string,
+    @Body() body: GenerateResumeSummaryRequest,
+  ) {
     return this.llmService.generateResumeSummary(
       body.jobDescription,
       body.selectedContent,
@@ -91,7 +94,10 @@ export class LLMController {
 
   @Post("generate-interview-questions")
   @ApiOperation({ summary: "Generate interview practice questions" })
-  async generateInterviewQuestions(@User("id") userId: string, @Body() body: GenerateInterviewQuestionsRequest) {
+  async generateInterviewQuestions(
+    @User("id") userId: string,
+    @Body() body: GenerateInterviewQuestionsRequest,
+  ) {
     return this.llmService.generateInterviewQuestions(body.jobDescription, body.userContent);
   }
 

@@ -90,7 +90,7 @@ export const ManualJobForm = () => {
       });
 
       navigate("/dashboard/job-applications");
-    } catch (error) {
+    } catch {
       toast({
         variant: "error",
         title: t`Error`,
@@ -221,11 +221,7 @@ export const ManualJobForm = () => {
 
         {/* Actions */}
         <div className="flex gap-2">
-          <Button
-            disabled={!isFormValid || isCreating}
-            className="flex-1"
-            onClick={handleSave}
-          >
+          <Button disabled={!isFormValid || isCreating} className="flex-1" onClick={handleSave}>
             {isCreating ? t`Creating...` : t`Create Application`}
           </Button>
         </div>

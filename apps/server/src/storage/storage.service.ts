@@ -95,7 +95,9 @@ export class StorageService implements OnModuleInit {
         );
       }
     } catch (error) {
-      this.logger.warn(`Storage service not available: ${error.message}. Continuing without storage...`);
+      this.logger.warn(
+        `Storage service not available: ${error.message}. Continuing without storage...`,
+      );
     }
   }
 

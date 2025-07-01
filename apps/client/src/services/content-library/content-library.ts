@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
 import type { ContentLibraryDto } from "@reactive-resume/dto";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { CONTENT_LIBRARY_KEY } from "@/client/constants/query-keys";
 import { axios } from "@/client/libs/axios";
@@ -13,4 +13,55 @@ export const useContentLibrary = () => {
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
-}; 
+};
+
+export const useAvailableSections = () => {
+  return useQuery({
+    queryKey: [CONTENT_LIBRARY_KEY, "sections"],
+    queryFn: async () => {
+      const response = await axios.get("/content-library/sections");
+      return response.data;
+    },
+    staleTime: 1000 * 60 * 10, // 10 minutes - sections don't change often
+  });
+};
+
+export const useContentBySection = (sectionId?: string) => {
+  return useQuery({
+    queryKey: [CONTENT_LIBRARY_KEY, "section", sectionId],
+    queryFn: async (): Promise<ContentLibraryDto[]> => {
+      if (!sectionId) return [];
+      const response = await axios.get(`/content-library/section/${sectionId}`);
+      return response.data;
+    },
+    enabled: !!sectionId,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+};
+
+export const useAvailableTags = () => {
+  return useQuery({
+    queryKey: ["tags"],
+    queryFn: async () => {
+      const response = await axios.get("/tags");
+      return response.data;
+    },
+    staleTime: 1000 * 60 * 10, // 10 minutes - tags don't change often
+  });
+};
+
+export const useDeleteContentLibraryItem = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const response = await axios.delete(`/content-library/${id}`);
+      return response.data;
+    },
+    onSuccess: () => {
+      // Invalidate and refetch content library queries
+      queryClient.invalidateQueries({ queryKey: [CONTENT_LIBRARY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [CONTENT_LIBRARY_KEY, "section"] });
+    },
+  });
+};

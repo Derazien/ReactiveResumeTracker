@@ -1,9 +1,7 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router";
-
 import { t } from "@lingui/macro";
-import { ArrowLeft, FileText, Plus, X, Calendar, Building } from "@phosphor-icons/react";
+import { ArrowLeft, Building, Calendar, FileText, Plus, X } from "@phosphor-icons/react";
 import {
+  Badge,
   Button,
   Card,
   CardContent,
@@ -17,9 +15,10 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-  Badge,
 } from "@reactive-resume/ui";
 import { cn } from "@reactive-resume/utils";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router";
 
 import { useToast } from "@/client/hooks/use-toast";
 import { useJobApplication } from "@/client/services/job-application/job-application";
@@ -40,7 +39,11 @@ type FormData = {
 const statusOptions = [
   { value: "DRAFT", label: t`Draft`, color: "bg-gray-100 text-gray-800" },
   { value: "APPLIED", label: t`Applied`, color: "bg-blue-100 text-blue-800" },
-  { value: "INTERVIEW_SCHEDULED", label: t`Interview Scheduled`, color: "bg-purple-100 text-purple-800" },
+  {
+    value: "INTERVIEW_SCHEDULED",
+    label: t`Interview Scheduled`,
+    color: "bg-purple-100 text-purple-800",
+  },
   { value: "INTERVIEWED", label: t`Interviewed`, color: "bg-yellow-100 text-yellow-800" },
   { value: "OFFER_RECEIVED", label: t`Offer Received`, color: "bg-green-100 text-green-800" },
   { value: "ACCEPTED", label: t`Accepted`, color: "bg-emerald-100 text-emerald-800" },
@@ -77,13 +80,11 @@ export const JobApplicationEditPage = () => {
         description: jobApplication.description || "",
         url: jobApplication.url || "",
         notes: jobApplication.notes || "",
-        requirements: jobApplication.requirements?.length > 0 
-          ? jobApplication.requirements 
-          : [""],
+        requirements: jobApplication.requirements.length > 0 ? jobApplication.requirements : [""],
         extractedTags: jobApplication.extractedTags || [],
         status: jobApplication.status || "DRAFT",
-        appliedDate: jobApplication.appliedDate 
-          ? new Date(jobApplication.appliedDate).toISOString().split('T')[0] 
+        appliedDate: jobApplication.appliedDate
+          ? new Date(jobApplication.appliedDate).toISOString().split("T")[0]
           : "",
       });
     }
@@ -95,12 +96,12 @@ export const JobApplicationEditPage = () => {
         ...prev,
         [field]: value,
       };
-      
+
       // Auto-set applied date when status changes to APPLIED
       if (field === "status" && value === "APPLIED" && !prev.appliedDate) {
-        newData.appliedDate = new Date().toISOString().split('T')[0];
+        newData.appliedDate = new Date().toISOString().split("T")[0];
       }
-      
+
       return newData;
     });
   };
@@ -167,7 +168,7 @@ export const JobApplicationEditPage = () => {
           description: formData.description,
           url: formData.url || undefined,
           notes: formData.notes || undefined,
-          requirements: formData.requirements.filter(req => req.trim()),
+          requirements: formData.requirements.filter((req) => req.trim()),
           extractedTags: formData.extractedTags,
           status: formData.status as any,
           appliedDate: formData.appliedDate || undefined,
@@ -199,7 +200,7 @@ export const JobApplicationEditPage = () => {
     return (
       <div className="flex h-64 items-center justify-center">
         <div className="text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto mb-4"></div>
+          <div className="mx-auto mb-4 size-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
           <p>{t`Loading job application...`}</p>
         </div>
       </div>
@@ -208,8 +209,8 @@ export const JobApplicationEditPage = () => {
 
   if (!jobApplication) {
     return (
-      <div className="text-center py-8">
-        <p className="text-red-600 mb-4">{t`Job application not found`}</p>
+      <div className="py-8 text-center">
+        <p className="mb-4 text-red-600">{t`Job application not found`}</p>
         <Button onClick={() => navigate("/dashboard/job-applications")}>
           {t`Back to Job Applications`}
         </Button>
@@ -225,33 +226,37 @@ export const JobApplicationEditPage = () => {
           <ArrowLeft size={16} />
         </Button>
         <div className="flex-1">
-          <div className="flex items-center gap-3 mb-2">
+          <div className="mb-2 flex items-center gap-3">
             <h1 className="text-3xl font-bold tracking-tight">{t`Edit Job Application`}</h1>
             {jobApplication && (
-              <Badge 
-                variant="secondary" 
-                className={cn("text-xs", statusOptions.find(opt => opt.value === jobApplication.status)?.color)}
+              <Badge
+                variant="secondary"
+                className={cn(
+                  "text-xs",
+                  statusOptions.find((opt) => opt.value === jobApplication.status)?.color,
+                )}
               >
-                {statusOptions.find(opt => opt.value === jobApplication.status)?.label || jobApplication.status}
+                {statusOptions.find((opt) => opt.value === jobApplication.status)?.label ||
+                  jobApplication.status}
               </Badge>
             )}
           </div>
-          <div className="flex items-center gap-4 text-muted-foreground">
+          <div className="text-muted-foreground flex items-center gap-4">
             <div className="flex items-center gap-1">
               <Building size={16} />
-              <span>{jobApplication?.company}</span>
+              <span>{jobApplication.company}</span>
             </div>
-            {jobApplication?.appliedDate && (
+            {jobApplication.appliedDate && (
               <div className="flex items-center gap-1">
                 <Calendar size={16} />
-                <span>{t`Applied`}: {new Date(jobApplication.appliedDate).toLocaleDateString()}</span>
+                <span>
+                  {t`Applied`}: {new Date(jobApplication.appliedDate).toLocaleDateString()}
+                </span>
               </div>
             )}
           </div>
         </div>
       </div>
-
-
 
       {/* Edit Form */}
       <Card>
@@ -270,7 +275,9 @@ export const JobApplicationEditPage = () => {
                 id="title"
                 value={formData.title}
                 placeholder={t`e.g. Senior Frontend Developer`}
-                onChange={(e) => handleInputChange("title", e.target.value)}
+                onChange={(e) => {
+                  handleInputChange("title", e.target.value);
+                }}
               />
             </div>
             <div>
@@ -279,7 +286,9 @@ export const JobApplicationEditPage = () => {
                 id="company"
                 value={formData.company}
                 placeholder={t`e.g. TechCorp Inc.`}
-                onChange={(e) => handleInputChange("company", e.target.value)}
+                onChange={(e) => {
+                  handleInputChange("company", e.target.value);
+                }}
               />
             </div>
           </div>
@@ -291,7 +300,9 @@ export const JobApplicationEditPage = () => {
               type="url"
               value={formData.url}
               placeholder={t`https://company.com/careers/job-123`}
-              onChange={(e) => handleInputChange("url", e.target.value)}
+              onChange={(e) => {
+                handleInputChange("url", e.target.value);
+              }}
             />
           </div>
 
@@ -299,7 +310,12 @@ export const JobApplicationEditPage = () => {
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <Label>{t`Application Status`}</Label>
-              <Select value={formData.status} onValueChange={(value) => handleInputChange("status", value)}>
+              <Select
+                value={formData.status}
+                onValueChange={(value) => {
+                  handleInputChange("status", value);
+                }}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -316,16 +332,18 @@ export const JobApplicationEditPage = () => {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div>
               <Label htmlFor="appliedDate">{t`Applied Date`}</Label>
               <Input
                 id="appliedDate"
                 type="date"
                 value={formData.appliedDate}
-                onChange={(e) => handleInputChange("appliedDate", e.target.value)}
+                onChange={(e) => {
+                  handleInputChange("appliedDate", e.target.value);
+                }}
               />
-              <p className="mt-1 text-xs text-muted-foreground">
+              <p className="text-muted-foreground mt-1 text-xs">
                 {t`Leave empty if not yet applied`}
               </p>
             </div>
@@ -337,14 +355,16 @@ export const JobApplicationEditPage = () => {
             <RichInput
               content={formData.description}
               placeholder={t`Paste or write the job description here...`}
-              onChange={(value) => handleInputChange("description", value)}
+              onChange={(value) => {
+                handleInputChange("description", value);
+              }}
             />
           </div>
 
           {/* Requirements */}
           <div>
             <Label>{t`Requirements`}</Label>
-            <p className="mb-2 text-sm text-muted-foreground">
+            <p className="text-muted-foreground mb-2 text-sm">
               {t`List the key requirements for this position to help with resume optimization`}
             </p>
             <div className="space-y-3">
@@ -353,14 +373,18 @@ export const JobApplicationEditPage = () => {
                   <Input
                     value={requirement}
                     placeholder={t`e.g. 5+ years of React experience, Bachelor's degree, etc.`}
-                    onChange={(e) => handleRequirementChange(index, e.target.value)}
+                    onChange={(e) => {
+                      handleRequirementChange(index, e.target.value);
+                    }}
                   />
                   <Button
                     type="button"
                     variant="outline"
                     size="icon"
                     disabled={formData.requirements.length === 1}
-                    onClick={() => removeRequirement(index)}
+                    onClick={() => {
+                      removeRequirement(index);
+                    }}
                   >
                     <X size={16} />
                   </Button>
@@ -376,7 +400,7 @@ export const JobApplicationEditPage = () => {
           {/* Extracted Tags */}
           <div>
             <Label>{t`Tags/Skills`}</Label>
-            <p className="mb-2 text-sm text-muted-foreground">
+            <p className="text-muted-foreground mb-2 text-sm">
               {t`Add relevant tags or skills extracted from the job posting`}
             </p>
             <div className="space-y-3">
@@ -386,22 +410,24 @@ export const JobApplicationEditPage = () => {
                     <Input
                       value={tag}
                       placeholder={t`e.g. React, TypeScript, AWS, etc.`}
-                      onChange={(e) => handleTagChange(index, e.target.value)}
+                      onChange={(e) => {
+                        handleTagChange(index, e.target.value);
+                      }}
                     />
                     <Button
                       type="button"
                       variant="outline"
                       size="icon"
-                      onClick={() => removeTag(index)}
+                      onClick={() => {
+                        removeTag(index);
+                      }}
                     >
                       <X size={16} />
                     </Button>
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-muted-foreground italic">
-                  {t`No tags added yet`}
-                </p>
+                <p className="text-muted-foreground text-sm italic">{t`No tags added yet`}</p>
               )}
               <Button type="button" variant="outline" className="gap-2" onClick={addTag}>
                 <Plus size={16} />
@@ -416,19 +442,21 @@ export const JobApplicationEditPage = () => {
             <RichInput
               content={formData.notes}
               placeholder={t`Add any personal notes about this opportunity...`}
-              onChange={(value) => handleInputChange("notes", value)}
+              onChange={(value) => {
+                handleInputChange("notes", value);
+              }}
             />
           </div>
 
           {/* Actions */}
           <div className="space-y-4 pt-4">
             {!isFormValid && (
-              <div className="flex items-center gap-2 text-sm text-amber-600 bg-amber-50 p-3 rounded-md">
+              <div className="flex items-center gap-2 rounded-md bg-amber-50 p-3 text-sm text-amber-600">
                 <X size={16} />
                 {t`Please fill in the required fields: Job Title and Company`}
               </div>
             )}
-            
+
             <div className="flex gap-3">
               <Button
                 variant="outline"
@@ -438,14 +466,10 @@ export const JobApplicationEditPage = () => {
               >
                 {t`Cancel`}
               </Button>
-              <Button
-                disabled={!isFormValid || isUpdating}
-                className="flex-1"
-                onClick={handleSave}
-              >
+              <Button disabled={!isFormValid || isUpdating} className="flex-1" onClick={handleSave}>
                 {isUpdating ? (
                   <>
-                    <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    <div className="mr-2 size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                     {t`Saving Changes...`}
                   </>
                 ) : (
@@ -458,4 +482,4 @@ export const JobApplicationEditPage = () => {
       </Card>
     </div>
   );
-}; 
+};

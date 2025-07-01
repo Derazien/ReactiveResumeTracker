@@ -5,27 +5,33 @@ import { z } from "zod";
 
 import { userSchema } from "../user";
 
+const sectionSchema = z.object({
+  id: idSchema,
+  key: z.string(),
+  name: z.string(),
+  description: z.string().nullable(),
+  icon: z.string().nullable(),
+  order: z.number(),
+  isActive: z.boolean(),
+});
+
+const tagSchema = z.object({
+  id: idSchema,
+  name: z.string(),
+  color: z.string().nullable(),
+});
+
+const contentTagSchema = z.object({
+  tag: tagSchema,
+});
+
 export const contentLibrarySchema = z.object({
   id: idSchema,
   title: z.string(),
   description: z.string().nullable(),
   content: z.record(z.any()),
-  type: z.enum([
-    "WORK_EXPERIENCE",
-    "PROJECT",
-    "TECHNICAL_SKILL",
-    "SOFT_SKILL",
-    "EDUCATION",
-    "CERTIFICATION",
-    "VOLUNTEER_EXPERIENCE",
-    "PUBLICATION",
-    "AWARD",
-    "LANGUAGE",
-    "INTEREST",
-    "SUMMARY",
-    "CONTACT_INFO",
-    "REFERENCE",
-  ]),
+  sectionId: idSchema,
+  section: sectionSchema,
   userId: idSchema,
   user: userSchema.optional(),
   company: z.string().nullable(),
@@ -45,6 +51,7 @@ export const contentLibrarySchema = z.object({
   courses: z.array(z.string()).default([]),
   score: z.string().nullable(),
   keywords: z.array(z.string()).default([]),
+  tags: z.array(contentTagSchema).default([]),
   createdAt: dateSchema,
   updatedAt: dateSchema,
 });

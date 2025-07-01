@@ -14,23 +14,14 @@ enum Provider {
   openid
 }
 
+enum UserType {
+  GENERAL_CONSUMER
+  DEVELOPER
+}
+
 enum Visibility {
   public
   private
-}
-
-enum ContentType {
-  WORK_EXPERIENCE
-  PROJECT
-  TECHNICAL_SKILL
-  SOFT_SKILL
-  EDUCATION
-  CERTIFICATION
-  VOLUNTEER_EXPERIENCE
-  PUBLICATION
-  AWARD
-  LANGUAGE
-  INTEREST
 }
 
 enum ApplicationStatus {
@@ -60,12 +51,13 @@ model User {
   locale           String   @default("en-US")
   emailVerified    Boolean  @default(false)
   twoFactorEnabled Boolean  @default(false)
+  userType         UserType @default(GENERAL_CONSUMER)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   provider         Provider
   secrets          Secrets?
   resumes          Resume[]
-  contentLibrary   ContentLibrary[]
+  content          Content[]
   jobApplications  JobApplication[]
   tags             Tag[]
   llmSettings      UserLLMSettings?
@@ -89,6 +81,9 @@ model Secrets {
 model UserLLMSettings {
   id          String       @id @default(cuid())
   provider    LLMProvider  @default(OPENAI)
+  
+  // System Fallback Settings
+  useSystemDefaultAsBackup Boolean  @default(false)  // Use system as backup when user keys fail
   
   // OpenAI Settings
   openaiApiKey    String?
@@ -148,12 +143,33 @@ model Statistics {
   @@unique([resumeId, id])
 }
 
-model ContentLibrary {
+model Section {
+  id               String    @id @default(cuid())
+  key              String    @unique
+  name             String
+  description      String?
+  icon             String?
+  fieldRequirements String   @default("{}")
+  validation       String    @default("{}")
+  order            Int       @default(0)
+  isActive         Boolean   @default(true)
+  isDefault        Boolean   @default(false)
+  isCustomizable   Boolean   @default(true)
+  content          Content[]
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  
+  @@index(fields: [key])
+  @@index(fields: [order])
+}
+
+model Content {
   id          String        @id @default(cuid())
   title       String
   description String?
   content     String        @default("{}")
-  type        ContentType
+  sectionId   String
+  section     Section       @relation(fields: [sectionId], references: [id], onDelete: Cascade)
   userId      String
   user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   tags        ContentTag[]
@@ -169,7 +185,19 @@ model ContentLibrary {
   skills      String        @default("[]")
   achievements String       @default("[]")
   
-  @@index(fields: [userId, type])
+  // NovoResume compatibility fields
+  proficiencyLevel Int?      // 0-100 for languages, skills
+  category    String?       // For grouping technical skills
+  issuer      String?       // For certifications
+  url         String?       // For projects, certifications
+  contactPerson String?     // For work experience references
+  contactInfo String?       // For work experience references
+  isPresent   Boolean?      // For current positions
+  courses     String        @default("[]") // JSON array for education courses
+  score       String?       // For education GPA/score
+  keywords    String        @default("[]") // JSON array for projects, skills
+  
+  @@index(fields: [userId, sectionId])
   @@index(fields: [userId, createdAt])
 }
 
@@ -187,11 +215,11 @@ model Tag {
 }
 
 model ContentTag {
-  id        String         @id @default(cuid())
+  id        String  @id @default(cuid())
   contentId String
   tagId     String
-  content   ContentLibrary @relation(fields: [contentId], references: [id], onDelete: Cascade)
-  tag       Tag            @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  content   Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
   
   @@unique([contentId, tagId])
 }

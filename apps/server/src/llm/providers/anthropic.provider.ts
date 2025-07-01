@@ -5,6 +5,7 @@ import {
   ChatMessage,
   ChatOptions,
   ContentMatchResult,
+  CVTailoringResult,
   JobAnalysisResult,
   LLMProvider,
   LLMResponse,
@@ -51,7 +52,7 @@ export class AnthropicProvider implements LLMProvider {
   // Default retry configuration
   private readonly retryConfig: RetryConfig = {
     maxRetries: 5,
-    baseDelay: 1_000, // 1 second
+    baseDelay: 1000, // 1 second
     maxDelay: 30_000, // 30 seconds
     backoffFactor: 2,
   };
@@ -65,7 +66,7 @@ export class AnthropicProvider implements LLMProvider {
 
   private cleanJsonResponse(text: string): string {
     // Remove markdown code block syntax if present
-    return text.replace(/^```(?:json)?\n/, '').replace(/\n```$/, '');
+    return text.replace(/^```(?:json)?\n/, "").replace(/\n```$/, "");
   }
 
   /**
@@ -73,24 +74,24 @@ export class AnthropicProvider implements LLMProvider {
    */
   private isRetryableError(error: unknown): boolean {
     if (!error) return false;
-    
+
     // Check for specific error types that should be retried
-    let errorMessage = '';
+    let errorMessage = "";
     let errorCode: number | undefined;
-    
+
     if (error instanceof Error) {
       errorMessage = error.message;
-    } else if (typeof error === 'string') {
+    } else if (typeof error === "string") {
       errorMessage = error;
     } else {
       errorMessage = JSON.stringify(error);
     }
-    
-    if (typeof error === 'object' && error !== null && !Array.isArray(error)) {
+
+    if (typeof error === "object" && error !== null && !Array.isArray(error)) {
       const errorObj = error as { status?: number; code?: number };
       errorCode = errorObj.status ?? errorObj.code;
     }
-    
+
     // Retryable HTTP status codes
     const retryableStatusCodes = [
       429, // Too Many Requests
@@ -100,26 +101,24 @@ export class AnthropicProvider implements LLMProvider {
       504, // Gateway Timeout
       529, // Overloaded (Anthropic specific)
     ];
-    
+
     // Check for status codes
     if (errorCode && retryableStatusCodes.includes(errorCode)) {
       return true;
     }
-    
+
     // Check for specific error messages
     const retryableMessages = [
-      'overloaded',
-      'rate limit',
-      'timeout',
-      'connection',
-      'network',
-      'temporary',
-      'unavailable',
+      "overloaded",
+      "rate limit",
+      "timeout",
+      "connection",
+      "network",
+      "temporary",
+      "unavailable",
     ];
-    
-    return retryableMessages.some(msg => 
-      errorMessage.toLowerCase().includes(msg.toLowerCase())
-    );
+
+    return retryableMessages.some((msg) => errorMessage.toLowerCase().includes(msg.toLowerCase()));
   }
 
   /**
@@ -128,9 +127,9 @@ export class AnthropicProvider implements LLMProvider {
   private calculateDelay(attempt: number): number {
     const delay = Math.min(
       this.retryConfig.baseDelay * Math.pow(this.retryConfig.backoffFactor, attempt),
-      this.retryConfig.maxDelay
+      this.retryConfig.maxDelay,
     );
-    
+
     // Add jitter (random variation) to prevent thundering herd
     const jitter = Math.random() * 0.3 * delay;
     return Math.floor(delay + jitter);
@@ -140,7 +139,7 @@ export class AnthropicProvider implements LLMProvider {
    * Sleep for specified milliseconds
    */
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
@@ -148,51 +147,51 @@ export class AnthropicProvider implements LLMProvider {
    */
   private async executeWithRetry<T>(
     operation: () => Promise<T>,
-    operationName: string
+    operationName: string,
   ): Promise<T> {
     let lastError: unknown;
-    
+
     for (let attempt = 0; attempt <= this.retryConfig.maxRetries; attempt++) {
       try {
         if (attempt > 0) {
           const delay = this.calculateDelay(attempt - 1);
           this.logger.warn(
-            `${operationName} attempt ${attempt + 1}/${this.retryConfig.maxRetries + 1} after ${delay}ms delay`
+            `${operationName} attempt ${attempt + 1}/${this.retryConfig.maxRetries + 1} after ${delay}ms delay`,
           );
           await this.sleep(delay);
         }
-        
+
         return await operation();
       } catch (error) {
         lastError = error;
-        
+
         if (attempt === this.retryConfig.maxRetries) {
           this.logger.error(
-            `${operationName} failed after ${this.retryConfig.maxRetries + 1} attempts: ${error instanceof Error ? error.message : 'Unknown error'}`
+            `${operationName} failed after ${this.retryConfig.maxRetries + 1} attempts: ${error instanceof Error ? error.message : "Unknown error"}`,
           );
           break;
         }
-        
+
         if (!this.isRetryableError(error)) {
           this.logger.error(
-            `${operationName} failed with non-retryable error: ${error instanceof Error ? error.message : 'Unknown error'}`
+            `${operationName} failed with non-retryable error: ${error instanceof Error ? error.message : "Unknown error"}`,
           );
           break;
         }
-        
+
         this.logger.warn(
-          `${operationName} attempt ${attempt + 1} failed (retryable): ${error instanceof Error ? error.message : 'Unknown error'}`
+          `${operationName} attempt ${attempt + 1} failed (retryable): ${error instanceof Error ? error.message : "Unknown error"}`,
         );
       }
     }
-    
+
     throw lastError;
   }
 
   async chat(messages: ChatMessage[], options?: ChatOptions): Promise<LLMResponse<string>> {
     try {
       this.logger.debug(`Sending chat request to Anthropic with ${messages.length} messages`);
-      
+
       const result = await this.executeWithRetry(async () => {
         // Separate system message from conversation messages
         const systemMessage = messages.find((m) => m.role === "system");
@@ -225,14 +224,17 @@ export class AnthropicProvider implements LLMProvider {
             totalTokens: response.usage.input_tokens + response.usage.output_tokens,
           },
         };
-      }, 'Anthropic Chat API');
+      }, "Anthropic Chat API");
 
       return result;
     } catch (error) {
-      this.logger.error(`Anthropic API error: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Anthropic API error: ${error instanceof Error ? error.message : "Unknown error"}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred',
+        error: error instanceof Error ? error.message : "Unknown error occurred",
       };
     }
   }
@@ -275,7 +277,8 @@ Return only the JSON object, no additional text or formatting.`;
     const response = await this.chat([
       {
         role: "system",
-        content: "You are a precise job posting analyzer. Extract comprehensive details and return only valid JSON without any markdown formatting.",
+        content:
+          "You are a precise job posting analyzer. Extract comprehensive details and return only valid JSON without any markdown formatting.",
       },
       { role: "user", content: prompt },
     ]);
@@ -298,7 +301,10 @@ Return only the JSON object, no additional text or formatting.`;
         usage: response.usage,
       };
     } catch (error) {
-      this.logger.error(`Failed to parse job analysis result: ${error instanceof Error ? error.message : 'Unknown error'}`, error instanceof Error ? error.stack : undefined);
+      this.logger.error(
+        `Failed to parse job analysis result: ${error instanceof Error ? error.message : "Unknown error"}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       return {
         success: false,
         error: "Failed to parse job analysis result",
@@ -401,7 +407,8 @@ Return only the summary text, no formatting or additional comments.`;
     return this.chat([
       {
         role: "system",
-        content: "You are an expert resume writer specializing in ATS-optimized professional summaries.",
+        content:
+          "You are an expert resume writer specializing in ATS-optimized professional summaries.",
       },
       { role: "user", content: prompt },
     ]);
@@ -442,7 +449,8 @@ Return the complete cover letter text.`;
     return this.chat([
       {
         role: "system",
-        content: "You are an expert cover letter writer with deep knowledge of recruitment best practices.",
+        content:
+          "You are an expert cover letter writer with deep knowledge of recruitment best practices.",
       },
       { role: "user", content: prompt },
     ]);
@@ -495,6 +503,124 @@ Return as a JSON array of question strings only.`;
       return {
         success: false,
         error: "Failed to parse interview questions",
+      };
+    }
+  }
+
+  async tailorResumeContent(
+    jobDescription: string,
+    jobRequirements: string[],
+    currentResumeData: any,
+    selectedContent: any[],
+  ): Promise<LLMResponse<CVTailoringResult>> {
+    const prompt = `
+You are an expert CV optimization specialist. Instead of just suggesting changes, output the COMPLETE tailored resume in the exact JSON format provided, optimized for the job.
+
+Job Description:
+${jobDescription}
+
+Job Requirements:
+${jobRequirements.join("\n- ")}
+
+Current Resume Data:
+${JSON.stringify(currentResumeData, null, 2)}
+
+CRITICAL REQUIREMENTS: Return the COMPLETE resume JSON structure with all optimizations applied. You MUST:
+1. Keep resume to 1 PAGE maximum (limit content strategically)
+2. Optimize section order for job relevance
+3. Enhance descriptions with job-relevant keywords
+4. Add/modify skills to match job requirements
+5. Improve professional summary for job fit
+6. Maintain original JSON structure exactly - especially metadata.layout
+7. Do not create new Projects or rename their names, only a small addition or tweak to the titles, and tailor the summary of the projectto highlight the most relevant skills and experiences for the job.
+8. Do not create new Experiences, you may tweak the titles slightly, and tailor the summary of the experience to highlight the most relevant skills and experiences for the job.
+9. Make sure the summary of the resume profileis only 2 lines maximum with information given from existing summaries. 1 line max for the immigration or highlighted status, 1 line max for catchy experience description.
+
+CRITICAL: PRESERVE METADATA LAYOUT STRUCTURE EXACTLY as provided. The metadata.layout field is a 3-level nested array: [pages][columns][sections]. Do NOT change this structure - it MUST remain as:
+layout: [
+  [
+    ["array", "of", "section", "names", "for", "left", "column"],
+    ["array", "of", "section", "names", "for", "right", "column"]
+  ]
+]
+
+Return the complete optimized resume as a JSON object with this structure:
+{
+  "optimizedResumeData": { 
+    "basics": { ... keep all basic fields ... },
+    "sections": { ... all optimized sections ... },
+    "metadata": { 
+      "layout": [ /* MUST keep exact 3-level array structure */ ],
+      "template": "keep original",
+      "css": { ... keep original ... },
+      "page": { ... keep original ... },
+      "theme": { ... keep original ... },
+      "typography": { ... keep original ... },
+      "notes": "your optimized content notes"
+    }
+  },
+  "changesSummary": "Brief summary of key changes made for resume notes",
+  "overallFitScore": 85
+}
+
+Guidelines for 1-page optimization:
+- Prioritize most relevant experiences (limit to 2-3 work experiences)
+- Keep project descriptions concise but impactful
+- Focus on skills that match job requirements
+- Remove or minimize less relevant sections
+- Use bullet points effectively
+- Ensure content fits on single page when printed
+
+Return only the JSON object, no additional text.`;
+
+    this.logger.debug(`Tailoring complete resume content for job optimization`);
+
+    const response = await this.chat(
+      [
+        {
+          role: "system",
+          content:
+            "You are a precise CV optimization expert. Return the complete optimized resume in exact JSON format with a summary of changes. Ensure 1-page layout optimization.",
+        },
+        { role: "user", content: prompt },
+      ],
+      { maxTokens: 4000 },
+    );
+
+    if (!response.success || !response.data) {
+      this.logger.error(`Complete CV tailoring failed: ${response.error}`);
+      return {
+        success: false,
+        error: response.error,
+      };
+    }
+
+    try {
+      this.logger.debug(`Parsing complete CV tailoring result`);
+      const cleanedResponse = this.cleanJsonResponse(response.data);
+      const parsed = JSON.parse(cleanedResponse);
+
+      // Transform to expected format
+      const result: CVTailoringResult = {
+        optimizedResumeData: parsed.optimizedResumeData,
+        changesSummary: parsed.changesSummary,
+        overallFitScore: parsed.overallFitScore,
+        suggestions: [`Resume optimized for 1-page layout: ${parsed.changesSummary}`],
+      };
+
+      return {
+        success: true,
+        data: result,
+        usage: response.usage,
+      };
+    } catch (error) {
+      this.logger.error(
+        `Failed to parse complete CV tailoring result: ${error instanceof Error ? error.message : "Unknown error"}`,
+        error instanceof Error ? error.stack : undefined,
+      );
+      return {
+        success: false,
+        error: "Failed to parse complete CV tailoring result",
       };
     }
   }

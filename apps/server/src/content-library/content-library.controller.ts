@@ -1,3 +1,7 @@
+import * as fs from "node:fs";
+import { extname } from "node:path";
+import * as path from "node:path";
+
 import {
   Body,
   Controller,
@@ -13,22 +17,14 @@ import {
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { ApiTags } from "@nestjs/swagger";
-import { ContentType } from "@prisma/client";
-import {
-  CreateContentLibraryDto,
-  UpdateContentLibraryDto,
-} from "@reactive-resume/dto";
-import { diskStorage } from "multer";
-import { extname } from "path";
-import * as fs from "fs";
-import * as path from "path";
-import pdfParse from "pdf-parse";
+import { CreateContentLibraryDto, UpdateContentLibraryDto } from "@reactive-resume/dto";
 import * as mammoth from "mammoth";
+import { diskStorage } from "multer";
+import pdfParse from "pdf-parse";
 
 import { TwoFactorGuard } from "../auth/guards/two-factor.guard";
-import { User } from "../user/decorators/user.decorator";
 import { LLMService } from "../llm/llm.service";
-
+import { User } from "../user/decorators/user.decorator";
 import { ContentLibraryService } from "./content-library.service";
 
 @ApiTags("Content Library")
@@ -48,14 +44,14 @@ export class ContentLibraryController {
   @Get()
   findAll(
     @User("id") userId: string,
-    @Query("type") type?: ContentType,
+    @Query("sectionId") sectionId?: string,
     @Query("search") search?: string,
     @Query("tags") tags?: string,
     @Query("skip") skip?: string,
     @Query("take") take?: string,
   ) {
     const options = {
-      type,
+      sectionId,
       search,
       tags: tags ? tags.split(",") : undefined,
       skip: skip ? Number.parseInt(skip, 10) : undefined,
@@ -63,6 +59,16 @@ export class ContentLibraryController {
     };
 
     return this.contentLibraryService.findAll(userId, options);
+  }
+
+  @Get("sections")
+  getAvailableSections() {
+    return this.contentLibraryService.getAvailableSections();
+  }
+
+  @Get("sections/active")
+  getActiveSections() {
+    return this.contentLibraryService.getSectionsByStatus(true);
   }
 
   @Get(":id")
@@ -90,9 +96,9 @@ export class ContentLibraryController {
     return this.contentLibraryService.findByTags(userId, tagArray);
   }
 
-  @Get("type/:type")
-  getContentByType(@Param("type") type: ContentType, @User("id") userId: string) {
-    return this.contentLibraryService.getContentByType(userId, type);
+  @Get("section/:sectionId")
+  getContentBySection(@Param("sectionId") sectionId: string, @User("id") userId: string) {
+    return this.contentLibraryService.getContentBySection(userId, sectionId);
   }
 
   /**
@@ -100,28 +106,26 @@ export class ContentLibraryController {
    */
   private async parseFileContent(filePath: string, originalName: string): Promise<string> {
     const fileExtension = path.extname(originalName).toLowerCase();
-    
+
     try {
       switch (fileExtension) {
         case ".txt": {
           return fs.readFileSync(filePath, "utf8");
         }
-        
+
         case ".pdf": {
           const dataBuffer = fs.readFileSync(filePath);
           const pdfData = await pdfParse(dataBuffer);
           return pdfData.text;
         }
-        
+
         case ".docx": {
           const dataBuffer = fs.readFileSync(filePath);
           const result = await mammoth.extractRawText({ buffer: dataBuffer });
-          if (result.messages.length > 0) {
-            console.warn("DOCX parsing warnings:", result.messages);
-          }
+          // Ignore parsing warnings for now
           return result.value;
         }
-        
+
         case ".doc": {
           // For .doc files, we'll try mammoth as well (it has limited support for .doc)
           try {
@@ -130,18 +134,18 @@ export class ContentLibraryController {
             return result.value;
           } catch {
             throw new Error(
-              "Unable to parse .doc file. Please convert to .docx or save as .txt for better compatibility."
+              "Unable to parse .doc file. Please convert to .docx or save as .txt for better compatibility.",
             );
           }
         }
-        
+
         default: {
           throw new TypeError(`Unsupported file type: ${fileExtension}`);
         }
       }
     } catch (error) {
       if (error instanceof Error) {
-        throw new Error(`Failed to parse ${fileExtension} file: ${error.message}`);
+        throw new TypeError(`Failed to parse ${fileExtension} file: ${error.message}`);
       }
       throw new Error(`Failed to parse ${fileExtension} file: Unknown error`);
     }
@@ -177,17 +181,16 @@ export class ContentLibraryController {
     }
 
     try {
-      console.log(`Processing file: ${file.originalname} (${file.size} bytes)`);
-      
+      // Processing file
+
       // Parse the file content based on its type
       const cvText = await this.parseFileContent(file.path, file.originalname);
-      
-      if (!cvText || cvText.trim().length === 0) {
-        throw new TypeError("No text content could be extracted from the file. Please ensure the file contains readable text.");
-      }
 
-      console.log(`Extracted ${cvText.length} characters from ${file.originalname}`);
-      console.log(`First 200 characters: ${cvText.substring(0, 200)}...`);
+      if (!cvText || cvText.trim().length === 0) {
+        throw new TypeError(
+          "No text content could be extracted from the file. Please ensure the file contains readable text.",
+        );
+      }
 
       // Get existing content to check for duplicates
       const existingContent = await this.contentLibraryService.findAll(userId);
@@ -217,7 +220,7 @@ export class ContentLibraryController {
             similarTo: null,
             reason: "Similarity analysis not available",
           })),
-          extractedText: cvText.substring(0, 500) + (cvText.length > 500 ? "..." : ""), // Preview of extracted text
+          extractedText: cvText.slice(0, 500) + (cvText.length > 500 ? "..." : ""), // Preview of extracted text
         };
       }
 
@@ -227,7 +230,7 @@ export class ContentLibraryController {
       return {
         success: true,
         data: similarityResult.data ?? [],
-        extractedText: cvText.substring(0, 500) + (cvText.length > 500 ? "..." : ""), // Preview of extracted text
+        extractedText: cvText.slice(0, 500) + (cvText.length > 500 ? "..." : ""), // Preview of extracted text
       };
     } catch (error) {
       // Clean up uploaded file in case of error
@@ -238,37 +241,33 @@ export class ContentLibraryController {
       }
 
       const errorMessage = error instanceof Error ? error.message : "CV extraction failed";
-      console.error("CV extraction error:", errorMessage);
-      throw new Error(errorMessage);
+      throw new TypeError(errorMessage);
     }
   }
 
   @Post("save-extracted")
   @UseGuards(TwoFactorGuard)
-  async saveExtractedContent(
-    @User("id") userId: string,
-    @Body() body: { content: any[] },
-  ) {
+  async saveExtractedContent(@User("id") userId: string, @Body() body: { content: any[] }) {
     try {
       const savedContent = [];
-      
+
       for (const item of body.content) {
         if (!item.isDuplicate) {
           // Convert date strings to ISO datetime format if they exist
           const convertDateToISO = (dateStr: string | null | undefined): string | undefined => {
             if (!dateStr) return undefined;
-            
+
             try {
               // If it's already a full datetime, use it as-is
-              if (dateStr.includes('T') || dateStr.includes('Z')) {
+              if (dateStr.includes("T") || dateStr.includes("Z")) {
                 return new Date(dateStr).toISOString();
               }
-              
+
               // If it's just a date (YYYY-MM-DD), add time as start of day
-              const date = new Date(dateStr + 'T00:00:00.000Z');
+              const date = new Date(dateStr + "T00:00:00.000Z");
               return date.toISOString();
-            } catch (error) {
-              console.warn(`Failed to convert date "${dateStr}" to ISO format:`, error);
+            } catch {
+              // Log warning but continue
               return undefined;
             }
           };
@@ -277,7 +276,7 @@ export class ContentLibraryController {
             title: item.title,
             description: item.description,
             content: item.content,
-            type: item.type as ContentType,
+            sectionId: item.sectionId,
             company: item.company,
             position: item.position,
             startDate: convertDateToISO(item.startDate),
@@ -302,7 +301,7 @@ export class ContentLibraryController {
         data: savedContent,
       };
     } catch (error) {
-      throw new Error(
+      throw new TypeError(
         error instanceof Error ? error.message : "Failed to save extracted content",
       );
     }

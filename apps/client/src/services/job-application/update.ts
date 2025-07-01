@@ -5,8 +5,17 @@ import type { AxiosResponse } from "axios";
 import { JOB_APPLICATION_KEY, JOB_APPLICATIONS_KEY } from "@/client/constants/query-keys";
 import { axios } from "@/client/libs/axios";
 
-export const updateJobApplication = async ({ id, data }: { id: string; data: UpdateJobApplicationDto }) => {
-  const response = await axios.patch<JobApplicationDto, AxiosResponse<JobApplicationDto>>(`/job-applications/${id}`, data);
+export const updateJobApplication = async ({
+  id,
+  data,
+}: {
+  id: string;
+  data: UpdateJobApplicationDto;
+}) => {
+  const response = await axios.patch<JobApplicationDto, AxiosResponse<JobApplicationDto>>(
+    `/job-applications/${id}`,
+    data,
+  );
 
   return response.data;
 };
@@ -27,4 +36,4 @@ export const useUpdateJobApplication = () => {
   });
 
   return { updateJobApplication: updateJobApplicationFn, loading, error };
-}; 
+};

@@ -1,13 +1,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { t, Trans } from "@lingui/macro";
-import { FloppyDisk, TrashSimple, Check, X } from "@phosphor-icons/react";
+import { FloppyDisk, TrashSimple } from "@phosphor-icons/react";
 import {
   Alert,
   Button,
   Checkbox,
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -24,7 +23,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useToast } from "@/client/hooks/use-toast";
-import { useLLMSettings, useUpdateLLMSettings, useDeleteLLMSettings } from "@/client/services/user";
+import { useDeleteLLMSettings, useLLMSettings, useUpdateLLMSettings } from "@/client/services/user";
 
 const formSchema = z.object({
   provider: z.enum(["OPENAI", "ANTHROPIC", "OLLAMA"]).default("OPENAI"),
@@ -58,7 +57,7 @@ export const LLMSettings = () => {
       openaiModel: "gpt-4-turbo-preview",
       openaiBaseUrl: "",
       anthropicApiKey: "",
-      anthropicModel: "claude-3-5-sonnet-20241022", 
+      anthropicModel: "claude-3-5-sonnet-20241022",
       ollamaApiKey: "sk-1234567890abcdef",
       ollamaBaseUrl: "http://localhost:11434/v1",
       ollamaModel: "llama3:8b",
@@ -107,7 +106,7 @@ export const LLMSettings = () => {
       };
 
       await updateSettings(updateData);
-      
+
       toast({
         variant: "success",
         title: t`LLM settings saved successfully`,
@@ -125,7 +124,7 @@ export const LLMSettings = () => {
     try {
       await deleteSettings();
       form.reset();
-      
+
       toast({
         variant: "success",
         title: t`LLM settings reset successfully`,
@@ -281,16 +280,11 @@ export const LLMSettings = () => {
             render={({ field }) => (
               <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                 <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                 </FormControl>
                 <div className="space-y-1 leading-none">
-                  <FormLabel>
-                    {t`Use System Default as Backup`}
-                  </FormLabel>
-                  <p className="text-sm text-muted-foreground">
+                  <FormLabel>{t`Use System Default as Backup`}</FormLabel>
+                  <p className="text-muted-foreground text-sm">
                     {t`Automatically fall back to the system's configured AI provider if your personal API keys fail or are unavailable. System provider is determined by server configuration.`}
                   </p>
                 </div>
@@ -305,7 +299,7 @@ export const LLMSettings = () => {
               {isUpdating ? t`Saving...` : t`Save`}
             </Button>
 
-            <Button type="button" variant="ghost" onClick={onReset} disabled={isDeleting}>
+            <Button type="button" variant="ghost" disabled={isDeleting} onClick={onReset}>
               <TrashSimple className="mr-2" />
               {isDeleting ? t`Resetting...` : t`Reset`}
             </Button>
@@ -324,4 +318,4 @@ export const LLMSettings = () => {
       </Alert>
     </div>
   );
-}; 
+};

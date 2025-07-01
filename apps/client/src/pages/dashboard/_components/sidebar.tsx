@@ -1,17 +1,11 @@
 import { t } from "@lingui/macro";
-import {
-  Briefcase,
-  FadersHorizontal,
-  Database,
-  FileText,
-} from "@phosphor-icons/react";
+import { Briefcase, Database, FadersHorizontal, FileText } from "@phosphor-icons/react";
 import { Button, KeyboardShortcut, Separator } from "@reactive-resume/ui";
 import { cn } from "@reactive-resume/utils";
 import { motion } from "framer-motion";
 import { Link, useLocation, useNavigate } from "react-router";
 import useKeyboardShortcut from "use-keyboard-shortcut";
 
-import { Copyright } from "@/client/components/copyright";
 import { Icon } from "@/client/components/icon";
 import { UserAvatar } from "@/client/components/user-avatar";
 import { UserOptions } from "@/client/components/user-options";
@@ -150,8 +144,6 @@ export const Sidebar = ({ setOpen }: SidebarProps) => {
           <span>{user?.name}</span>
         </Button>
       </UserOptions>
-
-      <Copyright className="ml-2" />
     </div>
   );
 };

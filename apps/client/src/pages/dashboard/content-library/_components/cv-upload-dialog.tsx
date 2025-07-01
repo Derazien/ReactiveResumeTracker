@@ -1,8 +1,5 @@
-import { useState } from "react";
-import { CheckCircle, FileText, Sparkle, Upload, X } from "@phosphor-icons/react";
-import { motion, AnimatePresence } from "framer-motion";
 import { t } from "@lingui/macro";
-
+import { CheckCircle, FileText, Sparkle, Upload } from "@phosphor-icons/react";
 import {
   Badge,
   Button,
@@ -17,12 +14,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@reactive-resume/ui";
+import { AnimatePresence, motion } from "framer-motion";
+import { useState } from "react";
 
 import { useToast } from "@/client/hooks/use-toast";
-import { 
-  useExtractCVContent, 
+import {
+  type ExtractedContent,
+  useExtractCVContent,
   useSaveExtractedContent,
-  type ExtractedContent 
 } from "@/client/services/content-library/cv-extraction";
 
 type CVUploadDialogProps = {
@@ -34,7 +33,7 @@ export const CVUploadDialog = ({ open, onOpenChange }: CVUploadDialogProps) => {
   const { toast } = useToast();
   const extractMutation = useExtractCVContent();
   const saveMutation = useSaveExtractedContent();
-  
+
   const [file, setFile] = useState<File | null>(null);
   const [extractedContent, setExtractedContent] = useState<ExtractedContent[]>([]);
   const [stage, setStage] = useState<"upload" | "extract" | "review" | "complete">("upload");
@@ -50,12 +49,12 @@ export const CVUploadDialog = ({ open, onOpenChange }: CVUploadDialogProps) => {
     if (!file) return;
 
     setStage("extract");
-    
+
     try {
       const result = await extractMutation.mutateAsync(file);
-      
+
       if (!result.success) {
-        throw new Error(result.error || 'Content extraction failed');
+        throw new Error(result.error || "Content extraction failed");
       }
 
       // Add selection state - unique content selected by default, duplicates deselected
@@ -67,48 +66,37 @@ export const CVUploadDialog = ({ open, onOpenChange }: CVUploadDialogProps) => {
 
       setExtractedContent(contentWithSelection);
       setStage("review");
-
-    } catch (err) {
+    } catch (error) {
       toast({
         variant: "error",
         title: t`CV Processing Failed`,
-        description: err instanceof Error ? err.message : t`Failed to process CV`,
+        description: error instanceof Error ? error.message : t`Failed to process CV`,
       });
       setStage("upload");
     }
   };
 
   const handleToggleSelection = (contentId: string) => {
-    setExtractedContent(prev => 
-      prev.map(item => 
-        item.id === contentId 
-          ? { ...item, selected: !item.selected }
-          : item
-      )
+    setExtractedContent((prev) =>
+      prev.map((item) => (item.id === contentId ? { ...item, selected: !item.selected } : item)),
     );
   };
 
   const handleSelectAll = () => {
-    setExtractedContent(prev => 
-      prev.map(item => ({ ...item, selected: true }))
-    );
+    setExtractedContent((prev) => prev.map((item) => ({ ...item, selected: true })));
   };
 
   const handleDeselectAll = () => {
-    setExtractedContent(prev => 
-      prev.map(item => ({ ...item, selected: false }))
-    );
+    setExtractedContent((prev) => prev.map((item) => ({ ...item, selected: false })));
   };
 
   const handleSelectUnique = () => {
-    setExtractedContent(prev => 
-      prev.map(item => ({ ...item, selected: !item.isDuplicate }))
-    );
+    setExtractedContent((prev) => prev.map((item) => ({ ...item, selected: !item.isDuplicate })));
   };
 
   const handleSaveContent = async () => {
-    const selectedContent = extractedContent.filter(item => item.selected);
-    
+    const selectedContent = extractedContent.filter((item) => item.selected);
+
     if (selectedContent.length === 0) {
       toast({
         variant: "error",
@@ -122,7 +110,7 @@ export const CVUploadDialog = ({ open, onOpenChange }: CVUploadDialogProps) => {
       const result = await saveMutation.mutateAsync(selectedContent);
 
       if (!result.success) {
-        throw new Error(result.error || 'Failed to save content');
+        throw new Error(result.error || "Failed to save content");
       }
 
       toast({
@@ -132,11 +120,11 @@ export const CVUploadDialog = ({ open, onOpenChange }: CVUploadDialogProps) => {
       });
 
       setStage("complete");
-    } catch (err) {
+    } catch (error) {
       toast({
         variant: "error",
         title: t`Save Failed`,
-        description: err instanceof Error ? err.message : t`Failed to save content`,
+        description: error instanceof Error ? error.message : t`Failed to save content`,
       });
     }
   };
@@ -154,36 +142,44 @@ export const CVUploadDialog = ({ open, onOpenChange }: CVUploadDialogProps) => {
 
   const getStageDescription = () => {
     switch (stage) {
-      case "upload": return t`Upload your CV file`;
-      case "extract": return t`AI is analyzing your CV and extracting content...`;
-      case "review": return t`Review and edit the extracted content`;
-      case "complete": return t`Content successfully added to your library!`;
-      default: return "";
+      case "upload": {
+        return t`Upload your CV file`;
+      }
+      case "extract": {
+        return t`AI is analyzing your CV and extracting content...`;
+      }
+      case "review": {
+        return t`Review and edit the extracted content`;
+      }
+      case "complete": {
+        return t`Content successfully added to your library!`;
+      }
+      default: {
+        return "";
+      }
     }
   };
 
-  const selectedCount = extractedContent.filter(item => item.selected).length;
-  const duplicateCount = extractedContent.filter(item => item.isDuplicate).length;
+  const selectedCount = extractedContent.filter((item) => item.selected).length;
+  const duplicateCount = extractedContent.filter((item) => item.isDuplicate).length;
   const uniqueCount = extractedContent.length - duplicateCount;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Sparkle className="h-5 w-5 text-primary" />
+            <Sparkle className="size-5 text-primary" />
             {t`AI-Powered CV Content Extraction`}
           </DialogTitle>
-          <DialogDescription>
-            {getStageDescription()}
-          </DialogDescription>
+          <DialogDescription>{getStageDescription()}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
           {extractMutation.isError && (
-            <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-800 font-medium">{t`Error`}</p>
-              <p className="text-red-600 text-sm">{extractMutation.error?.message}</p>
+            <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+              <p className="font-medium text-red-800">{t`Error`}</p>
+              <p className="text-sm text-red-600">{extractMutation.error.message}</p>
             </div>
           )}
 
@@ -196,20 +192,18 @@ export const CVUploadDialog = ({ open, onOpenChange }: CVUploadDialogProps) => {
                 exit={{ opacity: 0, y: -20 }}
                 className="space-y-4"
               >
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-primary/50 transition-colors">
-                  <input 
-                    type="file" 
+                <div className="rounded-lg border-2 border-dashed border-gray-300 p-8 text-center transition-colors hover:border-primary/50">
+                  <input
+                    type="file"
                     accept=".pdf,.docx,.doc,.txt"
-                    onChange={handleFileSelect}
                     className="hidden"
                     id="cv-upload"
+                    onChange={handleFileSelect}
                   />
                   <label htmlFor="cv-upload" className="cursor-pointer">
-                    <Upload className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                    <Upload className="mx-auto mb-4 size-12 text-gray-400" />
                     <div className="space-y-2">
-                      <p className="text-lg font-medium">
-                        {t`Click to upload your CV`}
-                      </p>
+                      <p className="text-lg font-medium">{t`Click to upload your CV`}</p>
                       <p className="text-sm text-gray-500">
                         {t`Supports PDF, DOCX, DOC, and TXT files (up to 10MB)`}
                       </p>
@@ -221,7 +215,7 @@ export const CVUploadDialog = ({ open, onOpenChange }: CVUploadDialogProps) => {
                   <Card>
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3">
-                        <FileText className="h-8 w-8 text-primary" />
+                        <FileText className="size-8 text-primary" />
                         <div className="flex-1">
                           <p className="font-medium">{file.name}</p>
                           <p className="text-sm text-gray-500">
@@ -231,7 +225,9 @@ export const CVUploadDialog = ({ open, onOpenChange }: CVUploadDialogProps) => {
                         <Button
                           variant="secondary"
                           size="sm"
-                          onClick={() => setFile(null)}
+                          onClick={() => {
+                            setFile(null);
+                          }}
                         >
                           {t`Remove`}
                         </Button>
@@ -245,11 +241,11 @@ export const CVUploadDialog = ({ open, onOpenChange }: CVUploadDialogProps) => {
                     {t`Cancel`}
                   </Button>
                   <Button
-                    onClick={handleUploadAndExtract}
                     disabled={!file || extractMutation.isPending}
                     className="flex items-center gap-2"
+                    onClick={handleUploadAndExtract}
                   >
-                    <Sparkle className="h-4 w-4" />
+                    <Sparkle className="size-4" />
                     {extractMutation.isPending ? t`Processing...` : t`Extract Content`}
                   </Button>
                 </div>
@@ -262,12 +258,10 @@ export const CVUploadDialog = ({ open, onOpenChange }: CVUploadDialogProps) => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="text-center py-8"
+                className="py-8 text-center"
               >
-                <Sparkle className="h-16 w-16 text-primary mx-auto mb-4 animate-pulse" />
-                <h3 className="text-xl font-semibold mb-2">
-                  {t`AI is analyzing your CV...`}
-                </h3>
+                <Sparkle className="mx-auto mb-4 size-16 animate-pulse text-primary" />
+                <h3 className="mb-2 text-xl font-semibold">{t`AI is analyzing your CV...`}</h3>
                 <p className="text-gray-600">
                   {t`This may take a few moments while we extract and analyze your professional content.`}
                 </p>
@@ -282,8 +276,8 @@ export const CVUploadDialog = ({ open, onOpenChange }: CVUploadDialogProps) => {
                 exit={{ opacity: 0, y: -20 }}
                 className="space-y-4"
               >
-                <div className="text-center py-4">
-                  <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-2" />
+                <div className="py-4 text-center">
+                  <CheckCircle className="mx-auto mb-2 size-12 text-green-500" />
                   <h3 className="text-lg font-semibold">
                     {t`Extracted ${extractedContent.length} pieces of content`}
                   </h3>
@@ -293,7 +287,7 @@ export const CVUploadDialog = ({ open, onOpenChange }: CVUploadDialogProps) => {
                 </div>
 
                 {/* Selection Controls */}
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center justify-between rounded-lg bg-gray-50 p-4">
                   <div className="flex items-center gap-4">
                     <span className="text-sm font-medium">
                       {t`Selected: ${selectedCount}/${extractedContent.length}`}
@@ -312,40 +306,38 @@ export const CVUploadDialog = ({ open, onOpenChange }: CVUploadDialogProps) => {
                   </div>
                 </div>
 
-                <div className="grid gap-4 max-h-96 overflow-y-auto">
+                <div className="grid max-h-96 gap-4 overflow-y-auto">
                   {extractedContent.map((content) => (
-                    <Card 
-                      key={content.id} 
+                    <Card
+                      key={content.id}
                       className={`border-l-4 ${
-                        content.isDuplicate 
-                          ? 'border-l-orange-500 bg-orange-50/50' 
-                          : 'border-l-primary'
-                      } ${
-                        content.selected ? 'ring-2 ring-primary/20' : ''
-                      }`}
+                        content.isDuplicate
+                          ? "border-l-orange-500 bg-orange-50/50"
+                          : "border-l-primary"
+                      } ${content.selected ? "ring-2 ring-primary/20" : ""}`}
                     >
                       <CardHeader className="pb-3">
                         <div className="flex items-start justify-between">
-                          <div className="flex items-start gap-3 flex-1">
+                          <div className="flex flex-1 items-start gap-3">
                             <Checkbox
                               checked={content.selected}
-                              onCheckedChange={() => handleToggleSelection(content.id!)}
                               className="mt-1"
+                              onCheckedChange={() => {
+                                handleToggleSelection(content.id!);
+                              }}
                             />
                             <div className="flex-1">
                               <CardTitle className="text-base">{content.title}</CardTitle>
-                              <p className="text-sm text-gray-600 mt-1">
-                                {content.description}
-                              </p>
+                              <p className="mt-1 text-sm text-gray-600">{content.description}</p>
                               {content.company && (
-                                <p className="text-sm text-gray-500 mt-1">
+                                <p className="mt-1 text-sm text-gray-500">
                                   {content.company} {content.location && `• ${content.location}`}
                                 </p>
                               )}
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Badge variant="secondary">{content.type.replace('_', ' ')}</Badge>
+                            <Badge variant="secondary">{content.type.replace("_", " ")}</Badge>
                             <Badge variant={content.confidence > 0.9 ? "primary" : "secondary"}>
                               {Math.round(content.confidence * 100)}% {t`confidence`}
                             </Badge>
@@ -361,7 +353,7 @@ export const CVUploadDialog = ({ open, onOpenChange }: CVUploadDialogProps) => {
                         <div className="space-y-2">
                           {content.skills.length > 0 && (
                             <div>
-                              <p className="text-sm font-medium text-gray-700 mb-1">{t`Skills:`}</p>
+                              <p className="mb-1 text-sm font-medium text-gray-700">{t`Skills:`}</p>
                               <div className="flex flex-wrap gap-1">
                                 {content.skills.slice(0, 5).map((skill, index) => (
                                   <Badge key={index} variant="secondary" className="text-xs">
@@ -376,12 +368,12 @@ export const CVUploadDialog = ({ open, onOpenChange }: CVUploadDialogProps) => {
                               </div>
                             </div>
                           )}
-                          
+
                           {content.isDuplicate && content.reason && (
-                            <div className="p-2 bg-orange-100 rounded text-sm text-orange-800">
+                            <div className="rounded bg-orange-100 p-2 text-sm text-orange-800">
                               <strong>{t`Similarity:`}</strong> {content.reason}
                               {content.similarTo && (
-                                <span className="block text-xs mt-1">
+                                <span className="mt-1 block text-xs">
                                   {t`Similar to: ${content.similarTo}`}
                                 </span>
                               )}
@@ -398,12 +390,14 @@ export const CVUploadDialog = ({ open, onOpenChange }: CVUploadDialogProps) => {
                     {t`Cancel`}
                   </Button>
                   <Button
-                    onClick={handleSaveContent}
                     disabled={selectedCount === 0 || saveMutation.isPending}
                     className="flex items-center gap-2"
+                    onClick={handleSaveContent}
                   >
-                    <CheckCircle className="h-4 w-4" />
-                    {saveMutation.isPending ? t`Saving...` : t`Save ${selectedCount} Selected Items`}
+                    <CheckCircle className="size-4" />
+                    {saveMutation.isPending
+                      ? t`Saving...`
+                      : t`Save ${selectedCount} Selected Items`}
                   </Button>
                 </div>
               </motion.div>
@@ -415,18 +409,14 @@ export const CVUploadDialog = ({ open, onOpenChange }: CVUploadDialogProps) => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="text-center py-8"
+                className="py-8 text-center"
               >
-                <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2">
-                  {t`Content Successfully Added!`}
-                </h3>
-                <p className="text-gray-600 mb-6">
+                <CheckCircle className="mx-auto mb-4 size-16 text-green-500" />
+                <h3 className="mb-2 text-xl font-semibold">{t`Content Successfully Added!`}</h3>
+                <p className="mb-6 text-gray-600">
                   {t`Your CV content has been extracted and saved to your library. You can now use this content to generate tailored resumes for job applications.`}
                 </p>
-                <Button onClick={handleClose}>
-                  {t`View Content Library`}
-                </Button>
+                <Button onClick={handleClose}>{t`View Content Library`}</Button>
               </motion.div>
             )}
           </AnimatePresence>
@@ -434,4 +424,4 @@ export const CVUploadDialog = ({ open, onOpenChange }: CVUploadDialogProps) => {
       </DialogContent>
     </Dialog>
   );
-}; 
+};

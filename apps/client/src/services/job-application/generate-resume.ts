@@ -1,6 +1,6 @@
+import type { ContentLibraryDto } from "@reactive-resume/dto";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { AxiosResponse } from "axios";
-import type { ContentLibraryDto } from "@reactive-resume/dto";
 
 import { JOB_APPLICATIONS_KEY } from "@/client/constants/query-keys";
 import { axios } from "@/client/libs/axios";
@@ -28,11 +28,11 @@ export type GenerateResumeResponse = {
 
 export const generateTailoredResume = async (
   jobApplicationId: string,
-  data: GenerateResumeRequest
+  data: GenerateResumeRequest,
 ): Promise<GenerateResumeResponse> => {
   const response = await axios.post<GenerateResumeResponse, AxiosResponse<GenerateResumeResponse>>(
     `/job-applications/${jobApplicationId}/generate-resume`,
-    data
+    data,
   );
 
   return response.data;
@@ -46,12 +46,17 @@ export const useGenerateTailoredResume = () => {
     isPending: loading,
     mutateAsync: generateResumeFn,
   } = useMutation({
-    mutationFn: ({ jobApplicationId, data }: { jobApplicationId: string; data: GenerateResumeRequest }) =>
-      generateTailoredResume(jobApplicationId, data),
+    mutationFn: ({
+      jobApplicationId,
+      data,
+    }: {
+      jobApplicationId: string;
+      data: GenerateResumeRequest;
+    }) => generateTailoredResume(jobApplicationId, data),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: JOB_APPLICATIONS_KEY });
     },
   });
 
   return { generateTailoredResume: generateResumeFn, loading, error };
-}; 
+};

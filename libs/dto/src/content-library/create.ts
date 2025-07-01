@@ -5,22 +5,7 @@ export const createContentLibrarySchema = z.object({
   title: z.string().min(1),
   description: z.string().optional(),
   content: z.record(z.any()).default({}), // Flexible JSON content
-  type: z.enum([
-    "WORK_EXPERIENCE",
-    "PROJECT",
-    "TECHNICAL_SKILL",
-    "SOFT_SKILL",
-    "EDUCATION",
-    "CERTIFICATION",
-    "VOLUNTEER_EXPERIENCE",
-    "PUBLICATION",
-    "AWARD",
-    "LANGUAGE",
-    "INTEREST",
-    "SUMMARY",
-    "CONTACT_INFO",
-    "REFERENCE",
-  ]),
+  sectionId: z.string().cuid2(), // Reference to Section table
   company: z.string().optional(),
   position: z.string().optional(),
   startDate: z.string().datetime().optional(),

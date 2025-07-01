@@ -1,9 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { UserLLMSettings } from "@prisma/client";
-import { 
-  CreateUserLLMSettingsDto, 
-  UpdateUserLLMSettingsDto 
-} from "@reactive-resume/dto";
+import { CreateUserLLMSettingsDto, UpdateUserLLMSettingsDto } from "@reactive-resume/dto";
 import { PrismaService } from "nestjs-prisma";
 
 @Injectable()
@@ -16,10 +13,7 @@ export class UserLLMSettingsService {
     });
   }
 
-  async create(
-    userId: string, 
-    data: CreateUserLLMSettingsDto
-  ): Promise<UserLLMSettings> {
+  async create(userId: string, data: CreateUserLLMSettingsDto): Promise<UserLLMSettings> {
     return this.prisma.userLLMSettings.create({
       data: {
         ...data,
@@ -28,13 +22,10 @@ export class UserLLMSettingsService {
     });
   }
 
-  async update(
-    userId: string, 
-    data: UpdateUserLLMSettingsDto
-  ): Promise<UserLLMSettings> {
+  async update(userId: string, data: UpdateUserLLMSettingsDto): Promise<UserLLMSettings> {
     // First try to update existing settings
     const existing = await this.findByUserId(userId);
-    
+
     if (existing) {
       return this.prisma.userLLMSettings.update({
         where: { userId },
@@ -46,10 +37,7 @@ export class UserLLMSettingsService {
     }
   }
 
-  async upsert(
-    userId: string, 
-    data: CreateUserLLMSettingsDto
-  ): Promise<UserLLMSettings> {
+  async upsert(userId: string, data: CreateUserLLMSettingsDto): Promise<UserLLMSettings> {
     return this.prisma.userLLMSettings.upsert({
       where: { userId },
       update: data,
@@ -71,7 +59,7 @@ export class UserLLMSettingsService {
    */
   async getEffectiveSettings(userId: string) {
     const settings = await this.findByUserId(userId);
-    
+
     if (!settings) {
       return {
         provider: "OPENAI" as const,
@@ -88,7 +76,7 @@ export class UserLLMSettingsService {
         temperature: 0.1,
       };
     }
-    
+
     return settings;
   }
 
@@ -97,10 +85,10 @@ export class UserLLMSettingsService {
    */
   async hasValidConfiguration(userId: string): Promise<boolean> {
     const settings = await this.getEffectiveSettings(userId);
-    
+
     // Check if user has their own API keys
     const hasUserKeys = this.hasUserApiKeys(settings);
-    
+
     // User can use LLM if they have either:
     // 1. Their own API keys, OR
     // 2. System backup enabled (system environment keys available)
@@ -126,4 +114,4 @@ export class UserLLMSettingsService {
       }
     }
   }
-} 
+}

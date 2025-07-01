@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from "react";
+import { type ReactNode, useEffect } from "react";
 
 import { useUser } from "@/client/services/user";
 import { useLLMStore } from "@/client/stores/llm";
@@ -21,4 +21,4 @@ export const LLMProvider = ({ children }: LLMProviderProps) => {
   }, [user, syncWithBackend]);
 
   return <>{children}</>;
-}; 
+};

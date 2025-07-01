@@ -43,19 +43,21 @@ export type SaveContentResponse = {
 
 export const extractCVContent = async (file: File): Promise<CVExtractionResponse> => {
   const formData = new FormData();
-  formData.append('cv', file);
+  formData.append("cv", file);
 
-  const response = await axios.post<CVExtractionResponse>('/content-library/extract-cv', formData, {
+  const response = await axios.post<CVExtractionResponse>("/content-library/extract-cv", formData, {
     headers: {
-      'Content-Type': 'multipart/form-data',
+      "Content-Type": "multipart/form-data",
     },
   });
 
   return response.data;
 };
 
-export const saveExtractedContent = async (content: ExtractedContent[]): Promise<SaveContentResponse> => {
-  const response = await axios.post<SaveContentResponse>('/content-library/save-extracted', {
+export const saveExtractedContent = async (
+  content: ExtractedContent[],
+): Promise<SaveContentResponse> => {
+  const response = await axios.post<SaveContentResponse>("/content-library/save-extracted", {
     content,
     createTags: true,
   });
@@ -73,4 +75,4 @@ export const useSaveExtractedContent = () => {
   return useMutation({
     mutationFn: saveExtractedContent,
   });
-}; 
+};

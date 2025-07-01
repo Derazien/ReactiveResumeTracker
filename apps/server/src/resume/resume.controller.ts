@@ -14,7 +14,9 @@ import {
 import { ApiTags } from "@nestjs/swagger";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import {
+  BulkDeleteResumeDto,
   CreateResumeDto,
+  DeleteAllResumesDto,
   ImportResumeDto,
   importResumeSchema,
   ResumeDto,
@@ -31,8 +33,6 @@ import { User } from "@/server/user/decorators/user.decorator";
 import { Resume } from "./decorators/resume.decorator";
 import { ResumeGuard } from "./guards/resume.guard";
 import { ResumeService } from "./resume.service";
-
-
 
 @ApiTags("Resume")
 @Controller("resume")
@@ -85,14 +85,30 @@ export class ResumeController {
 
   @Patch(":id")
   @UseGuards(TwoFactorGuard, ResumeGuard)
-  update(@Resume("id") id: string, @User("id") userId: string, @Body() updateResumeDto: UpdateResumeDto) {
+  update(
+    @Resume("id") id: string,
+    @User("id") userId: string,
+    @Body() updateResumeDto: UpdateResumeDto,
+  ) {
     return this.resumeService.update(userId, id, updateResumeDto);
   }
 
   @Delete(":id")
   @UseGuards(TwoFactorGuard, ResumeGuard)
-  remove(@Resume("id") id: string, @User("id") userId: string) {
+  async remove(@Resume("id") id: string, @User("id") userId: string) {
     return this.resumeService.remove(userId, id);
+  }
+
+  @Delete()
+  @UseGuards(TwoFactorGuard)
+  async removeBulk(@User("id") userId: string, @Body() bulkDeleteDto: BulkDeleteResumeDto) {
+    return this.resumeService.removeBulk(userId, bulkDeleteDto.ids);
+  }
+
+  @Delete("all/confirm")
+  @UseGuards(TwoFactorGuard)
+  async removeAll(@User("id") userId: string, @Body() deleteAllDto: DeleteAllResumesDto) {
+    return this.resumeService.removeAllForUser(userId);
   }
 
   @Get("/print/:id")

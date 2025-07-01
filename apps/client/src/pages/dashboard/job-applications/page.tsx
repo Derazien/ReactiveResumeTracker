@@ -37,10 +37,7 @@ export const JobApplicationsPage = () => {
         }}
       >
         <div className="flex items-center justify-between">
-          <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-          >
+          <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }}>
             <h1 className="text-4xl font-bold tracking-tight">{t`Job Applications`}</h1>
             <p className="text-muted-foreground">
               {t`Track your job applications and generate tailored resumes for each opportunity.`}
@@ -82,7 +79,7 @@ export const JobApplicationsPage = () => {
                 return (
                   <div className="flex items-center justify-center py-12">
                     <div className="text-center">
-                      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto mb-4"></div>
+                      <div className="mx-auto mb-4 size-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
                       <p className="text-muted-foreground">{t`Loading job applications...`}</p>
                     </div>
                   </div>
@@ -91,10 +88,11 @@ export const JobApplicationsPage = () => {
 
               if (error) {
                 return (
-                  <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                  <div className="flex flex-col items-center justify-center space-y-4 py-12">
                     <div className="text-destructive">{t`Error loading job applications`}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {error.message || t`Please check that the backend server is running on port 3000`}
+                    <div className="text-muted-foreground text-sm">
+                      {error.message ||
+                        t`Please check that the backend server is running on port 3000`}
                     </div>
                     <Button
                       variant="outline"
@@ -147,7 +145,7 @@ export const JobApplicationsPage = () => {
 
           <TabsContent value="list">
             {/* Table View */}
-            <JobApplicationsTable 
+            <JobApplicationsTable
               applications={safeJobApplications}
               loading={loading}
               error={error}

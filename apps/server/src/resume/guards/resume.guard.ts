@@ -35,10 +35,7 @@ export class ResumeGuard implements CanActivate {
       if (resume.visibility === "private") {
         if (user && user.id === resume.userId) {
           // Transform the resume data to proper DTO format
-          const resumeDto = await this.resumeService.findOneAsDto(
-            request.params.id,
-            user.id,
-          );
+          const resumeDto = await this.resumeService.findOneAsDto(request.params.id, user.id);
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (request as any).payload = { resume: resumeDto };
         } else {

@@ -27,7 +27,8 @@ export const Copyright = ({ className }: Props) => (
     <span>{t`By the community, for the community.`}</span>
     <span>
       <Trans>
-        A passion project by <a href="https://www.amruthpillai.com/">Amruth Pillai</a>
+        A passion project by Raed Zein, inspired by{" "}
+        <a href="https://www.amruthpillai.com/">Amruth Pillai's</a> open source project
       </Trans>
     </span>
 

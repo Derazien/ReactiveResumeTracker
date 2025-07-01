@@ -1,21 +1,18 @@
-import { useState } from "react";
-import { useParams, useNavigate, Link } from "react-router";
-
 import { t } from "@lingui/macro";
-import { 
-  ArrowLeft, 
-  Building, 
-  Calendar, 
-  Eye, 
-  FileText, 
-  MapPin, 
-  Pencil, 
-  Plus, 
+import {
+  ArrowLeft,
+  Building,
+  Calendar,
+  Eye,
+  FileText,
+  MapPin,
+  Pencil,
+  Plus,
   Sparkle,
   Trash,
-  Warning
+  Warning,
 } from "@phosphor-icons/react";
-import { 
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -25,65 +22,83 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-  Badge, 
-  Button, 
-  Card, 
-  CardContent, 
-  CardHeader, 
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
   CardTitle,
-  RichInput 
 } from "@reactive-resume/ui";
 import { cn } from "@reactive-resume/utils";
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { Link, useNavigate, useParams } from "react-router";
 
 import { useToast } from "@/client/hooks/use-toast";
-import { useJobApplication } from "@/client/services/job-application/job-application";
 import { useDeleteJobApplication } from "@/client/services/job-application/delete";
 import { useGenerateTailoredResume } from "@/client/services/job-application/generate-resume";
+import { useJobApplication } from "@/client/services/job-application/job-application";
 
 const getStatusColor = (status: string) => {
   switch (status) {
-    case "DRAFT":
+    case "DRAFT": {
       return "bg-gray-100 text-gray-800";
-    case "APPLIED":
+    }
+    case "APPLIED": {
       return "bg-blue-100 text-blue-800";
-    case "INTERVIEW_SCHEDULED":
+    }
+    case "INTERVIEW_SCHEDULED": {
       return "bg-purple-100 text-purple-800";
-    case "INTERVIEWED":
+    }
+    case "INTERVIEWED": {
       return "bg-yellow-100 text-yellow-800";
-    case "OFFER_RECEIVED":
+    }
+    case "OFFER_RECEIVED": {
       return "bg-green-100 text-green-800";
-    case "ACCEPTED":
+    }
+    case "ACCEPTED": {
       return "bg-emerald-100 text-emerald-800";
-    case "REJECTED":
+    }
+    case "REJECTED": {
       return "bg-red-100 text-red-800";
-    case "WITHDRAWN":
+    }
+    case "WITHDRAWN": {
       return "bg-gray-100 text-gray-800";
-    default:
+    }
+    default: {
       return "bg-gray-100 text-gray-800";
+    }
   }
 };
 
 const getStatusLabel = (status: string) => {
   switch (status) {
-    case "DRAFT":
+    case "DRAFT": {
       return t`Draft`;
-    case "APPLIED":
+    }
+    case "APPLIED": {
       return t`Applied`;
-    case "INTERVIEW_SCHEDULED":
+    }
+    case "INTERVIEW_SCHEDULED": {
       return t`Interview Scheduled`;
-    case "INTERVIEWED":
+    }
+    case "INTERVIEWED": {
       return t`Interviewed`;
-    case "OFFER_RECEIVED":
+    }
+    case "OFFER_RECEIVED": {
       return t`Offer Received`;
-    case "ACCEPTED":
+    }
+    case "ACCEPTED": {
       return t`Accepted`;
-    case "REJECTED":
+    }
+    case "REJECTED": {
       return t`Rejected`;
-    case "WITHDRAWN":
+    }
+    case "WITHDRAWN": {
       return t`Withdrawn`;
-    default:
+    }
+    default: {
       return status;
+    }
   }
 };
 
@@ -95,21 +110,20 @@ export const JobApplicationDetailPage = () => {
 
   const { jobApplication, loading, error } = useJobApplication(id!);
 
-
   const { deleteJobApplication, loading: isDeleting } = useDeleteJobApplication();
   const { generateTailoredResume, loading: isGeneratingResume } = useGenerateTailoredResume();
 
   const handleGenerateCV = async () => {
     if (!id) return;
-    
+
     setIsGeneratingCV(true);
-    
+
     try {
       const result = await generateTailoredResume({
         jobApplicationId: id,
-        data: {} // Let the backend auto-select the best content
+        data: {}, // Let the backend auto-select the best content
       });
-      
+
       toast({
         title: t`CV Generated Successfully`,
         description: t`A tailored CV has been created with ${result.selectedContent.length} relevant content pieces. Opening resume builder...`,
@@ -117,12 +131,11 @@ export const JobApplicationDetailPage = () => {
 
       // Show suggestions to the user
       if (result.suggestions.length > 0) {
-        console.log('Resume generation suggestions:', result.suggestions);
+        console.log("Resume generation suggestions:", result.suggestions);
       }
 
       // Navigate directly to the resume builder for editing
       navigate(`/builder/${result.resume.id}`);
-      
     } catch (error: any) {
       toast({
         variant: "error",
@@ -136,15 +149,15 @@ export const JobApplicationDetailPage = () => {
 
   const handleDelete = async () => {
     if (!id) return;
-    
+
     try {
       await deleteJobApplication(id);
-      
+
       toast({
         title: t`Success`,
         description: t`Job application deleted successfully`,
       });
-      
+
       navigate("/dashboard/job-applications");
     } catch {
       toast({
@@ -163,7 +176,7 @@ export const JobApplicationDetailPage = () => {
     return (
       <div className="flex h-64 items-center justify-center">
         <div className="text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto mb-4"></div>
+          <div className="mx-auto mb-4 size-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
           <p>{t`Loading job application...`}</p>
         </div>
       </div>
@@ -172,8 +185,8 @@ export const JobApplicationDetailPage = () => {
 
   if (error || !jobApplication) {
     return (
-      <div className="text-center py-8">
-        <p className="text-red-600 mb-4">{t`Failed to load job application`}</p>
+      <div className="py-8 text-center">
+        <p className="mb-4 text-red-600">{t`Failed to load job application`}</p>
         <Button onClick={() => navigate("/dashboard/job-applications")}>
           {t`Back to Job Applications`}
         </Button>
@@ -185,37 +198,46 @@ export const JobApplicationDetailPage = () => {
     <div className="mx-auto max-w-4xl space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button variant="outline" size="icon" onClick={() => navigate("/dashboard/job-applications")}>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => navigate("/dashboard/job-applications")}
+        >
           <ArrowLeft size={16} />
         </Button>
         <div className="flex-1">
-          <div className="flex items-center gap-3 mb-2">
+          <div className="mb-2 flex items-center gap-3">
             <h1 className="text-3xl font-bold tracking-tight">{jobApplication.title}</h1>
-            <Badge variant="secondary" className={cn("text-xs", getStatusColor(jobApplication.status))}>
+            <Badge
+              variant="secondary"
+              className={cn("text-xs", getStatusColor(jobApplication.status))}
+            >
               {getStatusLabel(jobApplication.status)}
             </Badge>
           </div>
-          <div className="flex items-center gap-4 text-muted-foreground">
+          <div className="text-muted-foreground flex items-center gap-4">
             <div className="flex items-center gap-1">
               <Building size={16} />
               <span>{jobApplication.company}</span>
             </div>
             <div className="flex items-center gap-1">
               <Calendar size={16} />
-              <span>{t`Created`}: {formatDate(jobApplication.createdAt)}</span>
+              <span>
+                {t`Created`}: {formatDate(jobApplication.createdAt)}
+              </span>
             </div>
           </div>
         </div>
 
         {/* Action Buttons */}
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" asChild>
+          <Button asChild variant="outline" size="sm">
             <Link to={`/dashboard/job-applications/${jobApplication.id}/edit`}>
               <Pencil size={16} className="mr-2" />
               {t`Edit`}
             </Link>
           </Button>
-          
+
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="outline" size="sm" disabled={isDeleting}>
@@ -231,7 +253,7 @@ export const JobApplicationDetailPage = () => {
                 </AlertDialogTitle>
                 <AlertDialogDescription>
                   {t`Are you sure you want to delete "${jobApplication.title}" at ${jobApplication.company}? This action cannot be undone and will permanently remove:`}
-                  <ul className="mt-2 list-disc list-inside space-y-1 text-sm">
+                  <ul className="mt-2 list-inside list-disc space-y-1 text-sm">
                     <li>{t`Job application details and notes`}</li>
                     <li>{t`Generated resumes and cover letters`}</li>
                     <li>{t`Interview questions and preparation materials`}</li>
@@ -242,8 +264,8 @@ export const JobApplicationDetailPage = () => {
               <AlertDialogFooter>
                 <AlertDialogCancel>{t`Cancel`}</AlertDialogCancel>
                 <AlertDialogAction
-                  onClick={handleDelete}
                   className="bg-red-600 text-white hover:bg-red-700 focus:ring-red-600"
+                  onClick={handleDelete}
                 >
                   {t`Delete Permanently`}
                 </AlertDialogAction>
@@ -255,7 +277,7 @@ export const JobApplicationDetailPage = () => {
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Job Details */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="space-y-6 lg:col-span-2">
           {/* Job Information */}
           <Card>
             <CardHeader>
@@ -269,11 +291,11 @@ export const JobApplicationDetailPage = () => {
                 <div>
                   <label className="text-sm font-medium">{t`Job Posting URL`}</label>
                   <div className="mt-1">
-                    <a 
-                      href={jobApplication.url} 
-                      target="_blank" 
+                    <a
+                      href={jobApplication.url}
+                      target="_blank"
                       rel="noopener noreferrer"
-                      className="text-primary hover:underline break-all"
+                      className="break-all text-primary hover:underline"
                     >
                       {jobApplication.url}
                     </a>
@@ -284,10 +306,10 @@ export const JobApplicationDetailPage = () => {
               {jobApplication.description && (
                 <div>
                   <label className="text-sm font-medium">{t`Description`}</label>
-                  <div className="mt-1 p-3 border rounded-md bg-muted/30">
-                    <div 
-                      className="prose prose-sm max-w-none"
+                  <div className="bg-muted/30 mt-1 rounded-md border p-3">
+                    <div
                       dangerouslySetInnerHTML={{ __html: jobApplication.description }}
+                      className="prose prose-sm max-w-none"
                     />
                   </div>
                 </div>
@@ -326,10 +348,10 @@ export const JobApplicationDetailPage = () => {
               {jobApplication.notes && (
                 <div>
                   <label className="text-sm font-medium">{t`Personal Notes`}</label>
-                  <div className="mt-1 p-3 border rounded-md bg-muted/30">
-                    <div 
-                      className="prose prose-sm max-w-none"
+                  <div className="bg-muted/30 mt-1 rounded-md border p-3">
+                    <div
                       dangerouslySetInnerHTML={{ __html: jobApplication.notes }}
+                      className="prose prose-sm max-w-none"
                     />
                   </div>
                 </div>
@@ -349,18 +371,18 @@ export const JobApplicationDetailPage = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-muted-foreground text-sm">
                 {t`Create a tailored CV for this job application using your content library and AI optimization.`}
               </p>
-              
-              <Button 
-                className="w-full gap-2" 
+
+              <Button
+                className="w-full gap-2"
                 disabled={isGeneratingCV || isGeneratingResume}
                 onClick={handleGenerateCV}
               >
-                {(isGeneratingCV || isGeneratingResume) ? (
+                {isGeneratingCV || isGeneratingResume ? (
                   <>
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    <div className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                     {t`Generating...`}
                   </>
                 ) : (
@@ -378,10 +400,10 @@ export const JobApplicationDetailPage = () => {
                   {jobApplication.resumes.map((resume) => (
                     <Button
                       key={resume.id}
+                      asChild
                       variant="outline"
                       size="sm"
                       className="w-full justify-start gap-2"
-                      asChild
                     >
                       <Link to={`/builder/${resume.id}`}>
                         <FileText size={14} />
@@ -392,7 +414,7 @@ export const JobApplicationDetailPage = () => {
                 </div>
               )}
 
-              <div className="text-xs text-muted-foreground">
+              <div className="text-muted-foreground text-xs">
                 {t`This will analyze your content library and create a CV optimized for this specific role.`}
               </div>
             </CardContent>
@@ -406,7 +428,10 @@ export const JobApplicationDetailPage = () => {
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm">{t`Current Status`}</span>
-                <Badge variant="secondary" className={cn("text-xs", getStatusColor(jobApplication.status))}>
+                <Badge
+                  variant="secondary"
+                  className={cn("text-xs", getStatusColor(jobApplication.status))}
+                >
                   {getStatusLabel(jobApplication.status)}
                 </Badge>
               </div>
@@ -414,7 +439,7 @@ export const JobApplicationDetailPage = () => {
               {jobApplication.appliedDate && (
                 <div className="flex items-center justify-between">
                   <span className="text-sm">{t`Applied Date`}</span>
-                  <span className="text-sm text-muted-foreground">
+                  <span className="text-muted-foreground text-sm">
                     {formatDate(jobApplication.appliedDate)}
                   </span>
                 </div>
@@ -422,14 +447,14 @@ export const JobApplicationDetailPage = () => {
 
               <div className="flex items-center justify-between">
                 <span className="text-sm">{t`Created`}</span>
-                <span className="text-sm text-muted-foreground">
+                <span className="text-muted-foreground text-sm">
                   {formatDate(jobApplication.createdAt)}
                 </span>
               </div>
 
               <div className="flex items-center justify-between">
                 <span className="text-sm">{t`Last Updated`}</span>
-                <span className="text-sm text-muted-foreground">
+                <span className="text-muted-foreground text-sm">
                   {formatDate(jobApplication.updatedAt)}
                 </span>
               </div>
@@ -442,13 +467,13 @@ export const JobApplicationDetailPage = () => {
               <CardTitle>{t`Quick Actions`}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <Button variant="outline" className="w-full gap-2" asChild>
+              <Button asChild variant="outline" className="w-full gap-2">
                 <Link to="/dashboard/content-library">
                   <Eye size={16} />
                   {t`View Content Library`}
                 </Link>
               </Button>
-              
+
               <Button variant="outline" className="w-full gap-2">
                 <FileText size={16} />
                 {t`Generate Cover Letter`}
@@ -482,4 +507,4 @@ export const JobApplicationDetailPage = () => {
       </div>
     </div>
   );
-}; 
+};

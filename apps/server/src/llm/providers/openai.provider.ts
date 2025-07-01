@@ -5,6 +5,7 @@ import {
   ChatMessage,
   ChatOptions,
   ContentMatchResult,
+  CVTailoringResult,
   JobAnalysisResult,
   LLMProvider,
   LLMResponse,
@@ -313,6 +314,99 @@ Return as a JSON array of question strings only.`;
       return {
         success: false,
         error: "Failed to parse interview questions",
+      };
+    }
+  }
+
+  async tailorResumeContent(
+    jobDescription: string,
+    jobRequirements: string[],
+    currentResumeData: any,
+    selectedContent: any[],
+  ): Promise<LLMResponse<CVTailoringResult>> {
+    const prompt = `
+You are an expert CV optimization specialist. Analyze the job requirements against the current resume content and provide specific tailoring recommendations.
+
+Job Description:
+${jobDescription}
+
+Job Requirements:
+${jobRequirements.join("\n- ")}
+
+Current Resume Data:
+${JSON.stringify(currentResumeData, null, 2)}
+
+Selected Content Library Items:
+${JSON.stringify(selectedContent, null, 2)}
+
+Analyze the resume and provide optimization recommendations as a JSON object with this structure:
+{
+  "adjustedSummary": "Enhanced professional summary that better matches job requirements (optional if current is good)",
+  "skillsToAdd": ["skill1", "skill2", "skill3"],
+  "skillsToRemove": ["outdated_skill1", "irrelevant_skill2"],
+  "experienceAdjustments": [
+    {
+      "contentId": "content_id_from_selected_content",
+      "adjustedTitle": "Better job title that matches role requirements",
+      "adjustedDescription": "Enhanced description with job-relevant keywords and achievements",
+      "keywordsToEmphasize": ["keyword1", "keyword2", "keyword3"]
+    }
+  ],
+  "sectionRecommendations": [
+    {
+      "section": "education/certifications/projects/etc",
+      "action": "add/remove/modify",
+      "reasoning": "Why this change will improve job fit"
+    }
+  ],
+  "overallFitScore": 85,
+  "suggestions": [
+    "Specific actionable advice for improving job match",
+    "Additional recommendations for better positioning"
+  ]
+}
+
+Guidelines:
+- Focus on maximizing relevance to the job requirements
+- Suggest skill additions/removals based on job needs vs current content
+- Enhance experience descriptions with job-relevant keywords
+- Score overall fit 0-100 (how well resume matches job after suggested changes)
+- Be specific and actionable with suggestions
+- Only suggest adjustments if they genuinely improve job fit
+- Keep original meaning while optimizing for job relevance
+
+Return only the JSON object, no additional text.`;
+
+    const response = await this.chat(
+      [
+        {
+          role: "system",
+          content:
+            "You are a precise CV optimization expert. Analyze thoroughly and return only valid JSON with specific, actionable recommendations.",
+        },
+        { role: "user", content: prompt },
+      ],
+      { maxTokens: 2000 },
+    );
+
+    if (!response.success) {
+      return {
+        success: false,
+        error: response.error,
+      };
+    }
+
+    try {
+      const parsed = JSON.parse(response.data!) as CVTailoringResult;
+      return {
+        success: true,
+        data: parsed,
+        usage: response.usage,
+      };
+    } catch {
+      return {
+        success: false,
+        error: "Failed to parse CV tailoring result",
       };
     }
   }

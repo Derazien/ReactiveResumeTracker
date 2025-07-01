@@ -23,6 +23,30 @@ export type ContentMatchResult = {
   suggestions?: string[];
 };
 
+export type CVTailoringResult = {
+  // New complete resume approach
+  optimizedResumeData?: any; // Complete resume JSON structure
+  changesSummary?: string; // Brief summary for resume notes
+
+  // Legacy fields (for backwards compatibility)
+  adjustedSummary?: string;
+  skillsToAdd?: string[];
+  skillsToRemove?: string[];
+  experienceAdjustments?: {
+    contentId: string;
+    adjustedTitle?: string;
+    adjustedDescription?: string;
+    keywordsToEmphasize?: string[];
+  }[];
+  sectionRecommendations?: {
+    section: string;
+    action: string;
+    reasoning: string;
+  }[];
+  overallFitScore: number;
+  suggestions?: string[];
+};
+
 export type LLMResponse<T = any> = {
   success: boolean;
   data?: T;
@@ -67,6 +91,14 @@ export type LLMProvider = {
     jobDescription: string,
     userContent: any[],
   ): Promise<LLMResponse<string[]>>;
+
+  // New method for CV tailoring
+  tailorResumeContent(
+    jobDescription: string,
+    jobRequirements: string[],
+    currentResumeData: any,
+    selectedContent: any[],
+  ): Promise<LLMResponse<CVTailoringResult>>;
 };
 
 export type ChatOptions = {

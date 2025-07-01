@@ -6,7 +6,7 @@ import { JOB_APPLICATION_KEY } from "@/client/constants/query-keys";
 import { axios } from "@/client/libs/axios";
 
 const parseJsonArray = (value: string | string[]): string[] => {
-  if (typeof value === 'string') {
+  if (typeof value === "string") {
     try {
       const parsed = JSON.parse(value);
       return Array.isArray(parsed) ? parsed.map(String) : [];
@@ -18,13 +18,15 @@ const parseJsonArray = (value: string | string[]): string[] => {
 };
 
 export const fetchJobApplication = async (id: string) => {
-  const response = await axios.get<JobApplicationDto, AxiosResponse<JobApplicationDto>>(`/job-applications/${id}`);
+  const response = await axios.get<JobApplicationDto, AxiosResponse<JobApplicationDto>>(
+    `/job-applications/${id}`,
+  );
 
   // Parse string fields that should be arrays
   const data = response.data;
   data.requirements = parseJsonArray(data.requirements);
   data.extractedTags = parseJsonArray(data.extractedTags);
-  
+
   return data;
 };
 
@@ -40,4 +42,4 @@ export const useJobApplication = (id: string) => {
   });
 
   return { jobApplication, loading, error };
-}; 
+};

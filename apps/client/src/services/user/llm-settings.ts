@@ -7,34 +7,36 @@ type LLMProvider = "OPENAI" | "ANTHROPIC" | "OLLAMA";
 export type UserLLMSettings = {
   id?: string;
   provider: LLMProvider;
-  
+
   // System Fallback Settings
   useSystemDefaultAsBackup: boolean;
-  
+
   // OpenAI Settings
   openaiApiKey: string | null;
   openaiModel: string;
   openaiBaseUrl: string | null;
-  
+
   // Anthropic Settings
   anthropicApiKey: string | null;
   anthropicModel: string;
-  
+
   // Ollama Settings
   ollamaApiKey: string | null;
   ollamaBaseUrl: string | null;
   ollamaModel: string;
-  
+
   // Common Settings
   maxTokens: number;
   temperature: number;
-  
+
   userId?: string;
   createdAt?: string;
   updatedAt?: string;
 };
 
-export type UpdateLLMSettingsData = Partial<Omit<UserLLMSettings, 'id' | 'userId' | 'createdAt' | 'updatedAt'>>;
+export type UpdateLLMSettingsData = Partial<
+  Omit<UserLLMSettings, "id" | "userId" | "createdAt" | "updatedAt">
+>;
 
 const KEYS = {
   llmSettings: ["user", "llm-settings"] as const,
@@ -83,4 +85,4 @@ export const useDeleteLLMSettings = () => {
       queryClient.invalidateQueries({ queryKey: KEYS.llmSettings });
     },
   });
-}; 
+};
