@@ -51,19 +51,19 @@ export const SectionBase = <T extends SectionItem>({ id, title, description }: P
   // Check if item was sourced from content library (unmodified)
   const isFromContentLibrary = (item: SectionItem): boolean => {
     const itemWithIds = item as any;
-    return !!itemWithIds.contentLibraryId && !itemWithIds.sourceContentLibraryId;
+    return !!itemWithIds.contentId && !itemWithIds.sourceContentId;
   };
 
   // Check if item was modified from content library source
   const isModifiedFromContentLibrary = (item: SectionItem): boolean => {
     const itemWithIds = item as any;
-    return !!itemWithIds.sourceContentLibraryId;
+    return !!itemWithIds.sourceContentId;
   };
 
   // Check if item was manually created (no content library connection)
   const isManuallyCreated = (item: SectionItem): boolean => {
     const itemWithIds = item as any;
-    return !itemWithIds.contentLibraryId && !itemWithIds.sourceContentLibraryId;
+    return !itemWithIds.contentId && !itemWithIds.sourceContentId;
   };
 
   // Get item styling based on source

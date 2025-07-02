@@ -499,7 +499,7 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
         tailoringResult.optimizedResumeData,
       );
 
-      // Mark all items with contentLibraryId as modified
+      // Mark all items with contentId as modified
       this.markAllContentLibraryItemsAsModified(validatedResumeData);
       return validatedResumeData;
     }
@@ -677,13 +677,13 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
             itemFixed = true;
           }
 
-          if (!Object.prototype.hasOwnProperty.call(item, "contentLibraryId")) {
-            item.contentLibraryId = null;
+          if (!Object.prototype.hasOwnProperty.call(item, "contentId")) {
+            item.contentId = null;
             itemFixed = true;
           }
 
-          if (!Object.prototype.hasOwnProperty.call(item, "sourceContentLibraryId")) {
-            item.sourceContentLibraryId = null;
+          if (!Object.prototype.hasOwnProperty.call(item, "sourceContentId")) {
+            item.sourceContentId = null;
             itemFixed = true;
           }
 
@@ -1008,13 +1008,13 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
    * Helper method to properly track when content library items are modified by LLM
    */
   private markItemAsModifiedFromContentLibrary(item: any): void {
-    if (item.contentLibraryId && !item.sourceContentLibraryId) {
-      // Move contentLibraryId to sourceContentLibraryId to track the original source
-      item.sourceContentLibraryId = item.contentLibraryId;
-      item.contentLibraryId = null;
+    if (item.contentId && !item.sourceContentId) {
+      // Move contentId to sourceContentId to track the original source
+      item.sourceContentId = item.contentId;
+      item.contentId = null;
 
       this.logger.debug(
-        `Marked item as modified from content library: ${item.sourceContentLibraryId}`,
+        `Marked item as modified from content library: ${item.sourceContentId}`,
       );
     }
   }
@@ -1064,8 +1064,8 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
           description: "",
           level: 0,
           keywords: [],
-          contentLibraryId: null,
-          sourceContentLibraryId: null, // This is a new LLM-generated category
+          contentId: null,
+          sourceContentId: null, // This is a new LLM-generated category
         };
         skillsSection.items.unshift(relevantSkillsCategory);
       }
@@ -1666,8 +1666,8 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
           this.formatExperienceContent(exp.description, content, achievements) ||
           "<p>No description available</p>",
         url: { label: "", href: "" },
-        contentLibraryId: exp.id,
-        sourceContentLibraryId: null,
+        contentId: exp.id,
+        sourceContentId: null,
       };
     });
 
@@ -1684,8 +1684,8 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
         summary: `<p>${proj.description || "No description available"}</p>`,
         keywords: typeof proj.skills === "string" ? JSON.parse(proj.skills) : proj.skills || [],
         url: { label: "", href: "" },
-        contentLibraryId: proj.id,
-        sourceContentLibraryId: null,
+        contentId: proj.id,
+        sourceContentId: null,
       };
     });
 
@@ -1700,8 +1700,8 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
       date: this.formatDateRange(edu.startDate, edu.endDate) || "Graduated",
       summary: `<p>${edu.description || "No description available"}</p>`,
       url: { label: "", href: "" },
-      contentLibraryId: edu.id,
-      sourceContentLibraryId: null,
+      contentId: edu.id,
+      sourceContentId: null,
     }));
 
     // Add technical skills - combine technical skills into categories
@@ -1733,8 +1733,8 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
           typeof softSkill.skills === "string"
             ? JSON.parse(softSkill.skills ?? "[]")
             : (softSkill.skills ?? []),
-        contentLibraryId: softSkill.id,
-        sourceContentLibraryId: null,
+        contentId: softSkill.id,
+        sourceContentId: null,
       };
       resumeData.sections.skills.items.push(softSkillItem);
     }
@@ -1750,8 +1750,8 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
         : new Date().getFullYear().toString(),
       summary: `<p>${cert.description || "No description available"}</p>`,
       url: { label: "", href: "" },
-      contentLibraryId: cert.id,
-      sourceContentLibraryId: null,
+      contentId: cert.id,
+      sourceContentId: null,
     }));
 
     // Add publications
@@ -1765,8 +1765,8 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
         : new Date().getFullYear().toString(),
       summary: `<p>${pub.description || "No description available"}</p>`,
       url: { label: "", href: pub.url || "" },
-      contentLibraryId: pub.id,
-      sourceContentLibraryId: null,
+      contentId: pub.id,
+      sourceContentId: null,
     }));
 
     // Add awards
@@ -1780,8 +1780,8 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
         : new Date().getFullYear().toString(),
       summary: `<p>${award.description || "No description available"}</p>`,
       url: { label: "", href: award.url || "" },
-      contentLibraryId: award.id,
-      sourceContentLibraryId: null,
+      contentId: award.id,
+      sourceContentId: null,
     }));
 
     // Add languages
@@ -1807,8 +1807,8 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
           ? `${lang.proficiencyLevel}% proficiency (Level ${convertedLevel}/5)`
           : lang.description || "No proficiency level specified",
         level: convertedLevel,
-        contentLibraryId: lang.id,
-        sourceContentLibraryId: null,
+        contentId: lang.id,
+        sourceContentId: null,
       };
     });
 
@@ -1821,8 +1821,8 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
         typeof interest.keywords === "string"
           ? JSON.parse(interest.keywords)
           : interest.keywords || [],
-      contentLibraryId: interest.id,
-      sourceContentLibraryId: null,
+      contentId: interest.id,
+      sourceContentId: null,
     }));
 
     // Add volunteer experience
@@ -1835,8 +1835,8 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
       date: this.formatDateRange(vol.startDate, vol.endDate) || "Recent",
       summary: `<p>${vol.description || "No description available"}</p>`,
       url: { label: "", href: vol.url || "" },
-      contentLibraryId: vol.id,
-      sourceContentLibraryId: null,
+      contentId: vol.id,
+      sourceContentId: null,
     }));
 
     // Add references
@@ -1847,8 +1847,8 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
       description: ref.position || ref.company || "Reference",
       summary: `<p>${ref.description || "No description available"}</p>`,
       url: { label: "", href: ref.url || "" },
-      contentLibraryId: ref.id,
-      sourceContentLibraryId: null,
+      contentId: ref.id,
+      sourceContentId: null,
     }));
 
     // Add profiles
@@ -1862,8 +1862,8 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
         username: content?.username || profile.title || "Username",
         icon: content?.icon || "",
         url: { label: "", href: profile.url || content?.url || "" },
-        contentLibraryId: profile.id,
-        sourceContentLibraryId: null,
+        contentId: profile.id,
+        sourceContentId: null,
       };
     });
 
@@ -2018,7 +2018,7 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
       .filter(([_, skills]) => skills.length > 0)
       .map(([category, skills], index) => {
         const sourceIds = [...categorySourceIds[category as keyof typeof categorySourceIds]];
-        // For skills, we'll use the first contributing source as contentLibraryId
+        // For skills, we'll use the first contributing source as contentId
         // and track all sources in a special way
         return {
           id: createId(),
@@ -2027,8 +2027,8 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
           description: "",
           level: 0,
           keywords: [...new Set(skills)], // Remove duplicates
-          contentLibraryId: sourceIds.length > 0 ? sourceIds[0] : null,
-          sourceContentLibraryId: null,
+          contentId: sourceIds.length > 0 ? sourceIds[0] : null,
+          sourceContentId: null,
           // Note: For skills, multiple content library items may contribute to one category
           // We could add a custom field to track all contributing IDs if needed
         };

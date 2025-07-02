@@ -9,7 +9,7 @@ export const defaultLayout = [
 
 // Schema
 export const metadataSchema = z.object({
-  template: z.string().default("rhyhorn"),
+  template: z.string().default("novoresume"),
   layout: z.array(z.array(z.array(z.string()))).default(defaultLayout), // pages -> columns -> sections
   css: z.object({
     value: z.string().default("* {\n\toutline: 1px solid #000;\n\toutline-offset: 4px;\n}"),
@@ -30,7 +30,7 @@ export const metadataSchema = z.object({
   }),
   typography: z.object({
     font: z.object({
-      family: z.string().default("IBM Plex Serif"),
+      family: z.string().default("Ubuntu"),
       subset: z.string().default("latin"),
       variants: z.array(z.string()).default(["regular"]),
       size: z.number().default(14),
@@ -47,7 +47,7 @@ export type Metadata = z.infer<typeof metadataSchema>;
 
 // Defaults
 export const defaultMetadata: Metadata = {
-  template: "rhyhorn",
+  template: "novoresume",
   layout: defaultLayout,
   css: {
     value: "* {\n\toutline: 1px solid #000;\n\toutline-offset: 4px;\n}",
@@ -68,7 +68,7 @@ export const defaultMetadata: Metadata = {
   },
   typography: {
     font: {
-      family: "IBM Plex Serif",
+      family: "Ubuntu",
       subset: "latin",
       variants: ["regular", "italic", "600"],
       size: 14,

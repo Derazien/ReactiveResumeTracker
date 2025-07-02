@@ -291,7 +291,7 @@ export const sampleResume: ResumeData = {
     custom: {},
   },
   metadata: {
-    template: "glalie",
+    template: "novoresume",
     layout: [
       [
         ["summary", "experience", "education", "projects", "references"],
@@ -326,7 +326,7 @@ export const sampleResume: ResumeData = {
     },
     typography: {
       font: {
-        family: "Merriweather",
+        family: "Ubuntu",
         subset: "latin",
         variants: ["regular"],
         size: 13,

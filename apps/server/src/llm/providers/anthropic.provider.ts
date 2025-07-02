@@ -530,11 +530,11 @@ CRITICAL REQUIREMENTS: Return the COMPLETE resume JSON structure with all optimi
 2. Optimize section order for job relevance
 3. Enhance descriptions with job-relevant keywords
 4. Add/modify skills to match job requirements
-5. Improve professional summary for job fit
+5. Improve professional summary for job fit, only 2 lines maximum with information given from existing summaries. 1 line max for the immigration or highlighted status, 1 line max for catchy experience description.
 6. Maintain original JSON structure exactly - especially metadata.layout
 7. Do not create new Projects or rename their names, only a small addition or tweak to the titles, and tailor the summary of the projectto highlight the most relevant skills and experiences for the job.
-8. Do not create new Experiences, you may tweak the titles slightly, and tailor the summary of the experience to highlight the most relevant skills and experiences for the job.
-9. Make sure the summary of the resume profileis only 2 lines maximum with information given from existing summaries. 1 line max for the immigration or highlighted status, 1 line max for catchy experience description.
+8. Do not create new Experiences, you may tweak the titles slightly, and tailor the summary of the experience to highlight the most relevant skills and experiences for the job. No need to add the job title to the summary 
+9. For title make sure it's relevent to the job description but relative to the user's experience, you may add 2 titles seperated by a "|" for example "Lead Software Engineer | Full Stack Developer".
 
 CRITICAL: PRESERVE METADATA LAYOUT STRUCTURE EXACTLY as provided. The metadata.layout field is a 3-level nested array: [pages][columns][sections]. Do NOT change this structure - it MUST remain as:
 layout: [
