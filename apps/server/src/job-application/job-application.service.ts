@@ -5,6 +5,7 @@ import { CreateJobApplicationDto, UpdateJobApplicationDto } from "@reactive-resu
 import { PrismaService } from "nestjs-prisma";
 
 import { ContentLibraryService } from "@/server/content-library/content-library.service";
+import { ContentMatchingService } from "@/server/content-matching/content-matching.service";
 import { LLMService } from "@/server/llm/llm.service";
 
 export type JobAnalysisResult = {
@@ -27,6 +28,7 @@ export class JobApplicationService {
     private readonly prisma: PrismaService,
     private readonly llmService: LLMService,
     private readonly contentLibraryService: ContentLibraryService,
+    private readonly contentMatchingService: ContentMatchingService,
   ) {}
 
   async create(
@@ -282,10 +284,42 @@ export class JobApplicationService {
         }
       }
     } else {
-      // Auto-select best matching content using type-specific tag/keyword matching
-      selectedContent = await this.selectRelevantContentByTags(userId, jobApplication);
+      // Auto-select best matching content using hybrid matching (vector + tags)
+      const jobRequirements = JSON.parse(jobApplication.requirements ?? "[]");
+      const matchResults = await this.contentMatchingService.matchContentToJob(
+        userId,
+        jobRequirements,
+        jobApplication.description ?? "",
+        {
+          useVectorSimilarity: true,
+          useTagMatching: true,
+          vectorWeight: 0.7,
+          tagWeight: 0.3,
+          minSimilarity: 20, // Only include reasonably relevant content
+          maxResults: 50,
+        }
+      );
+
+      // Convert match results to content objects and add match scores
+      selectedContent = [];
+      for (const match of matchResults) {
+        if (match.score >= 20) { // Only include content with decent relevance
+          const content = await this.contentLibraryService.findOne(match.contentId, userId);
+          if (content) {
+            selectedContent.push({
+              ...content,
+              matchScore: match.score,
+              vectorSimilarity: match.vectorSimilarity,
+              tagSimilarity: match.tagSimilarity,
+              matchReasons: match.reasons,
+              matchSuggestions: match.suggestions,
+            });
+          }
+        }
+      }
+
       this.logger.log(
-        `Auto-selected ${selectedContent.length} relevant content pieces using type-specific matching`,
+        `Auto-selected ${selectedContent.length} relevant content pieces using hybrid matching (vector + tags)`,
       );
     }
 
@@ -1166,378 +1200,7 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
     );
   }
 
-  /**
-   * Select relevant content using comprehensive requirements:
-   * - 2-3 most relevant experiences
-   * - 1 education minimum
-   * - All relevant skills and tech skills
-   * - 1 volunteer experience
-   * - 2 top projects
-   * - Hobbies/activities
-   * - All languages (sorted by relevancy)
-   * - 1 summary
-   * - All contact info
-   */
-  private async selectRelevantContentByTags(userId: string, jobApplication: any): Promise<any[]> {
-    // Get all user content WITH tags for proper matching
-    const allContent = await this.prisma.content.findMany({
-      where: { userId },
-      include: {
-        section: true,
-        tags: {
-          include: {
-            tag: {
-              select: {
-                name: true,
-              },
-            },
-          },
-        },
-      },
-      orderBy: { createdAt: "desc" },
-    });
 
-    // Extract job tags and requirements
-    const jobTags = JSON.parse(jobApplication.extractedTags || "[]");
-    const jobRequirements = JSON.parse(jobApplication.requirements || "[]");
-
-    // Create keyword list from job data
-    const jobKeywords = new Set<string>();
-
-    // Add tags as keywords
-    for (const tag of jobTags) {
-      jobKeywords.add(tag.toLowerCase());
-    }
-
-    // Extract keywords from requirements (simple keyword extraction)
-    for (const req of jobRequirements) {
-      const words = req.toLowerCase().match(/\b[a-z]{3,}\b/g) ?? [];
-      for (const word of words) {
-        jobKeywords.add(word);
-      }
-    }
-
-    // Extract keywords from job title and company
-    const titleWords = jobApplication.title.toLowerCase().match(/\b[a-z]{3,}\b/g) ?? [];
-    for (const word of titleWords) {
-      jobKeywords.add(word);
-    }
-
-    // Group content by section type
-    const contentByType = new Map<string, any[]>();
-
-    for (const content of allContent) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const sectionKey = content.section.key ?? "unknown";
-      if (!contentByType.has(sectionKey)) {
-        contentByType.set(sectionKey, []);
-      }
-      const typeArray = contentByType.get(sectionKey);
-      if (typeArray) {
-        typeArray.push(content);
-      }
-    }
-
-    // Score all content items
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const scoreContent = (content: any): any => {
-      let score = 0;
-      const contentKeywords = new Set<string>();
-
-      // Get content keywords from various fields
-      if (content.title) {
-        const titleWords = content.title.toLowerCase().match(/\b[a-z]{3,}\b/g) ?? [];
-        for (const word of titleWords) {
-          contentKeywords.add(word);
-        }
-      }
-
-      if (content.description) {
-        const descWords = content.description.toLowerCase().match(/\b[a-z]{3,}\b/g) ?? [];
-        for (const word of descWords) {
-          contentKeywords.add(word);
-        }
-      }
-
-      // Parse skills and add them
-      const skills =
-        typeof content.skills === "string"
-          ? JSON.parse(content.skills ?? "[]")
-          : (content.skills ?? []);
-      for (const skill of skills) {
-        contentKeywords.add(skill.toLowerCase());
-      }
-
-      // Parse keywords and add them
-      const keywords =
-        typeof content.keywords === "string"
-          ? JSON.parse(content.keywords ?? "[]")
-          : (content.keywords ?? []);
-      for (const keyword of keywords) {
-        contentKeywords.add(keyword.toLowerCase());
-      }
-
-      // Add content tags as keywords
-      const contentTags = content.tags?.map((ct: { tag: { name: string } }) => ct.tag.name) ?? [];
-      for (const tagName of contentTags) {
-        contentKeywords.add(tagName.toLowerCase());
-      }
-
-      // Calculate score based on keyword overlap
-      let matches = 0;
-      for (const jobKeyword of jobKeywords) {
-        for (const contentKeyword of contentKeywords) {
-          if (contentKeyword.includes(jobKeyword) || jobKeyword.includes(contentKeyword)) {
-            matches++;
-          }
-        }
-      }
-
-      // Bonus points for content type relevance
-      const typeBonus = this.getContentTypeRelevanceScore(
-        content.section?.key ?? "unknown",
-        jobRequirements,
-      );
-
-      // Calculate final score
-      score = (matches / Math.max(jobKeywords.size, 1)) * 100 + typeBonus;
-
-      return { ...content, matchScore: score };
-    };
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const selectedContent: any[] = [];
-
-    // 1. Get 2-3 most relevant EXPERIENCES (preferably 3, LLM will determine if all fit)
-    const experiences = contentByType.get("experience") ?? [];
-    if (experiences.length > 0) {
-      const scoredExperiences = experiences
-        .map(scoreContent)
-        .sort((a, b) => b.matchScore - a.matchScore)
-        .slice(0, Math.min(3, experiences.length)); // Get top 3 or all if less than 3
-      selectedContent.push(...scoredExperiences);
-      this.logger.log(
-        `Selected ${scoredExperiences.length} experiences (target: 2-3, preferably 3)`,
-      );
-    }
-
-    // 2. Get at least 1 EDUCATION
-    const education = contentByType.get("education") ?? [];
-    if (education.length > 0) {
-      const scoredEducation = education
-        .map(scoreContent)
-        .sort((a, b) => b.matchScore - a.matchScore)
-        .slice(0, Math.min(2, education.length)); // Get top 2 education items max
-      selectedContent.push(...scoredEducation);
-      this.logger.log(`Selected ${scoredEducation.length} education items (target: 1+)`);
-    }
-
-    // 3. Get ALL relevant TECHNICAL SKILLS
-    const technicalSkills = contentByType.get("technical_skills") ?? [];
-    if (technicalSkills.length > 0) {
-      const scoredTechnicalSkills = technicalSkills
-        .map(scoreContent)
-        .filter((content) => content.matchScore >= 15) // Only relevant technical skills
-        .sort((a, b) => b.matchScore - a.matchScore);
-      selectedContent.push(...scoredTechnicalSkills);
-      this.logger.log(
-        `Selected ${scoredTechnicalSkills.length} technical skill categories (all relevant)`,
-      );
-    }
-
-    // 4. Get ALL relevant SOFT SKILLS
-    const softSkills = contentByType.get("skills") ?? [];
-    if (softSkills.length > 0) {
-      const scoredSoftSkills = softSkills
-        .map(scoreContent)
-        .filter((content) => content.matchScore >= 15) // Only relevant soft skills
-        .sort((a, b) => b.matchScore - a.matchScore);
-      selectedContent.push(...scoredSoftSkills);
-      this.logger.log(`Selected ${scoredSoftSkills.length} soft skill categories (all relevant)`);
-    }
-
-    // 5. Get 1 VOLUNTEER EXPERIENCE
-    const volunteer = contentByType.get("volunteer") ?? [];
-    if (volunteer.length > 0) {
-      const scoredVolunteer = volunteer
-        .map(scoreContent)
-        .sort((a, b) => b.matchScore - a.matchScore)
-        .slice(0, 1);
-      selectedContent.push(...scoredVolunteer);
-      this.logger.log(`Selected ${scoredVolunteer.length} volunteer experience (target: 1)`);
-    }
-
-    // 6. Get 2 top PROJECTS
-    const projects = contentByType.get("projects") ?? [];
-    if (projects.length > 0) {
-      const scoredProjects = projects
-        .map(scoreContent)
-        .sort((a, b) => b.matchScore - a.matchScore)
-        .slice(0, 2);
-      selectedContent.push(...scoredProjects);
-      this.logger.log(`Selected ${scoredProjects.length} projects (target: 2)`);
-    }
-
-    // 7. Get HOBBIES/ACTIVITIES/INTERESTS
-    const interests = contentByType.get("interests") ?? [];
-    if (interests.length > 0) {
-      const scoredInterests = interests
-        .map(scoreContent)
-        .sort((a, b) => b.matchScore - a.matchScore)
-        .slice(0, 3); // Max 3 interest categories
-      selectedContent.push(...scoredInterests);
-      this.logger.log(
-        `Selected ${scoredInterests.length} interests/hobbies (target: all relevant)`,
-      );
-    }
-
-    // 8. Get ALL LANGUAGES (sorted by relevancy)
-    const languages = contentByType.get("languages") ?? [];
-    if (languages.length > 0) {
-      const scoredLanguages = languages
-        .map(scoreContent)
-        .sort((a, b) => b.matchScore - a.matchScore);
-      selectedContent.push(...scoredLanguages);
-      this.logger.log(`Selected ${scoredLanguages.length} languages (all, sorted by relevancy)`);
-    }
-
-    // 9. Get 1 SUMMARY (if exists)
-    const summaries = contentByType.get("summary") ?? [];
-    if (summaries.length > 0) {
-      const scoredSummary = summaries
-        .map(scoreContent)
-        .sort((a, b) => b.matchScore - a.matchScore)
-        .slice(0, 1);
-      selectedContent.push(...scoredSummary);
-      this.logger.log(`Selected ${scoredSummary.length} summary (target: 1)`);
-    }
-
-    // 10. Get ALL CONTACT INFO
-    const contacts = contentByType.get("contact") ?? [];
-    if (contacts.length > 0) {
-      selectedContent.push(...contacts.map(scoreContent));
-      this.logger.log(`Selected ${contacts.length} contact info items (all)`);
-    }
-
-    // 11. Add CERTIFICATIONS (highly relevant)
-    const certifications = contentByType.get("certifications") ?? [];
-    if (certifications.length > 0) {
-      const scoredCertifications = certifications
-        .map(scoreContent)
-        .filter((content) => content.matchScore >= 20) // Only relevant certifications
-        .sort((a, b) => b.matchScore - a.matchScore)
-        .slice(0, 4); // Max 4 certifications
-      selectedContent.push(...scoredCertifications);
-      this.logger.log(`Selected ${scoredCertifications.length} certifications (relevant only)`);
-    }
-
-    // 12. Add PUBLICATIONS (if relevant)
-    const publications = contentByType.get("publications") ?? [];
-    if (publications.length > 0) {
-      const scoredPublications = publications
-        .map(scoreContent)
-        .filter((content) => content.matchScore >= 25) // Only highly relevant publications
-        .sort((a, b) => b.matchScore - a.matchScore)
-        .slice(0, 2); // Max 2 publications
-      selectedContent.push(...scoredPublications);
-      this.logger.log(`Selected ${scoredPublications.length} publications (highly relevant only)`);
-    }
-
-    // 13. Add AWARDS (if relevant)
-    const awards = contentByType.get("awards") ?? [];
-    if (awards.length > 0) {
-      const scoredAwards = awards
-        .map(scoreContent)
-        .filter((content) => content.matchScore >= 15) // Relevant awards
-        .sort((a, b) => b.matchScore - a.matchScore)
-        .slice(0, 3); // Max 3 awards
-      selectedContent.push(...scoredAwards);
-      this.logger.log(`Selected ${scoredAwards.length} awards (relevant only)`);
-    }
-
-    // 14. Add PROFILES (professional social media)
-    const profiles = contentByType.get("profiles") ?? [];
-    if (profiles.length > 0) {
-      const scoredProfiles = profiles
-        .map(scoreContent)
-        .sort((a, b) => b.matchScore - a.matchScore)
-        .slice(0, 3); // Max 3 profiles
-      selectedContent.push(...scoredProfiles);
-      this.logger.log(`Selected ${scoredProfiles.length} profiles (top 3)`);
-    }
-
-    // Remove duplicates
-    const uniqueSelected = selectedContent.filter(
-      (content, index, self) => index === self.findIndex((c) => c.id === content.id),
-    );
-
-    // Log comprehensive selection summary
-    this.logger.log(`=== COMPREHENSIVE CONTENT SELECTION SUMMARY ===`);
-    const typeBreakdown = new Map<string, number>();
-    for (const content of uniqueSelected) {
-      const sectionKey = content.section?.key ?? "unknown";
-      typeBreakdown.set(sectionKey, (typeBreakdown.get(sectionKey) ?? 0) + 1);
-    }
-
-    for (const [type, count] of typeBreakdown) {
-      this.logger.log(`  ${type}: ${count} items`);
-    }
-
-    this.logger.log(
-      `Total selected: ${uniqueSelected.length} items for comprehensive one-page resume`,
-    );
-    this.logger.log(
-      `Top scores: ${uniqueSelected
-        .slice(0, 5)
-        .map((c) => `${c.title}: ${c.matchScore.toFixed(1)}`)
-        .join(", ")}`,
-    );
-
-    return uniqueSelected;
-  }
-
-  /**
-   * Get content type relevance score for job requirements (NO LLM)
-   */
-  private getContentTypeRelevanceScore(contentType: string, jobRequirements: string[]): number {
-    const requirementText = jobRequirements.join(" ").toLowerCase();
-
-    const typeRelevanceMap: Record<string, { keywords: string[]; bonus: number }> = {
-      WORK_EXPERIENCE: {
-        keywords: ["experience", "years", "worked", "led", "managed", "senior", "lead"],
-        bonus: 20,
-      },
-      TECHNICAL_SKILL: {
-        keywords: ["skill", "programming", "development", "technology", "framework"],
-        bonus: 15,
-      },
-      PROJECT: {
-        keywords: ["project", "built", "developed", "created", "portfolio"],
-        bonus: 15,
-      },
-      SOFT_SKILL: {
-        keywords: ["leadership", "communication", "team", "management", "collaboration"],
-        bonus: 10,
-      },
-      EDUCATION: {
-        keywords: ["education", "degree", "university", "bachelor", "master"],
-        bonus: 8,
-      },
-      CERTIFICATION: {
-        keywords: ["certified", "certification", "license", "credential"],
-        bonus: 12,
-      },
-    };
-
-    const typeInfo = typeRelevanceMap[contentType];
-    if (!typeInfo) return 0;
-
-    const keywordMatches = typeInfo.keywords.filter((keyword) =>
-      requirementText.includes(keyword),
-    ).length;
-
-    return keywordMatches > 0 ? typeInfo.bonus : 0;
-  }
 
   /**
    * Generate concise 1-2 sentence summary - template-based approach

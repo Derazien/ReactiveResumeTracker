@@ -2,6 +2,7 @@ import { forwardRef, Module } from "@nestjs/common";
 
 import { AuthModule } from "@/server/auth/auth.module";
 import { UserModule } from "@/server/user/user.module";
+import { ContentMatchingModule } from "@/server/content-matching/content-matching.module";
 
 import { ContentLibraryModule } from "../content-library/content-library.module";
 import { LLMController } from "./llm.controller";
@@ -12,7 +13,12 @@ import { OpenAIProvider } from "./providers/openai.provider";
 import { TagExtractionService } from "./tag-extraction.service";
 
 @Module({
-  imports: [AuthModule, UserModule, forwardRef(() => ContentLibraryModule)],
+  imports: [
+    AuthModule, 
+    UserModule, 
+    forwardRef(() => ContentLibraryModule),
+    forwardRef(() => ContentMatchingModule),
+  ],
   controllers: [LLMController],
   providers: [
     LLMService,

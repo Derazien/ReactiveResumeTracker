@@ -2,6 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
 import { UserLLMSettingsService } from "@/server/user/user-llm-settings.service";
+import { ContentMatchingService } from "@/server/content-matching/content-matching.service";
 
 import { ContentLibraryService } from "../content-library/content-library.service";
 import {
@@ -44,6 +45,7 @@ export class LLMService {
     private userLLMSettingsService: UserLLMSettingsService,
     private contentLibraryService: ContentLibraryService,
     private readonly tagExtractionService: TagExtractionService,
+    private readonly contentMatchingService: ContentMatchingService,
   ) {
     // Initialize with default provider (fallback)
     this.initializeProvider();
@@ -1787,11 +1789,8 @@ ${cvText}
   }
 
   /**
-   * RAG-BASED: Tag-driven content matching with minimal LLM usage
-   * Step 1: Extract/generate tags from job requirements (cheap LLM call)
-   * Step 2: Database query for content with matching tags (no LLM)
-   * Step 3: Simple scoring based on tag overlap + content type (no LLM)
-   * Step 4: Optional LLM refinement only for edge cases
+   * RAG-BASED: Hybrid content matching using vector similarity and tags
+   * Now delegates to ContentMatchingService for proper separation of concerns
    */
   async matchContentToJobRAG(
     userId: string,
@@ -1801,49 +1800,26 @@ ${cvText}
     this.logger.log(`RAG-based content matching for user ${userId}`);
 
     try {
-      // Step 1: Extract tags from job requirements (single cheap LLM call)
-      const jobTags = await this.extractJobTags(jobDescription, userId);
-
-      if (jobTags.length === 0) {
-        return { success: false, error: "Failed to extract job tags" };
-      }
-
-      this.logger.log(`Extracted ${jobTags.length} job tags: ${jobTags.join(", ")}`);
-
-      // Step 2: Database query for content with matching tags (no LLM)
-      const tagMatchedContent = await this.contentLibraryService.findByTags(userId, jobTags);
-
-      this.logger.log(`Found ${tagMatchedContent.length} content items with matching tags`);
-
-      // Step 3: Score content based on tag overlap and relevance (no LLM)
-      const scoredContent = this.scoreContentByTags(tagMatchedContent, jobTags, jobRequirements);
-
-      // Step 4: Get all user content for complete results
-      const allUserContent = await this.contentLibraryService.findAll(userId);
-
-      // Create final results with scores
-      const finalResults: ContentMatchResult[] = allUserContent.map((content) => {
-        const scored = scoredContent.find((scored) => scored.contentId === content.id);
-
-        if (scored) {
-          return scored;
-        } else {
-          // Content with no tag matches gets low score
-          return {
-            contentId: content.id,
-            score: 0,
-            reasons: ["No matching tags found"],
-            suggestions: ["Add relevant tags to improve matching"],
-          };
+      const results = await this.contentMatchingService.matchContentToJob(
+        userId,
+        jobRequirements,
+        jobDescription,
+        {
+          useVectorSimilarity: true,
+          useTagMatching: true,
+          vectorWeight: 0.7,
+          tagWeight: 0.3,
+          minSimilarity: 0,
+          maxResults: 100,
         }
-      });
+      );
 
-      const highScores = finalResults.filter((match) => match.score >= 70).length;
+      const highScores = results.filter((match) => match.score >= 70).length;
       this.logger.log(`RAG matching complete: ${highScores} high-relevance matches found`);
 
       return {
         success: true,
-        data: finalResults,
+        data: results,
       };
     } catch (error) {
       this.logger.error("RAG matching error:", error);
@@ -1923,228 +1899,7 @@ Tags:`;
     }
   }
 
-  /**
-   * Score content based on tag overlap and content type relevance (no LLM)
-   * This is pure algorithmic scoring - very fast and free
-   */
-  private scoreContentByTags(
-    tagMatchedContent: any[],
-    jobTags: string[],
-    jobRequirements: string[],
-  ): ContentMatchResult[] {
-    return tagMatchedContent.map((content) => {
-      // Get content tags
-      const contentTags = content.tags?.map((tag: any) => tag.tag.name) || [];
 
-      // Calculate tag overlap score (0-60 points)
-      const tagOverlap = this.calculateTagOverlap(jobTags, contentTags);
-      const tagScore = Math.round(tagOverlap * 60); // Max 60 points for tag matching
-
-      // Content type relevance score (0-25 points)
-      const typeScore = this.calculateTypeRelevance(content.type, jobRequirements);
-
-      // Experience/recency bonus (0-15 points)
-      const experienceScore = this.calculateExperienceScore(content);
-
-      // Total score
-      const totalScore = Math.min(100, tagScore + typeScore + experienceScore);
-
-      // Generate reasons
-      const reasons = this.generateScoringReasons(
-        tagScore,
-        typeScore,
-        experienceScore,
-        contentTags,
-        jobTags,
-      );
-
-      // Generate suggestions
-      const suggestions = this.generateImprovementSuggestions(
-        content,
-        jobTags,
-        contentTags,
-        totalScore,
-      );
-
-      return {
-        contentId: content.id,
-        score: totalScore,
-        reasons,
-        suggestions,
-      };
-    });
-  }
-
-  /**
-   * Calculate tag overlap percentage between job tags and content tags
-   */
-  private calculateTagOverlap(jobTags: string[], contentTags: string[]): number {
-    if (jobTags.length === 0 || contentTags.length === 0) return 0;
-
-    const jobTagsSet = new Set(jobTags.map((tag) => tag.toLowerCase()));
-    const contentTagsSet = new Set(contentTags.map((tag) => tag.toLowerCase()));
-
-    const intersection = new Set([...jobTagsSet].filter((tag) => contentTagsSet.has(tag)));
-
-    // Use the smaller set as denominator for more generous scoring
-    const minSetSize = Math.min(jobTagsSet.size, contentTagsSet.size);
-    return intersection.size / minSetSize;
-  }
-
-  /**
-   * Calculate content type relevance score (0-25 points)
-   */
-  private calculateTypeRelevance(contentType: string, jobRequirements: string[]): number {
-    const requirementText = jobRequirements.join(" ").toLowerCase();
-
-    const typeRelevanceMap: Record<string, { keywords: string[]; score: number }> = {
-      WORK_EXPERIENCE: {
-        keywords: ["experience", "years", "worked", "led", "managed", "senior", "lead"],
-        score: 25,
-      },
-      TECHNICAL_SKILL: {
-        keywords: ["skill", "programming", "development", "technology", "framework"],
-        score: 20,
-      },
-      PROJECT: {
-        keywords: ["project", "built", "developed", "created", "portfolio"],
-        score: 18,
-      },
-      SOFT_SKILL: {
-        keywords: ["leadership", "communication", "team", "management", "collaboration"],
-        score: 15,
-      },
-      EDUCATION: {
-        keywords: ["education", "degree", "university", "bachelor", "master"],
-        score: 10,
-      },
-      CERTIFICATION: {
-        keywords: ["certified", "certification", "license", "credential"],
-        score: 12,
-      },
-    };
-
-    const typeInfo = typeRelevanceMap[contentType];
-    if (!typeInfo) return 0;
-
-    const keywordMatches = typeInfo.keywords.filter((keyword) =>
-      requirementText.includes(keyword),
-    ).length;
-
-    // Scale score based on keyword matches
-    const relevanceRatio = keywordMatches / typeInfo.keywords.length;
-    return Math.round(typeInfo.score * relevanceRatio);
-  }
-
-  /**
-   * Calculate experience/recency score (0-15 points)
-   */
-  private calculateExperienceScore(content: any): number {
-    let score = 0;
-
-    // Recent content gets bonus points
-    if (content.createdAt) {
-      const monthsOld =
-        (Date.now() - new Date(content.createdAt).getTime()) / (1000 * 60 * 60 * 24 * 30);
-      if (monthsOld < 6)
-        score += 5; // Recent content
-      else if (monthsOld < 12) score += 3;
-    }
-
-    // Work experience duration bonus
-    if (content.startDate && content.type === "WORK_EXPERIENCE") {
-      const yearsExp = this.estimateYearsExperience(content);
-      if (yearsExp >= 3) score += 5;
-      else if (yearsExp >= 1) score += 3;
-    }
-
-    // Skills count bonus
-    const skillsCount = JSON.parse(content.skills || "[]").length;
-    if (skillsCount >= 8) score += 3;
-    else if (skillsCount >= 5) score += 2;
-
-    // Achievements bonus
-    const achievementsCount = JSON.parse(content.achievements || "[]").length;
-    if (achievementsCount >= 3) score += 2;
-
-    return Math.min(15, score);
-  }
-
-  /**
-   * Generate human-readable scoring reasons
-   */
-  private generateScoringReasons(
-    tagScore: number,
-    typeScore: number,
-    experienceScore: number,
-    contentTags: string[],
-    jobTags: string[],
-  ): string[] {
-    const reasons: string[] = [];
-
-    if (tagScore > 30) {
-      const matchingTags = contentTags.filter((tag) =>
-        jobTags.some((jobTag) => jobTag.toLowerCase() === tag.toLowerCase()),
-      );
-      reasons.push(`Strong tag matches: ${matchingTags.slice(0, 3).join(", ")}`);
-    } else if (tagScore > 15) {
-      reasons.push(`Some relevant tags found`);
-    } else {
-      reasons.push(`Limited tag overlap`);
-    }
-
-    if (typeScore > 15) {
-      reasons.push(`Content type highly relevant to job requirements`);
-    } else if (typeScore > 8) {
-      reasons.push(`Content type moderately relevant`);
-    }
-
-    if (experienceScore > 10) {
-      reasons.push(`Recent and substantial experience`);
-    } else if (experienceScore > 5) {
-      reasons.push(`Good experience level`);
-    }
-
-    return reasons;
-  }
-
-  /**
-   * Generate improvement suggestions based on scoring
-   */
-  private generateImprovementSuggestions(
-    content: any,
-    jobTags: string[],
-    contentTags: string[],
-    totalScore: number,
-  ): string[] {
-    const suggestions: string[] = [];
-
-    if (totalScore < 50) {
-      // Find missing job tags
-      const missingTags = jobTags.filter(
-        (jobTag) =>
-          !contentTags.some((contentTag) => contentTag.toLowerCase() === jobTag.toLowerCase()),
-      );
-
-      if (missingTags.length > 0) {
-        suggestions.push(
-          `Consider adding these relevant tags: ${missingTags.slice(0, 3).join(", ")}`,
-        );
-      }
-
-      suggestions.push(`Enhance content with job-relevant keywords and skills`);
-    }
-
-    if (totalScore >= 50 && totalScore < 80) {
-      suggestions.push(`Good match - consider emphasizing shared technologies and achievements`);
-    }
-
-    if (totalScore >= 80) {
-      suggestions.push(`Excellent match - highlight this content prominently in your resume`);
-    }
-
-    return suggestions;
-  }
 
   /**
    * Analyze temporal overlap between two work experiences

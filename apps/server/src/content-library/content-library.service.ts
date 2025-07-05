@@ -60,8 +60,6 @@ export class ContentLibraryService {
         OR: [
           { title: { contains: options.search } },
           { description: { contains: options.search } },
-          { company: { contains: options.search } },
-          { position: { contains: options.search } },
         ],
       }),
       ...(options?.tags?.length && {
@@ -214,5 +212,100 @@ export class ContentLibraryService {
       where,
       orderBy: { order: "asc" },
     });
+  }
+
+  // Vector similarity search method
+  async findBySimilarity(
+    userId: string,
+    queryEmbedding: number[],
+    options?: {
+      minSimilarity?: number;
+      maxResults?: number;
+      sectionIds?: string[];
+    }
+  ): Promise<(Content & { similarity?: number })[]> {
+    const {
+      minSimilarity = 0.1,
+      maxResults = 50,
+      sectionIds
+    } = options ?? {};
+
+    // Get content with embeddings
+    const where: Prisma.ContentWhereInput = {
+      userId,
+      embedding: { not: null },
+    };
+
+    if (sectionIds?.length) {
+      where.sectionId = { in: sectionIds };
+    }
+
+    const contentWithEmbeddings = await this.prisma.content.findMany({
+      where,
+      include: {
+        section: true,
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (contentWithEmbeddings.length === 0) {
+      return [];
+    }
+
+    // Calculate similarities (this would be more efficient with a vector database)
+    const contentWithSimilarity = contentWithEmbeddings
+      .map(content => {
+        try {
+          const contentEmbedding = JSON.parse(content.embedding as string);
+          const similarity = this.calculateCosineSimilarity(queryEmbedding, contentEmbedding);
+          
+          return {
+            ...content,
+            similarity,
+          };
+        } catch {
+          // Skip content with invalid embeddings
+          return null;
+        }
+      })
+      .filter((content): content is NonNullable<typeof content> => 
+        content !== null && content.similarity >= minSimilarity
+      )
+      .sort((a, b) => b.similarity - a.similarity)
+      .slice(0, maxResults);
+
+    return contentWithSimilarity;
+  }
+
+  // Helper method to calculate cosine similarity
+  private calculateCosineSimilarity(embedding1: number[], embedding2: number[]): number {
+    if (embedding1.length !== embedding2.length) {
+      return 0;
+    }
+
+    let dotProduct = 0;
+    let magnitude1 = 0;
+    let magnitude2 = 0;
+
+    for (const [index, value1] of embedding1.entries()) {
+      const value2 = embedding2[index];
+      dotProduct += value1 * value2;
+      magnitude1 += value1 * value1;
+      magnitude2 += value2 * value2;
+    }
+
+    magnitude1 = Math.sqrt(magnitude1);
+    magnitude2 = Math.sqrt(magnitude2);
+
+    if (magnitude1 === 0 || magnitude2 === 0) {
+      return 0;
+    }
+
+    return dotProduct / (magnitude1 * magnitude2);
   }
 }
