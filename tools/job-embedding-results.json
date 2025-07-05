@@ -1,0 +1,95 @@
+{
+  "metadata": {
+    "generatedAt": "2025-07-04T16:55:19.315Z",
+    "totalJobs": 1,
+    "successfulTransformations": 1,
+    "errors": 0,
+    "llmModel": "claude-sonnet-4-20250514",
+    "embeddingModel": "embed-english-v3.0 or embed-v4.0",
+    "purpose": "Job application embedding for content matching",
+    "note": "Embeddings stored in database only (not in JSON to reduce file size)"
+  },
+  "transformedData": [
+    {
+      "id": "cmcje26o2000du4fwexo5wpmh",
+      "title": "Full Stack Engineer",
+      "company": "BrandBack",
+      "originalData": {
+        "id": "cmcje26o2000du4fwexo5wpmh",
+        "title": "Full Stack Engineer",
+        "company": "BrandBack",
+        "description": "BrandBack is a Berlin-based startup that helps brands protect their intellectual property and combat counterfeiting through advanced technology solutions. We're building innovative tools to help companies monitor, detect, and take action against brand infringement across digital platforms. As a Full Stack Engineer at BrandBack, you'll be responsible for developing and maintaining our web applications, working on both frontend and backend systems. You'll collaborate with a small, agile team to build scalable solutions that directly impact our clients' ability to protect their brands. The role involves working with modern web technologies, implementing new features, optimizing performance, and ensuring code quality. You'll have the opportunity to work on challenging problems in the brand protection space, including data processing, machine learning integration, and user interface design. The position offers flexibility with hybrid work arrangements, allowing you to work both from our Berlin office and remotely. We're looking for someone who is passionate about technology, enjoys working in a startup environment, and wants to make a real impact in helping brands protect their intellectual property.",
+        "requirements": "[\"Experience with full-stack web development\",\"Proficiency in modern JavaScript frameworks\",\"Backend development experience with API design\",\"Database design and management skills\",\"Understanding of software development best practices\",\"Ability to work in an agile startup environment\",\"Strong problem-solving and debugging skills\"]",
+        "status": "DRAFT",
+        "url": "https://berlinstartupjobs.com/engineering/full-stack-engineer-brandback/",
+        "notes": null,
+        "createdAt": "2025-06-30T17:44:32.067Z",
+        "updatedAt": "2025-06-30T17:44:32.067Z"
+      },
+      "structuredData": {
+        "title": "Full Stack Engineer",
+        "company": "BrandBack",
+        "location": "Berlin, Germany",
+        "type": "Full-time",
+        "requirements": {
+          "skills": [
+            "full-stack web development",
+            "API design",
+            "database design",
+            "database management",
+            "software development best practices",
+            "problem-solving",
+            "debugging",
+            "agile methodologies"
+          ],
+          "technologies": [
+            "JavaScript",
+            "modern JavaScript frameworks",
+            "web technologies",
+            "backend systems",
+            "frontend systems",
+            "databases"
+          ],
+          "languages": [
+            "JavaScript"
+          ],
+          "certifications": [],
+          "experience": "Experience with full-stack web development",
+          "education": "Not specified"
+        },
+        "responsibilities": [
+          "Develop and maintain web applications",
+          "Work on both frontend and backend systems",
+          "Collaborate with small, agile team to build scalable solutions",
+          "Implement new features and optimize performance",
+          "Ensure code quality and follow best practices",
+          "Work on data processing and machine learning integration",
+          "Design and develop user interfaces",
+          "Build solutions for brand protection and intellectual property monitoring"
+        ],
+        "preferences": {
+          "niceToHave": [
+            "machine learning integration experience",
+            "data processing experience",
+            "brand protection domain knowledge",
+            "startup environment experience"
+          ],
+          "industry": "Brand protection and intellectual property",
+          "remote": "Hybrid work arrangements with Berlin office and remote options"
+        },
+        "summary": "Full Stack Engineer role at Berlin startup BrandBack, developing web applications for brand protection and anti-counterfeiting solutions. Involves working with modern JavaScript frameworks, API design, database management, and machine learning integration in an agile startup environment with hybrid work flexibility."
+      },
+      "embeddingHash": "915ad617eeabb8c4efcf1bc8d3caf2fe8cfd52c0d727b39535ad155c311b8960",
+      "transformationDate": "2025-07-04T16:55:19.314Z",
+      "transformationNotes": "Transformed job application for content matching using LLM"
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "total": 1,
+    "processed": 1,
+    "success": 1,
+    "errors": 0,
+    "dbUpdates": 0
+  }
+}

@@ -149,7 +149,7 @@ model Section {
   name             String
   description      String?
   icon             String?
-  fieldRequirements String   @default("{}")
+  schema           String    @default("{}")
   validation       String    @default("{}")
   order            Int       @default(0)
   isActive         Boolean   @default(true)
@@ -167,38 +167,30 @@ model Content {
   id          String        @id @default(cuid())
   title       String
   description String?
-  content     String        @default("{}")
   sectionId   String
   section     Section       @relation(fields: [sectionId], references: [id], onDelete: Cascade)
   userId      String
   user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Variant/Master relationship
+  sourceContentId String?   // Points to master content if this is a variant
+  sourceContent   Content?  @relation("ContentVariants", fields: [sourceContentId], references: [id], onDelete: Cascade)
+  variants        Content[] @relation("ContentVariants")
+  
+  // RAG-ready transformation fields
+  data                String    @default("{}")  // Structured JSON data according to section schema
+  embedding           String?   // Vector embedding for RAG (JSON array)
+  embeddingHash       String?   // Hash of embedding for deduplication
+  transformationDate  DateTime? // When the content was transformed
+  transformationNotes String?   // Metadata about the transformation process
+  
   tags        ContentTag[]
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
   
-  // Specific fields for different content types
-  company     String?       // For work experience
-  position    String?       // For work experience/education
-  startDate   DateTime?
-  endDate     DateTime?
-  location    String?
-  skills      String        @default("[]")
-  achievements String       @default("[]")
-  
-  // NovoResume compatibility fields
-  proficiencyLevel Int?      // 0-100 for languages, skills
-  category    String?       // For grouping technical skills
-  issuer      String?       // For certifications
-  url         String?       // For projects, certifications
-  contactPerson String?     // For work experience references
-  contactInfo String?       // For work experience references
-  isPresent   Boolean?      // For current positions
-  courses     String        @default("[]") // JSON array for education courses
-  score       String?       // For education GPA/score
-  keywords    String        @default("[]") // JSON array for projects, skills
-  
   @@index(fields: [userId, sectionId])
   @@index(fields: [userId, createdAt])
+  @@index(fields: [sourceContentId])
 }
 
 model Tag {
@@ -235,6 +227,10 @@ model JobApplication {
   status            ApplicationStatus @default(DRAFT)
   appliedDate       DateTime?
   notes             String?
+  // --- RAG fields start ---
+  embedding           String?   // Vector embeddings for content matching
+  embeddingHash       String?   // Embedding cache hash (for caching)
+  // --- RAG fields end ---
   userId            String
   user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   resumes           Resume[]
