@@ -236,7 +236,6 @@ model JobApplication {
   resumes           Resume[]
   coverLetters      CoverLetter[]
   interviews        Interview[]
-  generatedContent  GeneratedContent[]
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
   
@@ -261,21 +260,6 @@ model Interview {
   content          String?        // Interview transcript/notes
   audioUrl         String?        // URL to audio file if voice interview
   insights         String?        // AI-generated insights
-  jobApplicationId String
-  jobApplication   JobApplication @relation(fields: [jobApplicationId], references: [id], onDelete: Cascade)
-  createdAt        DateTime       @default(now())
-  
-  @@index(fields: [jobApplicationId])
-}
-
-model GeneratedContent {
-  id               String         @id @default(cuid())
-  type             String         // "resume", "cover_letter"
-  prompt           String         // The prompt used for generation
-  response         String         // The generated content
-  llmProvider      LLMProvider    // Which LLM was used
-  model            String         // Specific model (e.g., "gpt-4", "claude-3")
-  contentIds       String         @default("[]")
   jobApplicationId String
   jobApplication   JobApplication @relation(fields: [jobApplicationId], references: [id], onDelete: Cascade)
   createdAt        DateTime       @default(now())

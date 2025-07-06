@@ -5,22 +5,46 @@ import { ContentLibraryService } from "@/server/content-library/content-library.
 import { EmbeddingService } from "@/server/embedding/embedding.service";
 import { TagExtractionService } from "@/server/llm/tag-extraction.service";
 
-export interface ContentMatchResult {
+export type ContentMatchResult = {
   contentId: string;
   score: number;
   reasons: string[];
   suggestions: string[];
   vectorSimilarity?: number;
   tagSimilarity?: number;
-}
+};
 
-export interface MatchingOptions {
+export type StructuredContentSelection = {
+  experiences: ContentMatchResult[];
+  projects: ContentMatchResult[];
+  interests: ContentMatchResult[];
+  languages: ContentMatchResult[];
+  summary: ContentMatchResult[];
+  contact: ContentMatchResult[];
+  skills: ContentMatchResult[];
+  education: ContentMatchResult[];
+  certificates: ContentMatchResult[];
+  volunteer: ContentMatchResult[];
+  causes: ContentMatchResult[];
+};
+
+export type MatchingOptions = {
   useVectorSimilarity?: boolean;
   useTagMatching?: boolean;
   vectorWeight?: number;
   tagWeight?: number;
   minSimilarity?: number;
   maxResults?: number;
+  // New structured selection options
+  maxExperiences?: number;
+  maxProjects?: number;
+  includeAllInterests?: boolean;
+  includeAllLanguages?: boolean;
+  includeAllSkills?: boolean;
+  includeAllEducation?: boolean;
+  includeAllCertificates?: boolean;
+  includeAllVolunteer?: boolean;
+  includeAllCauses?: boolean;
 }
 
 @Injectable()
@@ -36,21 +60,23 @@ export class ContentMatchingService {
 
   /**
    * Match content to job requirements using hybrid approach (vector + tags)
+   * Enhanced with structured content selection by type
    */
   async matchContentToJob(
     userId: string,
     jobRequirements: string[],
     jobDescription: string,
-    options: MatchingOptions = {}
+    options: MatchingOptions = {},
+    jobEmbedding?: number[]
   ): Promise<ContentMatchResult[]> {
-    const {
-      useVectorSimilarity = true,
-      useTagMatching = true,
-      vectorWeight = 0.7,
-      tagWeight = 0.3,
-      minSimilarity = 0.0,
-      maxResults = 50,
-    } = options;
+          const {
+        useVectorSimilarity = true,
+        useTagMatching = true,
+        vectorWeight = 0.7,
+        tagWeight = 0.3,
+        minSimilarity = 0,
+        maxResults = 50,
+      } = options;
 
     this.logger.log(`Matching content for user ${userId} with hybrid approach (vector: ${useVectorSimilarity}, tags: ${useTagMatching})`);
 
@@ -63,15 +89,20 @@ export class ContentMatchingService {
         return [];
       }
 
+      // Filter out variants and get best versions
+      const filteredContent = this.filterBestContentVariants(allUserContent);
+      this.logger.log(`Filtered ${allUserContent.length} total content items to ${filteredContent.length} best variants`);
+
       let results: ContentMatchResult[] = [];
 
       if (useVectorSimilarity && this.embeddingService.getStatus().available) {
-        // Vector similarity matching
+        // Vector similarity matching with optional job embedding
         const vectorResults = await this.matchByVectorSimilarity(
           jobRequirements,
           jobDescription,
-          allUserContent,
-          maxResults
+          filteredContent,
+          maxResults,
+          jobEmbedding
         );
         results = vectorResults;
         this.logger.log(`Vector similarity found ${vectorResults.length} matches`);
@@ -83,7 +114,7 @@ export class ContentMatchingService {
           userId,
           jobRequirements,
           jobDescription,
-          allUserContent
+          filteredContent
         );
         this.logger.log(`Tag matching found ${tagResults.length} matches`);
 
@@ -102,6 +133,10 @@ export class ContentMatchingService {
         .slice(0, maxResults);
 
       this.logger.log(`Final matching results: ${filteredResults.length} items (min similarity: ${minSimilarity})`);
+      
+      // Log all matched content with titles and IDs
+      this.logMatchedContent(filteredResults, filteredContent);
+      
       return filteredResults;
 
     } catch (error) {
@@ -111,20 +146,253 @@ export class ContentMatchingService {
   }
 
   /**
+   * NEW: Structured content selection by type with specific limits
+   */
+  async selectStructuredContent(
+    userId: string,
+    jobRequirements: string[],
+    jobDescription: string,
+    options: MatchingOptions = {},
+    jobEmbedding?: number[]
+  ): Promise<StructuredContentSelection> {
+    const {
+      maxExperiences = 3,
+      maxProjects = 3,
+      includeAllInterests = true,
+      includeAllLanguages = true,
+      includeAllSkills = true,
+      includeAllEducation = true,
+      includeAllCertificates = true,
+      includeAllVolunteer = true,
+      includeAllCauses = true,
+    } = options;
+
+    this.logger.log(`Selecting structured content for user ${userId} with limits: experiences=${maxExperiences}, projects=${maxProjects}`);
+
+    try {
+      // Get all matched content first
+      const allMatchedContent = await this.matchContentToJob(
+        userId,
+        jobRequirements,
+        jobDescription,
+        options,
+        jobEmbedding
+      );
+
+      // Get content details for section filtering
+      const contentDetails = await this.getContentWithSections(allMatchedContent.map(c => c.contentId));
+      
+      // Group content by section type
+      const groupedContent = this.groupContentBySection(contentDetails, allMatchedContent);
+
+      // Apply structured selection rules
+      const structuredSelection: StructuredContentSelection = {
+        experiences: this.selectTopContent(groupedContent.experience ?? [], maxExperiences),
+        projects: this.selectTopContent(groupedContent.projects ?? [], maxProjects),
+        interests: includeAllInterests ? (groupedContent.interests ?? []) : [],
+        languages: includeAllLanguages ? (groupedContent.languages ?? []) : [],
+        summary: this.selectTopContent(groupedContent.summary ?? [], 1), // Only 1 summary
+        contact: this.selectTopContent(groupedContent.contact ?? [], 1), // Only 1 contact
+        skills: includeAllSkills ? (groupedContent.skills ?? []) : [],
+        education: includeAllEducation ? (groupedContent.education ?? []) : [],
+        certificates: includeAllCertificates ? (groupedContent.certificates ?? []) : [],
+        volunteer: includeAllVolunteer ? (groupedContent.volunteer ?? []) : [],
+        causes: includeAllCauses ? (groupedContent.causes ?? []) : [],
+      };
+
+      // Log structured selection results
+      this.logStructuredSelection(structuredSelection);
+
+      return structuredSelection;
+
+    } catch (error) {
+      this.logger.error(`Structured content selection failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+      throw error;
+    }
+  }
+
+  /**
+   * NEW: Filter out content variants and keep only the best version of each source content
+   */
+  private filterBestContentVariants(allContent: any[]): any[] {
+    // Group content by sourceContentId
+    const contentGroups = new Map<string, any[]>();
+    
+    for (const content of allContent) {
+      const sourceId = content.sourceContentId || content.id;
+      if (!contentGroups.has(sourceId)) {
+        contentGroups.set(sourceId, []);
+      }
+      contentGroups.get(sourceId)!.push(content);
+    }
+
+    // For each group, select the best version
+    const bestContent: any[] = [];
+    
+    for (const [sourceId, variants] of contentGroups) {
+      if (variants.length === 1) {
+        // Single content item (not a variant)
+        bestContent.push(variants[0]);
+      } else {
+        // Multiple variants - select the best one
+        const bestVariant = this.selectBestVariant(variants);
+        bestContent.push(bestVariant);
+        this.logger.debug(`Selected best variant for source ${sourceId}: ${bestVariant.title} (ID: ${bestVariant.id})`);
+      }
+    }
+
+    return bestContent;
+  }
+
+  /**
+   * NEW: Select the best variant from a group of content variants
+   */
+  private selectBestVariant(variants: any[]): any {
+    // Sort variants by quality indicators
+    const sortedVariants = variants.sort((a, b) => {
+      // Priority 1: Has embedding (better for RAG)
+      if (a.embedding && !b.embedding) return -1;
+      if (!a.embedding && b.embedding) return 1;
+      
+      // Priority 2: More recent (assumed to be better)
+      const dateA = new Date(a.updatedAt || a.createdAt);
+      const dateB = new Date(b.updatedAt || b.createdAt);
+      if (dateA > dateB) return -1;
+      if (dateA < dateB) return 1;
+      
+      // Priority 3: More tags (more detailed)
+      const tagsA = this.parseJsonArray(a.tags || []).length;
+      const tagsB = this.parseJsonArray(b.tags || []).length;
+      if (tagsA > tagsB) return -1;
+      if (tagsA < tagsB) return 1;
+      
+      // Priority 4: Longer description (more detailed)
+      const descA = (a.description || '').length;
+      const descB = (b.description || '').length;
+      if (descA > descB) return -1;
+      if (descA < descB) return 1;
+      
+      return 0;
+    });
+
+    return sortedVariants[0];
+  }
+
+  /**
+   * NEW: Get content details with section information
+   */
+  private async getContentWithSections(contentIds: string[]): Promise<any[]> {
+    if (contentIds.length === 0) return [];
+
+    return await this.prisma.content.findMany({
+      where: { id: { in: contentIds } },
+      include: {
+        section: true,
+        tags: {
+          include: { tag: true }
+        }
+      }
+    });
+  }
+
+  /**
+   * NEW: Group content by section type
+   */
+  private groupContentBySection(contentDetails: any[], matchedResults: ContentMatchResult[]): Record<string, ContentMatchResult[]> {
+    const grouped: Record<string, ContentMatchResult[]> = {};
+    
+    // Create a map of contentId to matched result
+    const resultMap = new Map(matchedResults.map(r => [r.contentId, r]));
+    
+    for (const content of contentDetails) {
+      const sectionKey = content.section?.key || 'unknown';
+      const matchedResult = resultMap.get(content.id);
+      
+      if (matchedResult) {
+        if (!grouped[sectionKey]) {
+          grouped[sectionKey] = [];
+        }
+        grouped[sectionKey].push(matchedResult);
+      }
+    }
+
+    return grouped;
+  }
+
+  /**
+   * NEW: Select top N content items by score
+   */
+  private selectTopContent(contentList: ContentMatchResult[], maxCount: number): ContentMatchResult[] {
+    return contentList
+      .sort((a, b) => b.score - a.score)
+      .slice(0, maxCount);
+  }
+
+  /**
+   * NEW: Log all matched content with titles and IDs
+   */
+  private logMatchedContent(matchedResults: ContentMatchResult[], allContent: any[]): void {
+    const contentMap = new Map(allContent.map(c => [c.id, c]));
+    
+    this.logger.log(`=== MATCHED CONTENT SUMMARY ===`);
+    this.logger.log(`Total matched items: ${matchedResults.length}`);
+    
+    for (const result of matchedResults) {
+      const content = contentMap.get(result.contentId);
+      const title = content?.title || 'Unknown';
+      const section = content?.section?.key || 'unknown';
+      
+      this.logger.log(`[${result.score}/100] ${title} (ID: ${result.contentId}, Section: ${section})`);
+      if (result.reasons.length > 0) {
+        this.logger.log(`  Reasons: ${result.reasons.join(', ')}`);
+      }
+    }
+    this.logger.log(`=== END MATCHED CONTENT SUMMARY ===`);
+  }
+
+  /**
+   * NEW: Log structured selection results
+   */
+  private logStructuredSelection(selection: StructuredContentSelection): void {
+    this.logger.log(`=== STRUCTURED CONTENT SELECTION ===`);
+    this.logger.log(`Experiences: ${selection.experiences.length} items`);
+    this.logger.log(`Projects: ${selection.projects.length} items`);
+    this.logger.log(`Interests: ${selection.interests.length} items`);
+    this.logger.log(`Languages: ${selection.languages.length} items`);
+    this.logger.log(`Summary: ${selection.summary.length} items`);
+    this.logger.log(`Contact: ${selection.contact.length} items`);
+    this.logger.log(`Skills: ${selection.skills.length} items`);
+    this.logger.log(`Education: ${selection.education.length} items`);
+    this.logger.log(`Certificates: ${selection.certificates.length} items`);
+    this.logger.log(`Volunteer: ${selection.volunteer.length} items`);
+    this.logger.log(`Causes: ${selection.causes.length} items`);
+    this.logger.log(`=== END STRUCTURED SELECTION ===`);
+  }
+
+  /**
    * Match content using vector similarity
    */
   private async matchByVectorSimilarity(
     jobRequirements: string[],
     jobDescription: string,
     userContent: any[],
-    maxResults: number
+    maxResults: number,
+    jobEmbedding?: number[]
   ): Promise<ContentMatchResult[]> {
     try {
-      // Create job text for embedding
-      const jobText = this.createJobEmbeddingText(jobRequirements, jobDescription);
-      
-      // Generate job embedding
-      const jobEmbeddingResult = await this.embeddingService.generateEmbedding(jobText);
+      let queryEmbedding: number[];
+
+      if (jobEmbedding) {
+        // Use provided job embedding
+        queryEmbedding = jobEmbedding;
+        this.logger.log("Using provided job embedding for vector similarity");
+      } else {
+        // Generate job embedding from job text
+        const jobText = this.createJobEmbeddingText(jobRequirements, jobDescription);
+        const jobEmbeddingResult = await this.embeddingService.generateEmbedding(jobText);
+        queryEmbedding = jobEmbeddingResult.embedding;
+        this.logger.log("Generated new job embedding for vector similarity");
+      }
       
       // Get content with embeddings
       const contentWithEmbeddings = userContent.filter(content => content.embedding);
@@ -143,7 +411,7 @@ export class ContentMatchingService {
 
       // Find most similar content
       const similarContent = this.embeddingService.findMostSimilar(
-        jobEmbeddingResult.embedding,
+        queryEmbedding,
         candidateEmbeddings,
         maxResults,
         0.1 // Minimum similarity threshold

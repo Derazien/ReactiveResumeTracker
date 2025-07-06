@@ -34,17 +34,7 @@ const interviewRelationSchema = z.object({
   createdAt: dateSchema,
 });
 
-// Basic generated content schema for relations
-const generatedContentRelationSchema = z.object({
-  id: idSchema,
-  type: z.string(),
-  prompt: z.string(),
-  response: z.string(),
-  llmProvider: z.string(),
-  model: z.string(),
-  contentIds: z.string(),
-  createdAt: dateSchema,
-});
+// GeneratedContent model removed - no longer needed
 
 export const jobApplicationSchema = z.object({
   id: idSchema,
@@ -74,7 +64,6 @@ export const jobApplicationSchema = z.object({
   resumes: z.array(resumeRelationSchema).optional(),
   coverLetters: z.array(coverLetterRelationSchema).optional(),
   interviews: z.array(interviewRelationSchema).optional(),
-  generatedContent: z.array(generatedContentRelationSchema).optional(),
 });
 
 export class JobApplicationDto extends createZodDto(jobApplicationSchema) {}

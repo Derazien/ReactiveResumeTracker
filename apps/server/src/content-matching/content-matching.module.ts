@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { forwardRef, Module } from "@nestjs/common";
 import { PrismaModule } from "nestjs-prisma";
 
 import { ContentLibraryModule } from "@/server/content-library/content-library.module";
@@ -10,7 +10,7 @@ import { ContentMatchingService } from "./content-matching.service";
 @Module({
   imports: [
     PrismaModule,
-    ContentLibraryModule,
+    forwardRef(() => ContentLibraryModule),
     EmbeddingModule,
   ],
   providers: [

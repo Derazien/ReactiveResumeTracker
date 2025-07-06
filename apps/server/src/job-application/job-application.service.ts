@@ -6,6 +6,7 @@ import { PrismaService } from "nestjs-prisma";
 
 import { ContentLibraryService } from "@/server/content-library/content-library.service";
 import { ContentMatchingService } from "@/server/content-matching/content-matching.service";
+import { EmbeddingService } from "@/server/embedding/embedding.service";
 import { LLMService } from "@/server/llm/llm.service";
 
 export type JobAnalysisResult = {
@@ -29,6 +30,7 @@ export class JobApplicationService {
     private readonly llmService: LLMService,
     private readonly contentLibraryService: ContentLibraryService,
     private readonly contentMatchingService: ContentMatchingService,
+    private readonly embeddingService: EmbeddingService,
   ) {}
 
   async create(
@@ -66,7 +68,6 @@ export class JobApplicationService {
         resumes: true,
         coverLetters: true,
         interviews: true,
-        generatedContent: true,
       },
     });
   }
@@ -76,6 +77,12 @@ export class JobApplicationService {
     userId: string,
     updateJobApplicationDto: UpdateJobApplicationDto,
   ): Promise<JobApplication> {
+    // Get the current job application to check if embedding needs updating
+    const currentJob = await this.findOne(id, userId);
+    if (!currentJob) {
+      throw new Error("Job application not found");
+    }
+
     // Convert DTO to Prisma update format
     const updateData: any = {};
 
@@ -100,6 +107,51 @@ export class JobApplicationService {
     }
     if (updateJobApplicationDto.extractedTags !== undefined) {
       updateData.extractedTags = JSON.stringify(updateJobApplicationDto.extractedTags);
+    }
+
+    // Check if embedding-relevant fields have changed
+    const embeddingFieldsChanged = 
+      updateJobApplicationDto.title !== undefined ||
+      updateJobApplicationDto.company !== undefined ||
+      updateJobApplicationDto.description !== undefined ||
+      updateJobApplicationDto.requirements !== undefined ||
+      updateJobApplicationDto.extractedTags !== undefined;
+
+    if (embeddingFieldsChanged) {
+      try {
+        // Create new job embedding text with updated data
+        const newTitle = updateJobApplicationDto.title ?? currentJob.title;
+        const newCompany = updateJobApplicationDto.company ?? currentJob.company;
+        const newDescription = updateJobApplicationDto.description ?? currentJob.description ?? "";
+        const newRequirements = updateJobApplicationDto.requirements ?? JSON.parse(currentJob.requirements || "[]");
+        const newExtractedTags = updateJobApplicationDto.extractedTags ?? JSON.parse(currentJob.extractedTags || "[]");
+
+        const jobEmbeddingText = this.createJobEmbeddingText(
+          newTitle,
+          newCompany,
+          newDescription,
+          newRequirements,
+          newExtractedTags
+        );
+
+        // Check if we need to regenerate embedding
+        const newHash = this.embeddingService.generateHash(jobEmbeddingText);
+        
+        if (!currentJob.embeddingHash || currentJob.embeddingHash !== newHash) {
+          this.logger.log(`Job data changed, regenerating embedding for job: ${newTitle} at ${newCompany}`);
+          
+          const embeddingResult = await this.embeddingService.generateEmbedding(jobEmbeddingText);
+          updateData.embedding = this.embeddingService.serializeEmbedding(embeddingResult.embedding);
+          updateData.embeddingHash = embeddingResult.hash;
+
+          this.logger.log(`Updated embedding for job (hash: ${embeddingResult.hash.substring(0, 8)}...)`);
+        } else {
+          this.logger.log(`Job data unchanged, keeping existing embedding (hash: ${newHash.substring(0, 8)}...)`);
+        }
+      } catch (error) {
+        this.logger.warn(`Failed to update embedding for job application: ${error instanceof Error ? error.message : "Unknown error"}`);
+        // Continue without updating embedding
+      }
     }
 
     return this.prisma.jobApplication.update({
@@ -147,6 +199,30 @@ export class JobApplicationService {
   ): Promise<JobApplication> {
     this.logger.log(`Creating job application from analysis for user ${userId}`);
 
+    // Generate embedding for the job data
+    let embedding: string | null = null;
+    let embeddingHash: string | null = null;
+
+    try {
+      const jobEmbeddingText = this.createJobEmbeddingText(
+        analysisData.title,
+        analysisData.company,
+        analysisData.description,
+        analysisData.requirements ?? [],
+        analysisData.extractedTags ?? []
+      );
+
+      // Check if we need to generate embedding (always generate for new jobs)
+      const embeddingResult = await this.embeddingService.generateEmbedding(jobEmbeddingText);
+      embedding = this.embeddingService.serializeEmbedding(embeddingResult.embedding);
+      embeddingHash = embeddingResult.hash;
+
+      this.logger.log(`Generated embedding for job: ${analysisData.title} at ${analysisData.company} (hash: ${embeddingHash.substring(0, 8)}...)`);
+    } catch (error) {
+      this.logger.warn(`Failed to generate embedding for job application: ${error instanceof Error ? error.message : "Unknown error"}`);
+      // Continue without embedding - the system should still work
+    }
+
     const jobApplication = await this.prisma.jobApplication.create({
       data: {
         title: analysisData.title,
@@ -155,22 +231,13 @@ export class JobApplicationService {
         requirements: JSON.stringify(analysisData.requirements ?? []),
         extractedTags: JSON.stringify(analysisData.extractedTags ?? []),
         url: url ?? "",
+        embedding,
+        embeddingHash,
         userId,
       },
     });
 
-    // Store the analysis record (without content matching)
-    await this.prisma.generatedContent.create({
-      data: {
-        type: "job_analysis",
-        prompt: `Analyze job posting: ${analysisData.title} at ${analysisData.company}`,
-        response: JSON.stringify(analysisData),
-        llmProvider: "ANTHROPIC",
-        model: "claude-3-5-sonnet",
-        contentIds: JSON.stringify([]), // Empty - no content matching at this stage
-        jobApplicationId: jobApplication.id,
-      },
-    });
+    // Analysis completed - no need to store generated content records
 
     return jobApplication;
   }
@@ -198,7 +265,30 @@ export class JobApplicationService {
 
     const jobData = analysisResult.data!;
 
-    // Step 2: Create the job application
+    // Step 2: Generate embedding for the job data
+    let embedding: string | null = null;
+    let embeddingHash: string | null = null;
+
+    try {
+      const jobEmbeddingText = this.createJobEmbeddingText(
+        jobData.title,
+        jobData.company,
+        jobData.description,
+        jobData.requirements,
+        jobData.extractedTags
+      );
+
+      const embeddingResult = await this.embeddingService.generateEmbedding(jobEmbeddingText);
+      embedding = this.embeddingService.serializeEmbedding(embeddingResult.embedding);
+      embeddingHash = embeddingResult.hash;
+
+      this.logger.log(`Generated embedding for job: ${jobData.title} at ${jobData.company}`);
+    } catch (error) {
+      this.logger.warn(`Failed to generate embedding for job application: ${error instanceof Error ? error.message : "Unknown error"}`);
+      // Continue without embedding - the system should still work
+    }
+
+    // Step 3: Create the job application with embedding
     const jobApplication = await this.prisma.jobApplication.create({
       data: {
         title: jobData.title,
@@ -207,34 +297,23 @@ export class JobApplicationService {
         requirements: JSON.stringify(jobData.requirements),
         extractedTags: JSON.stringify(jobData.extractedTags),
         url: url || "",
+        embedding,
+        embeddingHash,
         userId,
       },
     });
 
-    // Step 3: Get user's content library
+    // Step 4: Get user's content library
     const userContent = await this.contentLibraryService.findAll(userId);
 
-    // Step 4: Match content to job requirements using RAG-based matching
+    // Step 5: Match content to job requirements using RAG-based matching
     const contentMatches = await this.llmService.matchContentToJobRAG(
       userId,
       jobData.requirements,
       jobData.description,
     );
 
-    // Step 5: Store the generated content record
-    await this.prisma.generatedContent.create({
-      data: {
-        type: "job_analysis",
-        prompt: `Analyze job posting: ${jobText.slice(0, 200)}...`,
-        response: JSON.stringify(jobData),
-        llmProvider: "ANTHROPIC", // This should come from the service
-        model: "claude-3-5-sonnet", // This should come from the service
-        contentIds: JSON.stringify(
-          contentMatches.success ? contentMatches.data!.map((m) => m.contentId) : [],
-        ),
-        jobApplicationId: jobApplication.id,
-      },
-    });
+    // Analysis and content matching completed - no need to store generated content records
 
     return {
       jobApplication,
@@ -284,9 +363,22 @@ export class JobApplicationService {
         }
       }
     } else {
-      // Auto-select best matching content using hybrid matching (vector + tags)
+      // Auto-select best matching content using structured selection (vector + tags)
       const jobRequirements = JSON.parse(jobApplication.requirements ?? "[]");
-      const matchResults = await this.contentMatchingService.matchContentToJob(
+      
+      // Get job embedding if available
+      let jobEmbedding: number[] | undefined;
+      if (jobApplication.embedding) {
+        try {
+          jobEmbedding = this.embeddingService.parseEmbedding(jobApplication.embedding);
+          this.logger.log("Using stored job embedding for enhanced content matching");
+        } catch (error) {
+          this.logger.warn(`Failed to parse job embedding: ${error instanceof Error ? error.message : "Unknown error"}`);
+        }
+      }
+
+      // Use structured content selection with specific limits for one-page resume
+      const structuredSelection = await this.contentMatchingService.selectStructuredContent(
         userId,
         jobRequirements,
         jobApplication.description ?? "",
@@ -297,30 +389,60 @@ export class JobApplicationService {
           tagWeight: 0.3,
           minSimilarity: 20, // Only include reasonably relevant content
           maxResults: 50,
-        }
+          // Structured selection options for one-page resume
+          maxExperiences: 3, // LLM will determine if 2 or 3 fit on one page
+          maxProjects: 3,
+          includeAllInterests: true,
+          includeAllLanguages: true,
+          includeAllSkills: true,
+          includeAllEducation: true,
+          includeAllCertificates: true,
+          includeAllVolunteer: true,
+          includeAllCauses: true,
+        },
+        jobEmbedding // Pass job embedding for enhanced matching
       );
 
-      // Convert match results to content objects and add match scores
+      // Convert structured selection to content objects and add match scores
       selectedContent = [];
-      for (const match of matchResults) {
-        if (match.score >= 20) { // Only include content with decent relevance
-          const content = await this.contentLibraryService.findOne(match.contentId, userId);
-          if (content) {
-            selectedContent.push({
-              ...content,
-              matchScore: match.score,
-              vectorSimilarity: match.vectorSimilarity,
-              tagSimilarity: match.tagSimilarity,
-              matchReasons: match.reasons,
-              matchSuggestions: match.suggestions,
-            });
-          }
+      
+      // Combine all selected content from different sections
+      const allSelectedMatches = [
+        ...structuredSelection.experiences,
+        ...structuredSelection.projects,
+        ...structuredSelection.interests,
+        ...structuredSelection.languages,
+        ...structuredSelection.summary,
+        ...structuredSelection.contact,
+        ...structuredSelection.skills,
+        ...structuredSelection.education,
+        ...structuredSelection.certificates,
+        ...structuredSelection.volunteer,
+        ...structuredSelection.causes,
+      ];
+
+      // Remove duplicates and get content details
+      const uniqueContentIds = [...new Set(allSelectedMatches.map(match => match.contentId))];
+      
+      for (const contentId of uniqueContentIds) {
+        const content = await this.contentLibraryService.findOne(contentId, userId);
+        if (content) {
+          const match = allSelectedMatches.find(m => m.contentId === contentId);
+          selectedContent.push({
+            ...content,
+            matchScore: match?.score || 0,
+            vectorSimilarity: match?.vectorSimilarity,
+            tagSimilarity: match?.tagSimilarity,
+            matchReasons: match?.reasons || [],
+            matchSuggestions: match?.suggestions || [],
+          });
         }
       }
 
       this.logger.log(
-        `Auto-selected ${selectedContent.length} relevant content pieces using hybrid matching (vector + tags)`,
+        `Auto-selected ${selectedContent.length} relevant content pieces using structured selection (vector + tags)${jobEmbedding ? " with job embedding" : ""}`,
       );
+      this.logger.log(`Content breakdown: ${structuredSelection.experiences.length} experiences, ${structuredSelection.projects.length} projects, ${structuredSelection.skills.length} skills, ${structuredSelection.education.length} education items`);
     }
 
     // Step 2: Generate basic summary without LLM - use template-based approach
@@ -466,32 +588,7 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
       },
     });
 
-    // Step 6: Store the generation record
-    await this.prisma.generatedContent.create({
-      data: {
-        type: "tailored_resume",
-        prompt: `Generate tailored resume for ${jobApplication.title} at ${jobApplication.company}`,
-        response: JSON.stringify({
-          resumeId: resume.id,
-          contentCount: selectedContent.length,
-          summary: generatedSummary,
-          method: tailoringResult
-            ? "type-specific-matching-with-llm-tailoring"
-            : "type-specific-matching",
-          tailoringScore: tailoringResult?.overallFitScore || null,
-          adjustmentsApplied: {
-            experienceAdjustments: tailoringResult?.experienceAdjustments?.length || 0,
-            skillsAdded: tailoringResult?.skillsToAdd?.length || 0,
-            skillsRemoved: tailoringResult?.skillsToRemove?.length || 0,
-            summaryAdjusted: !!tailoringResult?.adjustedSummary,
-          },
-        }),
-        llmProvider: tailoringResult ? "ANTHROPIC" : "OLLAMA", // Use valid enum value
-        model: tailoringResult ? "claude-3-5-sonnet" : "content-library-matching",
-        contentIds: JSON.stringify(selectedContent.map((c) => c.id)),
-        jobApplicationId: jobApplication.id,
-      },
-    });
+    // Step 6: Generation record removed - users will add generated content as variants through resume editor
 
     const basicSuggestions = [
       `Comprehensive one-page resume generated from ${selectedContent.length} strategically selected content items`,
@@ -1200,8 +1297,6 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
     );
   }
 
-
-
   /**
    * Generate concise 1-2 sentence summary - template-based approach
    * Focus on years of experience, key skills, and relevant certifications/status
@@ -1745,18 +1840,7 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
       },
     });
 
-    // Store generation record
-    await this.prisma.generatedContent.create({
-      data: {
-        type: "cover_letter",
-        prompt: `Generate cover letter for ${jobApplication.title} at ${jobApplication.company}`,
-        response: coverLetterResult.data!,
-        llmProvider: "ANTHROPIC",
-        model: "claude-3-5-sonnet",
-        contentIds: JSON.stringify(selectedContent.map((c) => c.id)),
-        jobApplicationId: jobApplication.id,
-      },
-    });
+    // Cover letter generation completed - no need to store generated content records
 
     return coverLetterResult.data!;
   }
@@ -1784,5 +1868,44 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
     }
 
     return questionsResult.data!;
+  }
+
+  /**
+   * Create consistent embedding text from job data
+   * This text will be used to generate embeddings for job applications
+   */
+  private createJobEmbeddingText(
+    title: string,
+    company: string,
+    description: string,
+    requirements: string[],
+    extractedTags: string[]
+  ): string {
+    // Create a comprehensive text representation of the job
+    const parts: string[] = [];
+
+    // Add job title and company
+    parts.push(`Job Title: ${title}`);
+    parts.push(`Company: ${company}`);
+
+    // Add description (truncate if too long)
+    if (description) {
+      const truncatedDescription = description.length > 1000 
+        ? description.substring(0, 1000) + "..."
+        : description;
+      parts.push(`Description: ${truncatedDescription}`);
+    }
+
+    // Add requirements
+    if (requirements.length > 0) {
+      parts.push(`Requirements: ${requirements.join(". ")}`);
+    }
+
+    // Add extracted tags/skills
+    if (extractedTags.length > 0) {
+      parts.push(`Key Skills: ${extractedTags.join(", ")}`);
+    }
+
+    return parts.join("\n\n");
   }
 }
