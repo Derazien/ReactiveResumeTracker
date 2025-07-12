@@ -77,9 +77,8 @@ export class JobApplicationController {
   async generateTailoredResume(
     @User("id") userId: string,
     @Param("id") id: string,
-    @Body() body: { selectedContentIds?: string[] },
   ) {
-    return this.jobApplicationService.generateTailoredResume(id, userId, body.selectedContentIds);
+    return this.jobApplicationService.generateTailoredResume(id, userId);
   }
 
   @Post(":id/generate-cover-letter")

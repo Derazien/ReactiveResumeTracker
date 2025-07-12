@@ -481,7 +481,6 @@ Focus on:
         jobDescription,
         jobRequirements,
         currentResumeData,
-        selectedContent,
       );
 
       if (result.success) {
@@ -508,14 +507,12 @@ Focus on:
     jobDescription: string,
     jobRequirements: string[],
     currentResumeData: any,
-    selectedContent: any[],
   ): Promise<LLMResponse> {
     const provider = await this.getProviderForUserWithRetry(userId);
     return provider.tailorResumeContent(
       jobDescription,
       jobRequirements,
       currentResumeData,
-      selectedContent,
     );
   }
 

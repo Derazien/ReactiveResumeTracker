@@ -332,7 +332,6 @@ export class JobApplicationService {
   async generateTailoredResume(
     jobApplicationId: string,
     userId: string,
-    selectedContentIds?: string[],
   ): Promise<{
     resume: any;
     selectedContent: any[];
@@ -356,19 +355,7 @@ export class JobApplicationService {
       select: { name: true, email: true, picture: true },
     });
 
-    // Step 1: Get user's content with type-specific matching
-    let selectedContent: any[] = [];
-
-    if (selectedContentIds?.length) {
-      // Use user-selected content
-      for (const contentId of selectedContentIds) {
-        const content = await this.contentLibraryService.findOne(contentId, userId);
-        if (content) {
-          selectedContent.push(content);
-        }
-      }
-    } else {
-      // Auto-select best matching content using structured selection (vector + tags)
+    // Step 1: Auto-select best matching content using structured selection
       const jobRequirements = JSON.parse(jobApplication.requirements ?? "[]");
       
       // Get job embedding if available
@@ -388,7 +375,7 @@ export class JobApplicationService {
         jobRequirements,
         jobApplication.description ?? "",
         {
-          useVectorSimilarity: false, // DISABLED: Only use tag matching
+        useVectorSimilarity: true, // DISABLED: Only use tag matching
           useTagMatching: true,
           vectorWeight: 0.7,
           tagWeight: 0.3,
@@ -417,7 +404,7 @@ export class JobApplicationService {
       );
 
       // Convert structured selection to content objects and add match scores
-      selectedContent = [];
+    const selectedContent: any[] = [];
       
       // Combine all selected content from different sections
       const allSelectedMatches = [
@@ -443,11 +430,11 @@ export class JobApplicationService {
           const match = allSelectedMatches.find(m => m.contentId === contentId);
           selectedContent.push({
             ...content,
-            matchScore: match?.score || 0,
+          matchScore: match?.score ?? 0,
             vectorSimilarity: match?.vectorSimilarity,
             tagSimilarity: match?.tagSimilarity,
-            matchReasons: match?.reasons || [],
-            matchSuggestions: match?.suggestions || [],
+          matchReasons: match?.reasons ?? [],
+          matchSuggestions: match?.suggestions ?? [],
           });
         }
       }
@@ -456,16 +443,11 @@ export class JobApplicationService {
         `Auto-selected ${selectedContent.length} relevant content pieces using structured selection (TAG-ONLY matching)`,
       );
       this.logger.log(`Content breakdown: ${structuredSelection.experiences.length} experiences, ${structuredSelection.projects.length} projects, ${structuredSelection.skills.length} skills, ${structuredSelection.education.length} education items`);
-    }
 
-    // Step 2: Generate basic summary without LLM - use template-based approach
-    const generatedSummary = this.generateBasicSummary(user, jobApplication, selectedContent);
-
-    // Step 3: Create structured resume data
+    // Step 2: Create structured resume data (summary and basics generation handled inside)
     const resumeData = await this.buildResumeFromContent(
       user,
       selectedContent,
-      generatedSummary,
       jobApplication,
     );
 
@@ -479,41 +461,19 @@ export class JobApplicationService {
 
       const jobRequirements = JSON.parse(jobApplication.requirements ?? "[]");
 
-      // CRITICAL: Ensure LLM knows this must fit on ONE PAGE
-      // The tailoring should prioritize conciseness and relevance
-      // Summary should be 1-2 sentences maximum
-      // All content must be optimized for single-page format
-
-      // Count experiences to help LLM decide optimal number
-      const experienceCount = selectedContent.filter((c) => c.section?.key === "experience").length;
-
-      // Enhanced job description with experience optimization instructions
-      const enhancedJobDescription = `${jobApplication.description ?? ""}
-
-CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
-- This resume MUST fit on exactly ONE PAGE
-- ${experienceCount} work experiences are available (2-3 are ideal, preferably 3 if space allows)
-- The LLM should determine if all ${experienceCount} experiences can fit on one page or if only 2 should be used
-- If using only 2 experiences, prioritize the most relevant ones and mention space optimization in changesSummary
-- Summary must be 1-2 short sentences maximum
-- All sections must be concise and optimized for single-page layout
-- Prioritize: most relevant experiences, key technical skills, education, certifications, projects`;
-
-      // --- Capture LLM input ---
-      llmInput = {
-        userId,
-        jobDescription: enhancedJobDescription,
-        jobRequirements,
-        resumeData,
-        selectedContent,
-      };
+        // --- Capture LLM input ---
+        llmInput = {
+          userId,
+          jobDescription: jobApplication.description ?? "",
+          jobRequirements,
+          resumeData,
+        };
 
       const tailoringResponse = await this.llmService.tailorResumeContentForUser(
         userId,
-        enhancedJobDescription,
+          jobApplication.description ?? "",
         jobRequirements,
         resumeData,
-        selectedContent,
       );
 
       // --- Capture LLM output ---
@@ -648,7 +608,6 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
     await this.writeApiCallLogMarkdown({
       jobApplicationId,
       userId,
-      selectedContentIds,
       llmInput,
       llmOutput,
       apiOutput,
@@ -1395,21 +1354,69 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
   private async buildResumeFromContent(
     user: any,
     selectedContent: any[],
-    summary: string,
     jobApplication: any,
   ): Promise<any> {
     // Get default resume structure
     const { defaultResumeData } = await import("@reactive-resume/schema");
     const resumeData = JSON.parse(JSON.stringify(defaultResumeData));
 
-    // Set basic info
+    // Handle basics/contact info - use existing content if available, only modify name and picture
+    const basicInfo = selectedContent.filter((c) => c.section?.key === "contact");
+    
+    if (basicInfo.length > 0) {
+      // Use existing contact data from content library
+      const info = basicInfo[0];
+      const data = typeof info.data === "string" ? JSON.parse(info.data) : info.data;
+      
+      // Use the existing data structure which is already in the correct format
+      // Only override name and picture with user data, preserve everything else
+      resumeData.basics = {
+        ...data, // This includes: name, headline, email, phone, location, url, customFields, picture
+        name: user.name, // Override with user name
+        picture: {
+          ...data.picture, // Preserve existing picture settings (size, aspectRatio, borderRadius, effects)
+          url: user.picture || "", // Only override the URL with user picture
+        },
+        url: data?.url ?? { href: "", label: "" },
+        headline: data.headline || jobApplication.title, // Override headline for job relevance
+        // Ensure all custom fields have proper IDs
+        customFields: data?.customFields?.map((field: any, index: number) => ({
+          ...field,
+          id: field.id || createId(), // Create ID if missing
+        })) || [],
+      };
+      
+      this.logger.log("Using existing contact data from content library");
+    } else {
+      // No contact content found, use user defaults
     resumeData.basics.name = user.name;
     resumeData.basics.email = user.email;
+      resumeData.basics.headline = jobApplication.title;
     resumeData.basics.picture.url = user.picture || "";
-    resumeData.basics.headline = `${jobApplication.title} | ${user.name}`;
-
-    // Set generated summary
-    resumeData.sections.summary.content = `<p>${summary}</p>`;
+      
+      this.logger.log("Using user defaults for basics as no contact content was found");
+    }
+      
+  
+    // Handle summary content - use existing content if available, generate if not
+    const existingSummaryContent = selectedContent.filter((c) => c.section?.key === "summary");
+    
+    if (existingSummaryContent.length > 0) {
+      // Use existing summary content as-is (no <p> tags added)
+      const summaryData =
+        typeof existingSummaryContent[0].data === "string"
+          ? JSON.parse(existingSummaryContent[0].data)
+          : existingSummaryContent[0].data;
+      resumeData.sections.summary.content = summaryData?.content || existingSummaryContent[0].description || "";
+      
+      this.logger.log("Using existing summary content from content library");
+    } else {
+      // Generate basic summary and add <p> tags
+      const generatedSummary = this.generateBasicSummary(user, jobApplication, selectedContent);
+      resumeData.sections.summary.content = `<p>${generatedSummary}</p>`;
+      
+      this.logger.log("Generated basic summary as no summary content was found");
+    }
 
     // CRITICAL: Ensure proper metadata layout structure is maintained
     // The defaultResumeData should have this, but let's ensure it's correct
@@ -1445,13 +1452,12 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
     const volunteer = selectedContent.filter((c) => c.section?.key === "volunteer");
     const references = selectedContent.filter((c) => c.section?.key === "references");
     const profiles = selectedContent.filter((c) => c.section?.key === "profiles");
-    const basicInfo = selectedContent.filter((c) => c.section?.key === "contact");
 
     // Add work experience
     resumeData.sections.experience.items = workExperiences.map((exp) => {
       // Use the existing data field which contains the properly formatted structure
       const data = typeof exp.data === "string" ? JSON.parse(exp.data) : exp.data;
-      
+
       return {
         ...(data || {}),
         id: createId(),
@@ -1496,8 +1502,8 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
       
       return {
         ...(data || {}),
-        id: createId(),
-        visible: true,
+      id: createId(),
+      visible: true,
         // Map the existing data structure to the expected fields
         institution: data.institution || edu.company || edu.title || "Institution",
         studyType: data.studyType || edu.position || "Degree",
@@ -1506,49 +1512,53 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
         date: data.date || this.formatDateRange(edu.startDate, edu.endDate) || "Graduated",
         summary: data.summary || `<p>${edu.description || "No description available"}</p>`,
         url: this.ensureValidUrl(data.url),
-        contentId: edu.id,
-        sourceContentId: null,
+      contentId: edu.id,
+      sourceContentId: null,
       };
     });
 
-    // Add technical skills - combine technical skills into categories
-    const allTechnicalSkills: string[] = [];
-    for (const skill of technicalSkills) {
-      const skillList =
-        typeof skill.skills === "string" ? JSON.parse(skill.skills ?? "[]") : (skill.skills ?? []);
-      allTechnicalSkills.push(...skillList);
-    }
-
-    // Group technical skills by type/category
-    const technicalSkillCategories = this.groupSkillsByCategory(
-      allTechnicalSkills,
-      technicalSkills,
-    );
-    resumeData.sections.skills.items = technicalSkillCategories;
-
-    // Add soft skills as a separate section
-    // For now, soft skills will be added to the skills section alongside technical skills
-    // In the future, you might want to create a separate section for soft skills
-    for (const softSkill of softSkills) {
-      // Use the existing data field which contains the properly formatted structure
-      const data = typeof softSkill.data === "string" ? JSON.parse(softSkill.data) : softSkill.data;
+    // Add technical skills - use existing data field which contains the properly formatted structure
+    resumeData.sections.skills.items = technicalSkills.map((skill) => {
+      const data = typeof skill.data === "string" ? JSON.parse(skill.data) : skill.data;
       
-      const softSkillItem = {
+      return {
         ...(data || {}),
         id: createId(),
         visible: true,
         // Map the existing data structure to the expected fields
-        name: data.name || softSkill.title || "Soft Skill",
-        description: data.description || softSkill.description || "",
+        name: data.name || skill.title || "Technical Skill",
+        description: data.description || skill.description || "",
         level: data.level || 0,
-        keywords: data.keywords || (typeof softSkill.skills === "string"
-          ? JSON.parse(softSkill.skills ?? "[]")
-          : (softSkill.skills ?? [])),
-        contentId: softSkill.id,
+        keywords: data.keywords || (typeof skill.skills === "string"
+          ? JSON.parse(skill.skills ?? "[]")
+          : (skill.skills ?? [])),
+        contentId: skill.id,
         sourceContentId: null,
       };
-      resumeData.sections.skills.items.push(softSkillItem);
-    }
+    });
+
+    // Add soft skills - use existing data field which contains the properly formatted structure
+    const softSkillItems = softSkills.map((skill) => {
+      const data = typeof skill.data === "string" ? JSON.parse(skill.data) : skill.data;
+      
+      return {
+        ...(data || {}),
+        id: createId(),
+        visible: true,
+        // Map the existing data structure to the expected fields
+        name: data.name || skill.title || "Soft Skill",
+        description: data.description || skill.description || "",
+        level: data.level || 0,
+        keywords: data.keywords || (typeof skill.skills === "string"
+          ? JSON.parse(skill.skills ?? "[]")
+          : (skill.skills ?? [])),
+        contentId: skill.id,
+        sourceContentId: null,
+      };
+    });
+
+    // Combine technical and soft skills into the skills section
+    resumeData.sections.skills.items.push(...softSkillItems);
 
     // Add certifications
     resumeData.sections.certifications.items = certifications.map((cert) => {
@@ -1557,18 +1567,18 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
       
       return {
         ...(data || {}),
-        id: createId(),
-        visible: true,
+      id: createId(),
+      visible: true,
         // Map the existing data structure to the expected fields
         name: data.name || cert.title || "Certification",
         issuer: data.issuer || cert.company || "Issuing Organization",
         date: data.date || (cert.startDate
-          ? new Date(cert.startDate).getFullYear().toString()
+        ? new Date(cert.startDate).getFullYear().toString()
           : new Date().getFullYear().toString()),
         summary: data.summary || `<p>${cert.description || "No description available"}</p>`,
         url: this.ensureValidUrl(data.url),
-        contentId: cert.id,
-        sourceContentId: null,
+      contentId: cert.id,
+      sourceContentId: null,
       };
     });
 
@@ -1579,18 +1589,18 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
       
       return {
         ...(data || {}),
-        id: createId(),
-        visible: true,
+      id: createId(),
+      visible: true,
         // Map the existing data structure to the expected fields
         name: data.name || pub.title || "Publication",
         publisher: data.publisher || pub.company || "Publisher",
         date: data.date || (pub.startDate
-          ? new Date(pub.startDate).getFullYear().toString()
+        ? new Date(pub.startDate).getFullYear().toString()
           : new Date().getFullYear().toString()),
         summary: data.summary || `<p>${pub.description || "No description available"}</p>`,
         url: this.ensureValidUrl(data.url || { label: "", href: pub.url || "" }),
-        contentId: pub.id,
-        sourceContentId: null,
+      contentId: pub.id,
+      sourceContentId: null,
       };
     });
 
@@ -1601,18 +1611,18 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
       
       return {
         ...(data || {}),
-        id: createId(),
-        visible: true,
+      id: createId(),
+      visible: true,
         // Map the existing data structure to the expected fields
         title: data.title || award.title || "Award",
         awarder: data.awarder || award.company || award.issuer || "Awarding Organization",
         date: data.date || (award.startDate
-          ? new Date(award.startDate).getFullYear().toString()
+        ? new Date(award.startDate).getFullYear().toString()
           : new Date().getFullYear().toString()),
         summary: data.summary || `<p>${award.description || "No description available"}</p>`,
         url: this.ensureValidUrl(data.url || { label: "", href: award.url || "" }),
-        contentId: award.id,
-        sourceContentId: null,
+      contentId: award.id,
+      sourceContentId: null,
       };
     });
 
@@ -1656,15 +1666,15 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
       
       return {
         ...(data || {}),
-        id: createId(),
-        visible: true,
+      id: createId(),
+      visible: true,
         // Map the existing data structure to the expected fields
         name: data.name || interest.title || "Interest",
         keywords: data.keywords || (typeof interest.keywords === "string"
           ? JSON.parse(interest.keywords)
           : interest.keywords || []),
-        contentId: interest.id,
-        sourceContentId: null,
+      contentId: interest.id,
+      sourceContentId: null,
       };
     });
 
@@ -1675,8 +1685,8 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
       
       return {
         ...(data || {}),
-        id: createId(),
-        visible: true,
+      id: createId(),
+      visible: true,
         // Map the existing data structure to the expected fields
         organization: data.organization || vol.company || "Organization",
         position: data.position || vol.position || vol.title || "Volunteer",
@@ -1684,8 +1694,8 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
         date: data.date || this.formatDateRange(vol.startDate, vol.endDate) || "Recent",
         summary: data.summary || `<p>${vol.description || "No description available"}</p>`,
         url: this.ensureValidUrl(data.url || { label: "", href: vol.url || "" }),
-        contentId: vol.id,
-        sourceContentId: null,
+      contentId: vol.id,
+      sourceContentId: null,
       };
     });
 
@@ -1696,15 +1706,15 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
       
       return {
         ...(data || {}),
-        id: createId(),
-        visible: true,
+      id: createId(),
+      visible: true,
         // Map the existing data structure to the expected fields
         name: data.name || ref.title || "Reference",
         description: data.description || ref.position || ref.company || "Reference",
         summary: data.summary || `<p>${ref.description || "No description available"}</p>`,
         url: this.ensureValidUrl(data.url || { label: "", href: ref.url || "" }),
-        contentId: ref.id,
-        sourceContentId: null,
+      contentId: ref.id,
+      sourceContentId: null,
       };
     });
 
@@ -1728,25 +1738,7 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
       };
     });
 
-    // Handle basic info if present
-    if (basicInfo.length > 0) {
-      const info = basicInfo[0];
-      const data = typeof info.data === "string" ? JSON.parse(info.data) : info.data;
-      const content = typeof info.content === "string" ? JSON.parse(info.content) : info.content;
 
-      // Update basics with content library data (prioritize data field, then content field)
-      if (data?.email) resumeData.basics.email = data.email;
-      else if (content?.email) resumeData.basics.email = content.email;
-      
-      if (data?.phone) resumeData.basics.phone = data.phone;
-      else if (content?.phone) resumeData.basics.phone = content.phone;
-      
-      if (data?.location) resumeData.basics.location = data.location;
-      else if (content?.location) resumeData.basics.location = content.location;
-      
-      if (data?.website) resumeData.basics.url.href = data.website;
-      else if (content?.website) resumeData.basics.url.href = content.website;
-    }
 
     return resumeData;
   }
@@ -2061,14 +2053,12 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
   private async writeApiCallLogMarkdown({
     jobApplicationId,
     userId,
-    selectedContentIds,
     llmInput,
     llmOutput,
     apiOutput,
   }: {
     jobApplicationId: string;
     userId: string;
-    selectedContentIds?: string[];
     llmInput: any;
     llmOutput: any;
     apiOutput: any;
@@ -2085,7 +2075,7 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
       `- **Timestamp:** ${new Date().toLocaleString()}`,
       `- **Job Application ID:** \`${jobApplicationId}\``,
       `- **User ID:** \`${userId}\``,
-      `- **Selected Content IDs:** \`${JSON.stringify(selectedContentIds)}\``,
+      `- **Content Selection:** Auto-selected via content matching`,
       '',
       '## LLM Input',
       '```json',

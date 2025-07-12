@@ -459,52 +459,52 @@ if ($OnlySetup) {
         }
         
     } else {
-        Write-Host "Starting development servers..." -ForegroundColor Yellow
-        Write-Host ""
+    Write-Host "Starting development servers..." -ForegroundColor Yellow
+    Write-Host ""
         Write-Host "[URLS] APPLICATION URLS:" -ForegroundColor Cyan
-        Write-Host "   Frontend (Client): http://localhost:5173" -ForegroundColor Green
-        Write-Host "   Backend (Server): http://localhost:3000" -ForegroundColor Green  
-        Write-Host "   Artboard (PDF): http://localhost:5174" -ForegroundColor Green
-        Write-Host ""
+    Write-Host "   Frontend (Client): http://localhost:5173" -ForegroundColor Green
+    Write-Host "   Backend (Server): http://localhost:3000" -ForegroundColor Green  
+    Write-Host "   Artboard (PDF): http://localhost:5174" -ForegroundColor Green
+    Write-Host ""
         Write-Host "[AI] AI/LLM INTEGRATION FEATURES:" -ForegroundColor Cyan
         Write-Host "   [CHECK] Job posting analysis from URLs" -ForegroundColor Green
         Write-Host "   [CHECK] AI-powered resume generation" -ForegroundColor Green
         Write-Host "   [CHECK] Smart content matching" -ForegroundColor Green
         Write-Host "   [CHECK] Interview question generation" -ForegroundColor Green
-        Write-Host ""
+    Write-Host ""
         Write-Host "[CONTENT] CONTENT LIBRARY:" -ForegroundColor Cyan
-        if ($contentCount -gt "0") {
+    if ($contentCount -gt "0") {
             Write-Host "   [CHECK] $contentCount content items available" -ForegroundColor Green
             Write-Host "   [CHECK] Visit http://localhost:5173/dashboard/content-library to view" -ForegroundColor Green
-        } else {
+    } else {
             Write-Host "   [INFO] No content items found" -ForegroundColor Yellow
             Write-Host "   [TIP] Import content using: node tools/db-scripts/import-content.js" -ForegroundColor White
-        }
-        Write-Host ""
+    }
+    Write-Host ""
         Write-Host "[CONFIG] CONFIGURATION NOTES:" -ForegroundColor Cyan
-        Write-Host "   Database: apps/server/prisma/dev.db" -ForegroundColor White
-        Write-Host "   Environment: .env (project root)" -ForegroundColor White
-        Write-Host "   LLM Provider: Check .env file for current setting" -ForegroundColor White
-        Write-Host ""
+    Write-Host "   Database: apps/server/prisma/dev.db" -ForegroundColor White
+    Write-Host "   Environment: .env (project root)" -ForegroundColor White
+    Write-Host "   LLM Provider: Check .env file for current setting" -ForegroundColor White
+    Write-Host ""
         Write-Host "[START] GETTING STARTED:" -ForegroundColor Cyan
-        Write-Host "   1. Wait for all servers to start" -ForegroundColor White
-        Write-Host "   2. Open http://localhost:5173 in your browser" -ForegroundColor White
-        Write-Host "   3. Login with your credentials" -ForegroundColor White
-        Write-Host "   4. Create a new resume or explore the content library" -ForegroundColor White
-        Write-Host ""
+    Write-Host "   1. Wait for all servers to start" -ForegroundColor White
+    Write-Host "   2. Open http://localhost:5173 in your browser" -ForegroundColor White
+    Write-Host "   3. Login with your credentials" -ForegroundColor White
+    Write-Host "   4. Create a new resume or explore the content library" -ForegroundColor White
+    Write-Host ""
         Write-Host "[IMPORTANT] IMPORTANT:" -ForegroundColor Yellow
-        Write-Host "   • Press Ctrl+C to stop all servers" -ForegroundColor White
-        Write-Host "   • All data is saved locally in the SQLite database" -ForegroundColor White
-        Write-Host "   • Configure LLM API keys in .env for AI features" -ForegroundColor White
-        Write-Host ""
-        Write-Host "Starting all development servers..." -ForegroundColor White
-        Write-Host "This will start:" -ForegroundColor White
-        Write-Host "  • Client (React frontend)" -ForegroundColor Green
-        Write-Host "  • Server (NestJS backend)" -ForegroundColor Green
-        Write-Host "  • Artboard (PDF generation)" -ForegroundColor Green
-        Write-Host ""
-        
-        # Start development servers
-        pnpm dev
+    Write-Host "   • Press Ctrl+C to stop all servers" -ForegroundColor White
+    Write-Host "   • All data is saved locally in the SQLite database" -ForegroundColor White
+    Write-Host "   • Configure LLM API keys in .env for AI features" -ForegroundColor White
+    Write-Host ""
+    Write-Host "Starting all development servers..." -ForegroundColor White
+    Write-Host "This will start:" -ForegroundColor White
+    Write-Host "  • Client (React frontend)" -ForegroundColor Green
+    Write-Host "  • Server (NestJS backend)" -ForegroundColor Green
+    Write-Host "  • Artboard (PDF generation)" -ForegroundColor Green
+    Write-Host ""
+    
+    # Start development servers
+    pnpm dev
     }
 }

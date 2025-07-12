@@ -97,7 +97,6 @@ export type LLMProvider = {
     jobDescription: string,
     jobRequirements: string[],
     currentResumeData: any,
-    selectedContent: any[],
   ): Promise<LLMResponse<CVTailoringResult>>;
 };
 
