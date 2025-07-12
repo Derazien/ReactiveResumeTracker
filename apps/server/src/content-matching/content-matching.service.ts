@@ -45,6 +45,14 @@ export type MatchingOptions = {
   includeAllCertificates?: boolean;
   includeAllVolunteer?: boolean;
   includeAllCauses?: boolean;
+  // Content-type specific minimum similarity thresholds
+  minSimilarityForLanguages?: number;
+  minSimilarityForSkills?: number;
+  minSimilarityForEducation?: number;
+  minSimilarityForCertificates?: number;
+  minSimilarityForInterests?: number;
+  minSimilarityForVolunteer?: number;
+  minSimilarityForCauses?: number;
 }
 
 @Injectable()
@@ -70,7 +78,7 @@ export class ContentMatchingService {
     jobEmbedding?: number[]
   ): Promise<ContentMatchResult[]> {
           const {
-        useVectorSimilarity = true,
+        useVectorSimilarity = false,
         useTagMatching = true,
         vectorWeight = 0.7,
         tagWeight = 0.3,
@@ -79,6 +87,10 @@ export class ContentMatchingService {
       } = options;
 
     this.logger.log(`Matching content for user ${userId} with hybrid approach (vector: ${useVectorSimilarity}, tags: ${useTagMatching})`);
+
+    if (!useVectorSimilarity) {
+      this.logger.log('⚠️ VECTOR MATCHING DISABLED - Using tag-only matching for performance testing');
+    }
 
     try {
       // Get all user content
@@ -165,12 +177,19 @@ export class ContentMatchingService {
       includeAllCertificates = true,
       includeAllVolunteer = true,
       includeAllCauses = true,
+      minSimilarityForLanguages = 5,
+      minSimilarityForSkills = 5,
+      minSimilarityForEducation = 5,
+      minSimilarityForCertificates = 5,
+      minSimilarityForInterests = 5,
+      minSimilarityForVolunteer = 5,
+      minSimilarityForCauses = 5,
     } = options;
 
     this.logger.log(`Selecting structured content for user ${userId} with limits: experiences=${maxExperiences}, projects=${maxProjects}`);
 
     try {
-      // Get all matched content first
+      // Get all matched content first with the main threshold
       const allMatchedContent = await this.matchContentToJob(
         userId,
         jobRequirements,
@@ -185,19 +204,26 @@ export class ContentMatchingService {
       // Group content by section type
       const groupedContent = this.groupContentBySection(contentDetails, allMatchedContent);
 
-      // Apply structured selection rules
+      
+      // Apply structured selection rules (PERMISSIVE - let LLM decide what's best)
       const structuredSelection: StructuredContentSelection = {
-        experiences: this.selectTopContent(groupedContent.experience ?? [], maxExperiences),
-        projects: this.selectTopContent(groupedContent.projects ?? [], maxProjects),
-        interests: includeAllInterests ? (groupedContent.interests ?? []) : [],
-        languages: includeAllLanguages ? (groupedContent.languages ?? []) : [],
+        experiences: this.selectTopContent(groupedContent.experience ?? [], 3), // Max 3 experiences sorted by score
+        projects: this.selectTopContent(groupedContent.projects ?? [], 3), // Max 3 projects regardless of score
+        interests: this.selectTopContent(groupedContent.interests ?? [], 10), // Max 10 interests (reasonable limit)
+        languages: this.selectTopContent(groupedContent.languages ?? [], 20), // Max 20 languages (very permissive)
         summary: this.selectTopContent(groupedContent.summary ?? [], 1), // Only 1 summary
         contact: this.selectTopContent(groupedContent.contact ?? [], 1), // Only 1 contact
-        skills: includeAllSkills ? (groupedContent.skills ?? []) : [],
-        education: includeAllEducation ? (groupedContent.education ?? []) : [],
-        certificates: includeAllCertificates ? (groupedContent.certificates ?? []) : [],
-        volunteer: includeAllVolunteer ? (groupedContent.volunteer ?? []) : [],
-        causes: includeAllCauses ? (groupedContent.causes ?? []) : [],
+        skills: this.selectTopContent([
+          ...(groupedContent.skills ?? []),
+          ...(groupedContent.technical_skills ?? [])
+        ], 15), // Max 15 skill categories (both soft and technical)
+        education: this.selectTopContent(groupedContent.education ?? [], 10), // Max 10 education items
+        certificates: this.selectTopContent([
+          ...(groupedContent.certificates ?? []),
+          ...(groupedContent.certifications ?? [])
+        ], 10), // Max 10 certificates
+        volunteer: this.selectTopContent(groupedContent.volunteer ?? [], 5), // Max 5 volunteer experiences
+        causes: this.selectTopContent(groupedContent.causes ?? [], 5), // Max 5 causes
       };
 
       // Log structured selection results

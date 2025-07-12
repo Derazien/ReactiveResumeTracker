@@ -7,6 +7,7 @@
 param(
     [switch]$OnlySetup,
     [switch]$SkipBuild,
+    [switch]$Debug,
     [switch]$Help
 )
 
@@ -18,7 +19,12 @@ if ($Help) {
     Write-Host "Options:" -ForegroundColor Yellow
     Write-Host "  -OnlySetup     Only run setup, don't start servers" -ForegroundColor White
     Write-Host "  -SkipBuild     Skip building the project" -ForegroundColor White
+    Write-Host "  -Debug         Start backend in debug mode (port 9229)" -ForegroundColor White
     Write-Host "  -Help          Show this help message" -ForegroundColor White
+    Write-Host ""
+    Write-Host "Debug Mode Usage:" -ForegroundColor Yellow
+    Write-Host "  .\setup.ps1 -Debug    # Start backend in debug mode" -ForegroundColor White
+    Write-Host "  Then attach VS Code debugger to the running process" -ForegroundColor White
     Write-Host ""
     exit 0
 }
@@ -371,50 +377,134 @@ if ($OnlySetup) {
     Write-Host "   node tools/db-scripts/import-content.js" -ForegroundColor Green
 } else {
     Write-Host ""
-    Write-Host "Starting development servers..." -ForegroundColor Yellow
-    Write-Host ""
-    Write-Host "🌐 APPLICATION URLS:" -ForegroundColor Cyan
-    Write-Host "   Frontend (Client): http://localhost:5173" -ForegroundColor Green
-    Write-Host "   Backend (Server): http://localhost:3000" -ForegroundColor Green  
-    Write-Host "   Artboard (PDF): http://localhost:5174" -ForegroundColor Green
-    Write-Host ""
-    Write-Host "🤖 AI/LLM INTEGRATION FEATURES:" -ForegroundColor Cyan
-    Write-Host "   ✅ Job posting analysis from URLs" -ForegroundColor Green
-    Write-Host "   ✅ AI-powered resume generation" -ForegroundColor Green
-    Write-Host "   ✅ Smart content matching" -ForegroundColor Green
-    Write-Host "   ✅ Interview question generation" -ForegroundColor Green
-    Write-Host ""
-    Write-Host "📊 CONTENT LIBRARY:" -ForegroundColor Cyan
-    if ($contentCount -gt "0") {
-        Write-Host "   ✅ $contentCount content items available" -ForegroundColor Green
-        Write-Host "   ✅ Visit http://localhost:5173/dashboard/content-library to view" -ForegroundColor Green
+    if ($Debug) {
+        Write-Host "Starting development servers in DEBUG MODE..." -ForegroundColor Yellow
+        Write-Host ""
+        Write-Host "[DEBUG] DEBUG MODE ENABLED:" -ForegroundColor Cyan
+        Write-Host "   Backend: Starting with debug inspector on port 9229" -ForegroundColor Yellow
+        Write-Host "   Frontend: Starting normally on port 5173" -ForegroundColor Green  
+        Write-Host "   Artboard: Starting normally on port 5174" -ForegroundColor Green
+        Write-Host ""
+        Write-Host "[STEPS] DEBUGGING STEPS:" -ForegroundColor Cyan
+        Write-Host "   1. Wait for 'Debugger listening on ws://127.0.0.1:9229' message" -ForegroundColor White
+        Write-Host "   2. Open VS Code and go to Run and Debug (Ctrl+Shift+D)" -ForegroundColor White
+        Write-Host "   3. Select 'Attach to Debug Server' from dropdown" -ForegroundColor White
+        Write-Host "   4. Click the green play button or press F5" -ForegroundColor White
+        Write-Host "   5. Set breakpoints in your TypeScript code" -ForegroundColor White
+        Write-Host ""
+        Write-Host "[URLS] APPLICATION URLS:" -ForegroundColor Cyan
+        Write-Host "   Frontend (Client): http://localhost:5173" -ForegroundColor Green
+        Write-Host "   Backend (Server): http://localhost:3000 [DEBUG MODE]" -ForegroundColor Yellow  
+        Write-Host "   Artboard (PDF): http://localhost:5174" -ForegroundColor Green
+        Write-Host ""
+        
+        # Start backend in debug mode and frontend/artboard normally
+        Write-Host "Starting backend in debug mode..." -ForegroundColor White
+        $serverJob = Start-Job -ScriptBlock { 
+            Set-Location $using:PWD
+            & pnpm nx serve server --configuration=debug
+        }
+        
+        Start-Sleep -Seconds 3
+        
+        Write-Host "Starting frontend applications..." -ForegroundColor White
+        $clientJob = Start-Job -ScriptBlock { 
+            Set-Location $using:PWD
+            & pnpm nx serve client 
+        }
+        $artboardJob = Start-Job -ScriptBlock { 
+            Set-Location $using:PWD
+            & pnpm nx serve artboard 
+        }
+        
+        Write-Host ""
+        Write-Host "[SUCCESS] Debug mode started! Backend is waiting for debugger attachment." -ForegroundColor Green
+        Write-Host "   Use VS Code 'Attach to Debug Server' configuration to attach" -ForegroundColor White
+        Write-Host ""
+        Write-Host "[WARNING] Press Ctrl+C to stop all servers" -ForegroundColor Yellow
+        
+        # Keep the script running
+        try {
+            Write-Host "All servers starting in background..." -ForegroundColor Green
+            Write-Host "Press Ctrl+C to stop all servers" -ForegroundColor Yellow
+            Write-Host ""
+            
+            # Monitor jobs and display output
+            while ($true) {
+                # Check if any jobs have output
+                $jobs = @($serverJob, $clientJob, $artboardJob)
+                foreach ($job in $jobs) {
+                    if ($job.HasMoreData) {
+                        Receive-Job $job
+                    }
+                }
+                Start-Sleep -Seconds 1
+            }
+        }
+        catch {
+            Write-Host ""
+            Write-Host "Stopping servers..." -ForegroundColor Yellow
+            
+            # Stop all background jobs
+            Stop-Job $serverJob -ErrorAction SilentlyContinue
+            Stop-Job $clientJob -ErrorAction SilentlyContinue  
+            Stop-Job $artboardJob -ErrorAction SilentlyContinue
+            
+            # Remove jobs
+            Remove-Job $serverJob -ErrorAction SilentlyContinue
+            Remove-Job $clientJob -ErrorAction SilentlyContinue
+            Remove-Job $artboardJob -ErrorAction SilentlyContinue
+            
+            Write-Host "All servers stopped." -ForegroundColor Green
+        }
+        
     } else {
-        Write-Host "   ℹ️  No content items found" -ForegroundColor Yellow
-        Write-Host "   💡 Import content using: node tools/db-scripts/import-content.js" -ForegroundColor White
+        Write-Host "Starting development servers..." -ForegroundColor Yellow
+        Write-Host ""
+        Write-Host "[URLS] APPLICATION URLS:" -ForegroundColor Cyan
+        Write-Host "   Frontend (Client): http://localhost:5173" -ForegroundColor Green
+        Write-Host "   Backend (Server): http://localhost:3000" -ForegroundColor Green  
+        Write-Host "   Artboard (PDF): http://localhost:5174" -ForegroundColor Green
+        Write-Host ""
+        Write-Host "[AI] AI/LLM INTEGRATION FEATURES:" -ForegroundColor Cyan
+        Write-Host "   [CHECK] Job posting analysis from URLs" -ForegroundColor Green
+        Write-Host "   [CHECK] AI-powered resume generation" -ForegroundColor Green
+        Write-Host "   [CHECK] Smart content matching" -ForegroundColor Green
+        Write-Host "   [CHECK] Interview question generation" -ForegroundColor Green
+        Write-Host ""
+        Write-Host "[CONTENT] CONTENT LIBRARY:" -ForegroundColor Cyan
+        if ($contentCount -gt "0") {
+            Write-Host "   [CHECK] $contentCount content items available" -ForegroundColor Green
+            Write-Host "   [CHECK] Visit http://localhost:5173/dashboard/content-library to view" -ForegroundColor Green
+        } else {
+            Write-Host "   [INFO] No content items found" -ForegroundColor Yellow
+            Write-Host "   [TIP] Import content using: node tools/db-scripts/import-content.js" -ForegroundColor White
+        }
+        Write-Host ""
+        Write-Host "[CONFIG] CONFIGURATION NOTES:" -ForegroundColor Cyan
+        Write-Host "   Database: apps/server/prisma/dev.db" -ForegroundColor White
+        Write-Host "   Environment: .env (project root)" -ForegroundColor White
+        Write-Host "   LLM Provider: Check .env file for current setting" -ForegroundColor White
+        Write-Host ""
+        Write-Host "[START] GETTING STARTED:" -ForegroundColor Cyan
+        Write-Host "   1. Wait for all servers to start" -ForegroundColor White
+        Write-Host "   2. Open http://localhost:5173 in your browser" -ForegroundColor White
+        Write-Host "   3. Login with your credentials" -ForegroundColor White
+        Write-Host "   4. Create a new resume or explore the content library" -ForegroundColor White
+        Write-Host ""
+        Write-Host "[IMPORTANT] IMPORTANT:" -ForegroundColor Yellow
+        Write-Host "   • Press Ctrl+C to stop all servers" -ForegroundColor White
+        Write-Host "   • All data is saved locally in the SQLite database" -ForegroundColor White
+        Write-Host "   • Configure LLM API keys in .env for AI features" -ForegroundColor White
+        Write-Host ""
+        Write-Host "Starting all development servers..." -ForegroundColor White
+        Write-Host "This will start:" -ForegroundColor White
+        Write-Host "  • Client (React frontend)" -ForegroundColor Green
+        Write-Host "  • Server (NestJS backend)" -ForegroundColor Green
+        Write-Host "  • Artboard (PDF generation)" -ForegroundColor Green
+        Write-Host ""
+        
+        # Start development servers
+        pnpm dev
     }
-    Write-Host ""
-    Write-Host "⚙️  CONFIGURATION NOTES:" -ForegroundColor Cyan
-    Write-Host "   Database: apps/server/prisma/dev.db" -ForegroundColor White
-    Write-Host "   Environment: .env (project root)" -ForegroundColor White
-    Write-Host "   LLM Provider: Check .env file for current setting" -ForegroundColor White
-    Write-Host ""
-    Write-Host "🚀 GETTING STARTED:" -ForegroundColor Cyan
-    Write-Host "   1. Wait for all servers to start" -ForegroundColor White
-    Write-Host "   2. Open http://localhost:5173 in your browser" -ForegroundColor White
-    Write-Host "   3. Login with your credentials" -ForegroundColor White
-    Write-Host "   4. Create a new resume or explore the content library" -ForegroundColor White
-    Write-Host ""
-    Write-Host "⚠️  IMPORTANT:" -ForegroundColor Yellow
-    Write-Host "   • Press Ctrl+C to stop all servers" -ForegroundColor White
-    Write-Host "   • All data is saved locally in the SQLite database" -ForegroundColor White
-    Write-Host "   • Configure LLM API keys in .env for AI features" -ForegroundColor White
-    Write-Host ""
-    Write-Host "Starting all development servers..." -ForegroundColor White
-    Write-Host "This will start:" -ForegroundColor White
-    Write-Host "  • Client (React frontend)" -ForegroundColor Green
-    Write-Host "  • Server (NestJS backend)" -ForegroundColor Green
-    Write-Host "  • Artboard (PDF generation)" -ForegroundColor Green
-    Write-Host ""
-    
-    # Start development servers
-    pnpm dev
+}

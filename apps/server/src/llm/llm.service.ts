@@ -1805,7 +1805,7 @@ ${cvText}
         jobRequirements,
         jobDescription,
         {
-          useVectorSimilarity: true,
+          useVectorSimilarity: false,
           useTagMatching: true,
           vectorWeight: 0.7,
           tagWeight: 0.3,

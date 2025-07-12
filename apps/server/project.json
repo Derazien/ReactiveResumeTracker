@@ -16,18 +16,28 @@
         "main": "apps/server/src/main.ts",
         "tsConfig": "apps/server/tsconfig.app.json",
         "assets": ["apps/server/src/assets"],
-        "webpackConfig": "apps/server/webpack.config.js"
+        "webpackConfig": "apps/server/webpack.config.js",
+        "generatePackageJson": true
       },
       "configurations": {
-        "development": {},
-        "production": {}
+        "development": {
+          "optimization": false,
+          "extractLicenses": false,
+          "sourceMap": true
+        },
+        "production": {
+          "optimization": true,
+          "extractLicenses": true,
+          "sourceMap": false
+        }
       }
     },
     "serve": {
       "executor": "@nx/js:node",
       "defaultConfiguration": "development",
       "options": {
-        "buildTarget": "server:build"
+        "buildTarget": "server:build",
+        "inspect": false
       },
       "configurations": {
         "development": {
@@ -35,6 +45,11 @@
         },
         "production": {
           "buildTarget": "server:build:production"
+        },
+        "debug": {
+          "buildTarget": "server:build:development",
+          "inspect": "inspect",
+          "runtimeArgs": ["--nolazy"]
         }
       }
     },

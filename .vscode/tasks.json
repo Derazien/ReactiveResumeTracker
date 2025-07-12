@@ -1,0 +1,266 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "🐛 Start Server in Debug Mode",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["nx", "serve", "server", "--", "--inspect=0.0.0.0:9229"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": {
+          "regexp": ".",
+          "file": 1,
+          "location": 2,
+          "message": 3
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".*Debugger listening on.*",
+          "endsPattern": ".*Server is up and running.*"
+        }
+      },
+      "options": {
+        "statusbar": {
+          "label": "Debug Server"
+        }
+      }
+    },
+    {
+      "label": "🔧 Setup and Debug",
+      "type": "shell",
+      "command": "powershell",
+      "args": ["-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}/setup.ps1", "-Debug"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new",
+        "showReuseMessage": false,
+        "clear": true
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": {
+          "regexp": ".",
+          "file": 1,
+          "location": 2,
+          "message": 3
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".*Debug mode started.*",
+          "endsPattern": ".*Debug mode started.*"
+        }
+      }
+    },
+    {
+      "label": "Build Server",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["nx", "build", "server"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "problemMatcher": ["$tsc"]
+    },
+    {
+      "label": "Start Server (Development)",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["nx", "serve", "server"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": {
+          "regexp": ".",
+          "file": 1,
+          "location": 2,
+          "message": 3
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".*Server is up and running.*",
+          "endsPattern": ".*Server is up and running.*"
+        }
+      }
+    },
+    {
+      "label": "Start Server with Debug",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["nx", "serve", "server", "--configuration=debug"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": {
+          "regexp": ".",
+          "file": 1,
+          "location": 2,
+          "message": 3
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".*Server is up and running.*",
+          "endsPattern": ".*Server is up and running.*"
+        }
+      }
+    },
+    {
+      "label": "Test Server",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["nx", "test", "server"],
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "problemMatcher": ["$jest"]
+    },
+    {
+      "label": "Test Server (Watch)",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["nx", "test", "server", "--watch"],
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "isBackground": true,
+      "problemMatcher": ["$jest-watch"]
+    },
+    {
+      "label": "Lint Server",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["nx", "lint", "server"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "problemMatcher": ["$eslint-stylish"]
+    },
+    {
+      "label": "Prisma Generate",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["prisma", "generate"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      }
+    },
+    {
+      "label": "Prisma Migrate",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["prisma", "migrate", "dev"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      }
+    },
+    {
+      "label": "Start Full Stack Dev",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["dev"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": {
+          "regexp": ".",
+          "file": 1,
+          "location": 2,
+          "message": 3
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".*Server is up and running.*",
+          "endsPattern": ".*Server is up and running.*"
+        }
+      }
+    },
+    {
+      "label": "Build and Debug Server",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["nx", "build", "server"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "problemMatcher": ["$tsc"]
+    }
+  ]
+} 

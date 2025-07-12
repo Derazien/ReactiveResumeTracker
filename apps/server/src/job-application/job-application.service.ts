@@ -8,6 +8,8 @@ import { ContentLibraryService } from "@/server/content-library/content-library.
 import { ContentMatchingService } from "@/server/content-matching/content-matching.service";
 import { EmbeddingService } from "@/server/embedding/embedding.service";
 import { LLMService } from "@/server/llm/llm.service";
+import * as fs from 'fs';
+import * as path from 'path';
 
 export type JobAnalysisResult = {
   title: string;
@@ -337,6 +339,9 @@ export class JobApplicationService {
     suggestions: string[];
     tailoringResult?: any;
   }> {
+    let llmInput: any = null;
+    let llmOutput: any = null;
+    let apiOutput: any = null;
     this.logger.log(`Generating tailored resume for job application ${jobApplicationId}`);
 
     // Get job application
@@ -383,12 +388,12 @@ export class JobApplicationService {
         jobRequirements,
         jobApplication.description ?? "",
         {
-          useVectorSimilarity: true,
+          useVectorSimilarity: false, // DISABLED: Only use tag matching
           useTagMatching: true,
           vectorWeight: 0.7,
           tagWeight: 0.3,
-          minSimilarity: 20, // Only include reasonably relevant content
-          maxResults: 50,
+          minSimilarity: 0, // Only include reasonably relevant content
+          maxResults: 100,
           // Structured selection options for one-page resume
           maxExperiences: 3, // LLM will determine if 2 or 3 fit on one page
           maxProjects: 3,
@@ -399,8 +404,16 @@ export class JobApplicationService {
           includeAllCertificates: true,
           includeAllVolunteer: true,
           includeAllCauses: true,
+          // Lower thresholds for content types that should be included regardless
+          minSimilarityForLanguages: 5, // Very low threshold for languages
+          minSimilarityForSkills: 5, // Very low threshold for skills
+          minSimilarityForEducation: 5, // Very low threshold for education
+          minSimilarityForCertificates: 5, // Very low threshold for certificates
+          minSimilarityForInterests: 5, // Very low threshold for interests
+          minSimilarityForVolunteer: 5, // Very low threshold for volunteer
+          minSimilarityForCauses: 5, // Very low threshold for causes
         },
-        jobEmbedding // Pass job embedding for enhanced matching
+        jobEmbedding // Pass job embedding for enhanced matching (will be ignored since vector matching is disabled)
       );
 
       // Convert structured selection to content objects and add match scores
@@ -440,7 +453,7 @@ export class JobApplicationService {
       }
 
       this.logger.log(
-        `Auto-selected ${selectedContent.length} relevant content pieces using structured selection (vector + tags)${jobEmbedding ? " with job embedding" : ""}`,
+        `Auto-selected ${selectedContent.length} relevant content pieces using structured selection (TAG-ONLY matching)`,
       );
       this.logger.log(`Content breakdown: ${structuredSelection.experiences.length} experiences, ${structuredSelection.projects.length} projects, ${structuredSelection.skills.length} skills, ${structuredSelection.education.length} education items`);
     }
@@ -486,6 +499,15 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
 - All sections must be concise and optimized for single-page layout
 - Prioritize: most relevant experiences, key technical skills, education, certifications, projects`;
 
+      // --- Capture LLM input ---
+      llmInput = {
+        userId,
+        jobDescription: enhancedJobDescription,
+        jobRequirements,
+        resumeData,
+        selectedContent,
+      };
+
       const tailoringResponse = await this.llmService.tailorResumeContentForUser(
         userId,
         enhancedJobDescription,
@@ -493,6 +515,9 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
         resumeData,
         selectedContent,
       );
+
+      // --- Capture LLM output ---
+      llmOutput = tailoringResponse;
 
       if (tailoringResponse.success && tailoringResponse.data) {
         tailoringResult = tailoringResponse.data;
@@ -609,12 +634,27 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
           ...basicSuggestions,
         ];
 
-    return {
+    const result = {
       resume,
       selectedContent,
       suggestions: finalSuggestions,
       tailoringResult,
     };
+
+    // --- Capture API output ---
+    apiOutput = result;
+
+    // --- Write Markdown log ---
+    await this.writeApiCallLogMarkdown({
+      jobApplicationId,
+      userId,
+      selectedContentIds,
+      llmInput,
+      llmOutput,
+      apiOutput,
+    });
+
+    return result;
   }
 
   /**
@@ -1409,21 +1449,20 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
 
     // Add work experience
     resumeData.sections.experience.items = workExperiences.map((exp) => {
-      const content = typeof exp.content === "string" ? JSON.parse(exp.content) : exp.content;
-      const achievements =
-        typeof exp.achievements === "string" ? JSON.parse(exp.achievements) : exp.achievements;
-
+      // Use the existing data field which contains the properly formatted structure
+      const data = typeof exp.data === "string" ? JSON.parse(exp.data) : exp.data;
+      
       return {
+        ...(data || {}),
         id: createId(),
         visible: true,
-        company: exp.company || "Company",
-        position: exp.position || exp.title || "Position",
-        location: exp.location || "",
-        date: this.formatDateRange(exp.startDate, exp.endDate) || "Present",
-        summary:
-          this.formatExperienceContent(exp.description, content, achievements) ||
-          "<p>No description available</p>",
-        url: { label: "", href: "" },
+        // Map the existing data structure to the expected fields
+        company: data.company || exp.company || "Company",
+        position: data.position || exp.position || exp.title || "Position", 
+        location: data.location || exp.location || "",
+        date: data.date || this.formatDateRange(exp.startDate, exp.endDate) || "Present",
+        summary: data.summary || exp.description || "<p>No description available</p>",
+        url: this.ensureValidUrl(data.url),
         contentId: exp.id,
         sourceContentId: null,
       };
@@ -1431,36 +1470,46 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
 
     // Add projects
     resumeData.sections.projects.items = projects.map((proj) => {
-      const content = typeof proj.content === "string" ? JSON.parse(proj.content) : proj.content;
+      // Use the existing data field which contains the properly formatted structure
+      const data = typeof proj.data === "string" ? JSON.parse(proj.data) : proj.data;
 
       return {
+        ...(data || {}),
         id: createId(),
         visible: true,
-        name: proj.title || "Project",
-        description: proj.position || "Project",
-        date: this.formatDateRange(proj.startDate, proj.endDate) || "Recent",
-        summary: `<p>${proj.description || "No description available"}</p>`,
-        keywords: typeof proj.skills === "string" ? JSON.parse(proj.skills) : proj.skills || [],
-        url: { label: "", href: "" },
+        // Map the existing data structure to the expected fields
+        name: data.name || proj.title || "Project",
+        description: data.description || proj.position || "Project",
+        date: data.date || this.formatDateRange(proj.startDate, proj.endDate) || "Recent",
+        summary: data.summary || `<p>${proj.description || "No description available"}</p>`,
+        keywords: data.keywords || (typeof proj.skills === "string" ? JSON.parse(proj.skills) : proj.skills || []),
+        url: this.ensureValidUrl(data.url),
         contentId: proj.id,
         sourceContentId: null,
       };
     });
 
     // Add education
-    resumeData.sections.education.items = education.map((edu) => ({
-      id: createId(),
-      visible: true,
-      institution: edu.company || edu.title || "Institution",
-      studyType: edu.position || "Degree",
-      area: edu.location || "",
-      score: "",
-      date: this.formatDateRange(edu.startDate, edu.endDate) || "Graduated",
-      summary: `<p>${edu.description || "No description available"}</p>`,
-      url: { label: "", href: "" },
-      contentId: edu.id,
-      sourceContentId: null,
-    }));
+    resumeData.sections.education.items = education.map((edu) => {
+      // Use the existing data field which contains the properly formatted structure
+      const data = typeof edu.data === "string" ? JSON.parse(edu.data) : edu.data;
+      
+      return {
+        ...(data || {}),
+        id: createId(),
+        visible: true,
+        // Map the existing data structure to the expected fields
+        institution: data.institution || edu.company || edu.title || "Institution",
+        studyType: data.studyType || edu.position || "Degree",
+        area: data.area || edu.location || "",
+        score: data.score || "",
+        date: data.date || this.formatDateRange(edu.startDate, edu.endDate) || "Graduated",
+        summary: data.summary || `<p>${edu.description || "No description available"}</p>`,
+        url: this.ensureValidUrl(data.url),
+        contentId: edu.id,
+        sourceContentId: null,
+      };
+    });
 
     // Add technical skills - combine technical skills into categories
     const allTechnicalSkills: string[] = [];
@@ -1481,16 +1530,20 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
     // For now, soft skills will be added to the skills section alongside technical skills
     // In the future, you might want to create a separate section for soft skills
     for (const softSkill of softSkills) {
+      // Use the existing data field which contains the properly formatted structure
+      const data = typeof softSkill.data === "string" ? JSON.parse(softSkill.data) : softSkill.data;
+      
       const softSkillItem = {
+        ...(data || {}),
         id: createId(),
         visible: true,
-        name: softSkill.title || "Soft Skill",
-        description: softSkill.description || "",
-        level: 0,
-        keywords:
-          typeof softSkill.skills === "string"
-            ? JSON.parse(softSkill.skills ?? "[]")
-            : (softSkill.skills ?? []),
+        // Map the existing data structure to the expected fields
+        name: data.name || softSkill.title || "Soft Skill",
+        description: data.description || softSkill.description || "",
+        level: data.level || 0,
+        keywords: data.keywords || (typeof softSkill.skills === "string"
+          ? JSON.parse(softSkill.skills ?? "[]")
+          : (softSkill.skills ?? [])),
         contentId: softSkill.id,
         sourceContentId: null,
       };
@@ -1498,52 +1551,76 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
     }
 
     // Add certifications
-    resumeData.sections.certifications.items = certifications.map((cert) => ({
-      id: createId(),
-      visible: true,
-      name: cert.title || "Certification",
-      issuer: cert.company || "Issuing Organization",
-      date: cert.startDate
-        ? new Date(cert.startDate).getFullYear().toString()
-        : new Date().getFullYear().toString(),
-      summary: `<p>${cert.description || "No description available"}</p>`,
-      url: { label: "", href: "" },
-      contentId: cert.id,
-      sourceContentId: null,
-    }));
+    resumeData.sections.certifications.items = certifications.map((cert) => {
+      // Use the existing data field which contains the properly formatted structure
+      const data = typeof cert.data === "string" ? JSON.parse(cert.data) : cert.data;
+      
+      return {
+        ...(data || {}),
+        id: createId(),
+        visible: true,
+        // Map the existing data structure to the expected fields
+        name: data.name || cert.title || "Certification",
+        issuer: data.issuer || cert.company || "Issuing Organization",
+        date: data.date || (cert.startDate
+          ? new Date(cert.startDate).getFullYear().toString()
+          : new Date().getFullYear().toString()),
+        summary: data.summary || `<p>${cert.description || "No description available"}</p>`,
+        url: this.ensureValidUrl(data.url),
+        contentId: cert.id,
+        sourceContentId: null,
+      };
+    });
 
     // Add publications
-    resumeData.sections.publications.items = publications.map((pub) => ({
-      id: createId(),
-      visible: true,
-      name: pub.title || "Publication",
-      publisher: pub.company || "Publisher",
-      date: pub.startDate
-        ? new Date(pub.startDate).getFullYear().toString()
-        : new Date().getFullYear().toString(),
-      summary: `<p>${pub.description || "No description available"}</p>`,
-      url: { label: "", href: pub.url || "" },
-      contentId: pub.id,
-      sourceContentId: null,
-    }));
+    resumeData.sections.publications.items = publications.map((pub) => {
+      // Use the existing data field which contains the properly formatted structure
+      const data = typeof pub.data === "string" ? JSON.parse(pub.data) : pub.data;
+      
+      return {
+        ...(data || {}),
+        id: createId(),
+        visible: true,
+        // Map the existing data structure to the expected fields
+        name: data.name || pub.title || "Publication",
+        publisher: data.publisher || pub.company || "Publisher",
+        date: data.date || (pub.startDate
+          ? new Date(pub.startDate).getFullYear().toString()
+          : new Date().getFullYear().toString()),
+        summary: data.summary || `<p>${pub.description || "No description available"}</p>`,
+        url: this.ensureValidUrl(data.url || { label: "", href: pub.url || "" }),
+        contentId: pub.id,
+        sourceContentId: null,
+      };
+    });
 
     // Add awards
-    resumeData.sections.awards.items = awards.map((award) => ({
-      id: createId(),
-      visible: true,
-      title: award.title || "Award",
-      awarder: award.company || award.issuer || "Awarding Organization",
-      date: award.startDate
-        ? new Date(award.startDate).getFullYear().toString()
-        : new Date().getFullYear().toString(),
-      summary: `<p>${award.description || "No description available"}</p>`,
-      url: { label: "", href: award.url || "" },
-      contentId: award.id,
-      sourceContentId: null,
-    }));
+    resumeData.sections.awards.items = awards.map((award) => {
+      // Use the existing data field which contains the properly formatted structure
+      const data = typeof award.data === "string" ? JSON.parse(award.data) : award.data;
+      
+      return {
+        ...(data || {}),
+        id: createId(),
+        visible: true,
+        // Map the existing data structure to the expected fields
+        title: data.title || award.title || "Award",
+        awarder: data.awarder || award.company || award.issuer || "Awarding Organization",
+        date: data.date || (award.startDate
+          ? new Date(award.startDate).getFullYear().toString()
+          : new Date().getFullYear().toString()),
+        summary: data.summary || `<p>${award.description || "No description available"}</p>`,
+        url: this.ensureValidUrl(data.url || { label: "", href: award.url || "" }),
+        contentId: award.id,
+        sourceContentId: null,
+      };
+    });
 
     // Add languages
     resumeData.sections.languages.items = languages.map((lang) => {
+      // Use the existing data field which contains the properly formatted structure
+      const data = typeof lang.data === "string" ? JSON.parse(lang.data) : lang.data;
+      
       // Convert percentage (0-100) to level (0-5) scale
       const convertPercentageToLevel = (percentage: number): number => {
         if (percentage >= 90) return 5;
@@ -1554,16 +1631,18 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
         return 0;
       };
 
-      const rawLevel = lang.proficiencyLevel || 0;
+      const rawLevel = data.level || lang.proficiencyLevel || 0;
       const convertedLevel = rawLevel > 5 ? convertPercentageToLevel(rawLevel) : rawLevel;
 
       return {
+        ...(data || {}),
         id: createId(),
         visible: true,
-        name: lang.title || "Language",
-        description: lang.proficiencyLevel
+        // Map the existing data structure to the expected fields
+        name: data.name || lang.title || "Language",
+        description: data.description || (lang.proficiencyLevel
           ? `${lang.proficiencyLevel}% proficiency (Level ${convertedLevel}/5)`
-          : lang.description || "No proficiency level specified",
+          : lang.description || "No proficiency level specified"),
         level: convertedLevel,
         contentId: lang.id,
         sourceContentId: null,
@@ -1571,55 +1650,79 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
     });
 
     // Add interests
-    resumeData.sections.interests.items = interests.map((interest) => ({
-      id: createId(),
-      visible: true,
-      name: interest.title || "Interest",
-      keywords:
-        typeof interest.keywords === "string"
+    resumeData.sections.interests.items = interests.map((interest) => {
+      // Use the existing data field which contains the properly formatted structure
+      const data = typeof interest.data === "string" ? JSON.parse(interest.data) : interest.data;
+      
+      return {
+        ...(data || {}),
+        id: createId(),
+        visible: true,
+        // Map the existing data structure to the expected fields
+        name: data.name || interest.title || "Interest",
+        keywords: data.keywords || (typeof interest.keywords === "string"
           ? JSON.parse(interest.keywords)
-          : interest.keywords || [],
-      contentId: interest.id,
-      sourceContentId: null,
-    }));
+          : interest.keywords || []),
+        contentId: interest.id,
+        sourceContentId: null,
+      };
+    });
 
     // Add volunteer experience
-    resumeData.sections.volunteer.items = volunteer.map((vol) => ({
-      id: createId(),
-      visible: true,
-      organization: vol.company || "Organization",
-      position: vol.position || vol.title || "Volunteer",
-      location: vol.location || "",
-      date: this.formatDateRange(vol.startDate, vol.endDate) || "Recent",
-      summary: `<p>${vol.description || "No description available"}</p>`,
-      url: { label: "", href: vol.url || "" },
-      contentId: vol.id,
-      sourceContentId: null,
-    }));
+    resumeData.sections.volunteer.items = volunteer.map((vol) => {
+      // Use the existing data field which contains the properly formatted structure
+      const data = typeof vol.data === "string" ? JSON.parse(vol.data) : vol.data;
+      
+      return {
+        ...(data || {}),
+        id: createId(),
+        visible: true,
+        // Map the existing data structure to the expected fields
+        organization: data.organization || vol.company || "Organization",
+        position: data.position || vol.position || vol.title || "Volunteer",
+        location: data.location || vol.location || "",
+        date: data.date || this.formatDateRange(vol.startDate, vol.endDate) || "Recent",
+        summary: data.summary || `<p>${vol.description || "No description available"}</p>`,
+        url: this.ensureValidUrl(data.url || { label: "", href: vol.url || "" }),
+        contentId: vol.id,
+        sourceContentId: null,
+      };
+    });
 
     // Add references
-    resumeData.sections.references.items = references.map((ref) => ({
-      id: createId(),
-      visible: true,
-      name: ref.title || "Reference",
-      description: ref.position || ref.company || "Reference",
-      summary: `<p>${ref.description || "No description available"}</p>`,
-      url: { label: "", href: ref.url || "" },
-      contentId: ref.id,
-      sourceContentId: null,
-    }));
+    resumeData.sections.references.items = references.map((ref) => {
+      // Use the existing data field which contains the properly formatted structure
+      const data = typeof ref.data === "string" ? JSON.parse(ref.data) : ref.data;
+      
+      return {
+        ...(data || {}),
+        id: createId(),
+        visible: true,
+        // Map the existing data structure to the expected fields
+        name: data.name || ref.title || "Reference",
+        description: data.description || ref.position || ref.company || "Reference",
+        summary: data.summary || `<p>${ref.description || "No description available"}</p>`,
+        url: this.ensureValidUrl(data.url || { label: "", href: ref.url || "" }),
+        contentId: ref.id,
+        sourceContentId: null,
+      };
+    });
 
     // Add profiles
     resumeData.sections.profiles.items = profiles.map((profile) => {
-      const content =
-        typeof profile.content === "string" ? JSON.parse(profile.content) : profile.content;
+      // Use the existing data field which contains the properly formatted structure
+      const data = typeof profile.data === "string" ? JSON.parse(profile.data) : profile.data;
+      const content = typeof profile.content === "string" ? JSON.parse(profile.content) : profile.content;
+      
       return {
+        ...(data || {}),
         id: createId(),
         visible: true,
-        network: profile.company || content?.network || "Social Media",
-        username: content?.username || profile.title || "Username",
-        icon: content?.icon || "",
-        url: { label: "", href: profile.url || content?.url || "" },
+        // Map the existing data structure to the expected fields
+        network: data.network || profile.company || content?.network || "Social Media",
+        username: data.username || content?.username || profile.title || "Username",
+        icon: data.icon || content?.icon || "",
+        url: this.ensureValidUrl(data.url || { label: "", href: profile.url || content?.url || "" }),
         contentId: profile.id,
         sourceContentId: null,
       };
@@ -1628,16 +1731,62 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
     // Handle basic info if present
     if (basicInfo.length > 0) {
       const info = basicInfo[0];
+      const data = typeof info.data === "string" ? JSON.parse(info.data) : info.data;
       const content = typeof info.content === "string" ? JSON.parse(info.content) : info.content;
 
-      // Update basics with content library data
-      if (content?.email) resumeData.basics.email = content.email;
-      if (content?.phone) resumeData.basics.phone = content.phone;
-      if (content?.location) resumeData.basics.location = content.location;
-      if (content?.website) resumeData.basics.url.href = content.website;
+      // Update basics with content library data (prioritize data field, then content field)
+      if (data?.email) resumeData.basics.email = data.email;
+      else if (content?.email) resumeData.basics.email = content.email;
+      
+      if (data?.phone) resumeData.basics.phone = data.phone;
+      else if (content?.phone) resumeData.basics.phone = content.phone;
+      
+      if (data?.location) resumeData.basics.location = data.location;
+      else if (content?.location) resumeData.basics.location = content.location;
+      
+      if (data?.website) resumeData.basics.url.href = data.website;
+      else if (content?.website) resumeData.basics.url.href = content.website;
     }
 
     return resumeData;
+  }
+
+  /**
+   * Ensure URL object has valid href (empty string instead of null or invalid URLs)
+   */
+  private ensureValidUrl(urlObj: any): { label: string; href: string } {
+    if (!urlObj || typeof urlObj !== 'object') {
+      return { label: "", href: "" };
+    }
+    
+    const label = urlObj.label || "";
+    let href = urlObj.href || "";
+    
+    // Convert null/undefined to empty string
+    if (!href) {
+      href = "";
+    } else {
+      // Validate that href is a proper URL or empty string
+      try {
+        // If it's an empty string, keep it
+        if (href === "") {
+          // Do nothing, keep empty string
+        } else {
+          // Try to create a URL object to validate it's a proper URL
+          new URL(href);
+          // If we get here, it's a valid URL, keep it as is
+        }
+      } catch {
+        // If URL constructor throws an error, it's not a valid URL
+        // Convert invalid URLs like "#", "javascript:", etc. to empty string
+        href = "";
+      }
+    }
+    
+    return {
+      label,
+      href
+    };
   }
 
   /**
@@ -1907,5 +2056,52 @@ CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
     }
 
     return parts.join("\n\n");
+  }
+
+  private async writeApiCallLogMarkdown({
+    jobApplicationId,
+    userId,
+    selectedContentIds,
+    llmInput,
+    llmOutput,
+    apiOutput,
+  }: {
+    jobApplicationId: string;
+    userId: string;
+    selectedContentIds?: string[];
+    llmInput: any;
+    llmOutput: any;
+    apiOutput: any;
+  }) {
+    const logsDir = path.join(process.cwd(), 'logs', 'api-calls');
+    if (!fs.existsSync(logsDir)) {
+      fs.mkdirSync(logsDir, { recursive: true });
+    }
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const filename = `resume_${jobApplicationId}_${timestamp}.md`;
+    const filePath = path.join(logsDir, filename);
+    const md = [
+      `# API Call: generateTailoredResume`,
+      `- **Timestamp:** ${new Date().toLocaleString()}`,
+      `- **Job Application ID:** \`${jobApplicationId}\``,
+      `- **User ID:** \`${userId}\``,
+      `- **Selected Content IDs:** \`${JSON.stringify(selectedContentIds)}\``,
+      '',
+      '## LLM Input',
+      '```json',
+      JSON.stringify(llmInput, null, 2),
+      '```',
+      '',
+      '## LLM Output',
+      '```json',
+      JSON.stringify(llmOutput, null, 2),
+      '```',
+      '',
+      '## API Output',
+      '```json',
+      JSON.stringify(apiOutput, null, 2),
+      '```',
+    ].join('\n');
+    fs.writeFileSync(filePath, md, 'utf-8');
   }
 }
