@@ -15,7 +15,7 @@ import type {
   URL,
 } from "@reactive-resume/schema";
 import { Education, Experience, Volunteer } from "@reactive-resume/schema";
-import { cn, isEmptyString, isUrl, sanitize } from "@reactive-resume/utils";
+import { cn, isEmptyString, isUrl, sanitize, hexToRgb } from "@reactive-resume/utils";
 import get from "lodash.get";
 import { Fragment } from "react";
 
@@ -24,118 +24,155 @@ import { Picture } from "../components/picture";
 import { useArtboardStore } from "../store/artboard";
 import type { TemplateProps } from "../types/template";
 
+
 const Header = () => {
-  const basics = useArtboardStore((state) => state.resume.basics);
+  const resume    = useArtboardStore((s) => s.resume);
+  const { basics } = resume;
+  const summary   = resume.sections.summary;
+  const profiles  = resume.sections.profiles;
+  const primaryColor = useArtboardStore((state) => state.resume.metadata.theme.primary);
+  const backgroundColor = useArtboardStore((state) => state.resume.metadata.theme.background);
+  const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
+
+  /* ---------- PHOTO PRESENCE (same predicate the Picture cmp uses) ------------ */
+  const pic = basics.picture;
+  const photoPresent = pic && isUrl(pic.url) && !pic.effects.hidden;
+  const gridCols = photoPresent ? "auto 1fr auto" : "1fr auto";
+
+  /* ---------- Helpers to handle object-vs-string URLs ------------------------- */
+  const extractHref = (u: unknown) =>
+    typeof u === "string" ? u : (typeof u === "object" && u !== null ? (u as any).href : undefined);
+
+  const extractLabel = (u: unknown) =>
+    typeof u === "string"
+      ? u
+      : typeof u === "object" && u !== null
+      ? (u as any).label ?? (u as any).href
+      : undefined;
+
+  const websiteHref  = extractHref(basics.url);
+  const websiteLabel = extractLabel(basics.url);
 
   return (
-    <div className="relative mb-6 rounded-lg bg-gradient-to-r from-slate-50 to-slate-100 p-6">
-      {/* Subtle background pattern */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="size-full bg-[radial-gradient(circle_at_1px_1px,_rgb(0_0_0)_1px,_transparent_0)] bg-[length:20px_20px]"></div>
+    <div className="relative mb-6 rounded-lg p-6" style={{ backgroundColor: hexToRgb(primaryColor, 0.08) }}>
+      <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundColor }}>
+        <div className="size-full bg-[radial-gradient(circle_at_1px_1px,_rgb(0_0_0)_1px,_transparent_0)] bg-[length:20px_20px]" />
       </div>
 
-      <div className="relative flex items-center space-x-6">
-        <Picture className="rounded-full border-4 border-white shadow-lg" />
+      <div className="relative grid gap-6" style={{ gridTemplateColumns: gridCols }}>
+       
 
+        {/* LEFT block */}
         <div className="space-y-2">
-          <div className="text-3xl font-bold text-slate-800">{basics.name}</div>
-          <div className="text-lg font-medium text-slate-600">{basics.headline}</div>
+          <h1 className="text-3xl font-bold" style={{ color: textColor }}>{basics.name}</h1>
+          {basics.headline && <h2 className="text-lg font-medium" style={{ color: primaryColor }}>{basics.headline}</h2>}
+          {summary.visible && summary.content?.trim() && (
+            <div
+              dangerouslySetInnerHTML={{ __html: summary.content }}
+              className="text-sm leading-relaxed"
+              style={{ color: textColor }}
+            />
+          )}
+        </div>
 
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-            {basics.location && (
-              <div className="flex items-center gap-x-2">
-                <i className="ph ph-bold ph-map-pin text-blue-600" />
-                <span className="text-slate-700">{basics.location}</span>
-              </div>
-            )}
-            {basics.phone && (
-              <div className="flex items-center gap-x-2">
-                <i className="ph ph-bold ph-phone text-blue-600" />
-                <a
-                  href={`tel:${basics.phone}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-slate-700 hover:text-blue-600"
-                >
-                  {basics.phone}
+        {/* MIDDLE – photo (same behaviour as Leafish) */}
+        {photoPresent && (<Picture className="place-self-center rounded-full object-cover" />)}
+        
+        {/* RIGHT block */}
+        <div className="space-y-2 text-sm justify-self-end" style={{ color: textColor }}>
+          {basics.location && (
+            <div className="flex items-center gap-2">
+              <i className="ph ph-map-pin" style={{ color: primaryColor }} />
+              <span>{basics.location}</span>
+            </div>
+          )}
+
+          {basics.phone && (
+            <div className="flex items-center gap-2">
+              <i className="ph ph-phone" style={{ color: primaryColor }} />
+              <a href={`tel:${basics.phone}`} style={{ color: textColor, textDecoration: 'underline' }}>
+                {basics.phone}
+              </a>
+            </div>
+          )}
+
+          {basics.email && (
+            <div className="flex items-center gap-2">
+              <i className="ph ph-at" style={{ color: primaryColor }} />
+              <a href={`mailto:${basics.email}`} style={{ color: textColor, textDecoration: 'underline' }}>
+                {basics.email}
+              </a>
+            </div>
+          )}
+
+          {/* personal website (string **or** {label,href}) */}
+          {websiteHref && (
+            <div className="flex items-center gap-2">
+              <i className="ph ph-globe" style={{ color: primaryColor }} />
+              <a href={websiteHref} style={{ color: textColor, textDecoration: 'underline' }} target="_blank" rel="noreferrer">
+                {websiteLabel}
+              </a>
+            </div>
+          )}
+
+          {/* custom fields untouched */}
+          {basics.customFields?.map((f) => (
+            <div key={f.id} className="flex items-center gap-2">
+              <i className={`ph ph-${f.icon || "info"}`} style={{ color: primaryColor }} />
+              {isUrl(f.value) ? (
+                <a href={f.value} style={{ color: textColor, textDecoration: 'underline' }} target="_blank" rel="noreferrer">
+                  {f.value}
                 </a>
-              </div>
-            )}
-            {basics.email && (
-              <div className="flex items-center gap-x-2">
-                <i className="ph ph-bold ph-at text-blue-600" />
-                <a
-                  href={`mailto:${basics.email}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-slate-700 hover:text-blue-600"
-                >
-                  {basics.email}
-                </a>
-              </div>
-            )}
-            <Link url={basics.url} />
-            {basics.customFields.map((item) => (
-              <div key={item.id} className="flex items-center gap-x-2">
-                <i className={cn(`ph ph-bold ph-${item.icon}`, "text-blue-600")} />
-                {isUrl(item.value) ? (
-                  <a
-                    href={item.value}
-                    target="_blank"
-                    rel="noreferrer noopener nofollow"
-                    className="text-slate-700 hover:text-blue-600"
-                  >
-                    {item.name || item.value}
-                  </a>
-                ) : (
-                  <span className="text-slate-700">
-                    {[item.name, item.value].filter(Boolean).join(": ")}
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
+              ) : (
+                <span>{[f.name, f.value].filter(Boolean).join(": ")}</span>
+              )}
+            </div>
+          ))}
+
+          {/* social profiles (url may be object) */}
+          {profiles.items
+            .filter((p) => p.visible)
+            .map((item) => {
+              const href = extractHref(item.url);
+              if (!href) return null;
+              return (
+                <div key={item.id} className="flex items-center gap-2">
+                  {isUrl(item.url.href) ? (
+                    <Link url={item.url} label={item.username} icon={<BrandIcon slug={item.icon} />} />
+                  ) : (
+                    <p className="text-slate-700">{item.username}</p>
+                  )}
+                  {!item.icon && <p className="text-sm text-slate-600">{item.network}</p>}
+                </div>
+              );
+            })}
         </div>
       </div>
     </div>
   );
 };
 
-const Summary = () => {
-  const section = useArtboardStore((state) => state.resume.sections.summary);
-
-  if (!section.visible || isEmptyString(section.content)) return null;
-
-  return (
-    <section id={section.id} className="mb-6">
-      <h4 className="mb-3 inline-block border-b-2 border-blue-600 pb-1 text-lg font-bold text-slate-800">
-        {section.name}
-      </h4>
-
-      <div
-        dangerouslySetInnerHTML={{ __html: sanitize(section.content) }}
-        style={{ columns: section.columns }}
-        className="wysiwyg leading-relaxed text-slate-700"
-      />
-    </section>
-  );
-};
-
 type RatingProps = { level: number };
 
-const Rating = ({ level }: RatingProps) => (
-  <div className="flex items-center gap-x-1">
-    {Array.from({ length: 5 }).map((_, index) => (
-      <div
-        key={index}
-        className={cn(
-          "size-2.5 rounded-full border border-blue-600",
-          level > index ? "bg-blue-600" : "bg-slate-200",
-        )}
-      />
-    ))}
-  </div>
-);
+const Rating = ({ level }: RatingProps) => {
+  const primaryColor = useArtboardStore((state) => state.resume.metadata.theme.primary);
+  return (
+    <div className="flex items-center gap-x-1">
+      {Array.from({ length: 5 }).map((_, index) => (
+        <div
+          key={index}
+          style={{
+            border: `1.5px solid ${primaryColor}`,
+            backgroundColor: level > index ? primaryColor : undefined,
+            borderRadius: '50%',
+            width: 18,
+            height: 18,
+          }}
+        />
+      ))}
+    </div>
+  );
+};
 
 type LinkProps = {
   url: URL;
@@ -146,20 +183,23 @@ type LinkProps = {
 };
 
 const Link = ({ url, icon, iconOnRight, label, className }: LinkProps) => {
+  const primaryColor = useArtboardStore((state) => state.resume.metadata.theme.primary);
+  const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
   if (!isUrl(url.href)) return null;
 
   return (
     <div className="flex items-center gap-x-2">
-      {!iconOnRight && (icon ?? <i className="ph ph-bold ph-link text-blue-600" />)}
+      {!iconOnRight && (icon ?? <i className="ph ph-bold ph-link" style={{ color: primaryColor }} />)}
       <a
         href={url.href}
         target="_blank"
         rel="noreferrer noopener nofollow"
-        className={cn("text-slate-700 hover:text-blue-600", className)}
+        className={cn(className)}
+        style={{ color: textColor, textDecoration: 'underline' }}
       >
         {label ?? (url.label || url.href)}
       </a>
-      {iconOnRight && (icon ?? <i className="ph ph-bold ph-link text-blue-600" />)}
+      {iconOnRight && (icon ?? <i className="ph ph-bold ph-link" style={{ color: primaryColor }} />)}
     </div>
   );
 };
@@ -172,16 +212,18 @@ type LinkedEntityProps = {
 };
 
 const LinkedEntity = ({ name, url, separateLinks, className }: LinkedEntityProps) => {
+  const primaryColor = useArtboardStore((state) => state.resume.metadata.theme.primary);
+  const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
   return !separateLinks && isUrl(url.href) ? (
     <Link
       url={url}
       label={name}
-      icon={<i className="ph ph-bold ph-globe text-blue-600" />}
+      icon={<i className="ph ph-bold ph-globe" style={{ color: primaryColor }} />}
       iconOnRight={true}
       className={className}
     />
   ) : (
-    <div className={className}>{name}</div>
+    <div className={className} style={{ color: textColor }}>{name}</div>
   );
 };
 
@@ -204,11 +246,16 @@ const Section = <T,>({
   summaryKey,
   keywordsKey,
 }: SectionProps<T>) => {
+  const primaryColor = useArtboardStore((state) => state.resume.metadata.theme.primary);
+  const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
   if (!section.visible || section.items.length === 0) return null;
 
   return (
     <section id={section.id} className="mb-6">
-      <h4 className="mb-4 inline-block border-b-2 border-blue-600 pb-1 text-lg font-bold text-slate-800">
+      <h4
+        className="mb-4 inline-block pb-1 text-lg font-bold"
+        style={{ borderBottom: `2px solid ${primaryColor}`, color: primaryColor }}
+      >
         {section.name}
       </h4>
 
@@ -225,7 +272,7 @@ const Section = <T,>({
             const keywords = (keywordsKey && get(item, keywordsKey, [])) as string[] | undefined;
 
             return (
-              <div key={item.id} className={cn("space-y-2", className)}>
+              <div key={item.id} className={cn("space-y-2", className)} style={{ color: textColor }}>
                 <div>
                   {children?.(item as T)}
                   {url !== undefined && section.separateLinks && <Link url={url} />}
@@ -234,7 +281,8 @@ const Section = <T,>({
                 {summary !== undefined && !isEmptyString(summary) && (
                   <div
                     dangerouslySetInnerHTML={{ __html: sanitize(summary) }}
-                    className="wysiwyg text-sm leading-relaxed text-slate-700"
+                    className="wysiwyg text-sm leading-relaxed"
+                    style={{ color: textColor }}
                   />
                 )}
 
@@ -245,7 +293,13 @@ const Section = <T,>({
                     {keywords.map((keyword, index) => (
                       <span
                         key={index}
-                        className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800"
+                        style={{
+                          backgroundColor: hexToRgb(primaryColor, 0.12),
+                          color: primaryColor,
+                          borderRadius: 9999,
+                          padding: '2px 8px',
+                          fontSize: 12,
+                        }}
                       >
                         {keyword}
                       </span>
@@ -260,24 +314,6 @@ const Section = <T,>({
   );
 };
 
-const Profiles = () => {
-  const section = useArtboardStore((state) => state.resume.sections.profiles);
-
-  return (
-    <Section<Profile> section={section}>
-      {(item) => (
-        <div>
-          {isUrl(item.url.href) ? (
-            <Link url={item.url} label={item.username} icon={<BrandIcon slug={item.icon} />} />
-          ) : (
-            <p className="text-slate-700">{item.username}</p>
-          )}
-          {!item.icon && <p className="text-sm text-slate-600">{item.network}</p>}
-        </div>
-      )}
-    </Section>
-  );
-};
 
 const Experience = () => {
   const section = useArtboardStore((state) => state.resume.sections.experience);
@@ -562,12 +598,6 @@ const Custom = ({ id }: { id: string }) => {
 
 const mapSectionToComponent = (section: SectionKey) => {
   switch (section) {
-    case "profiles": {
-      return <Profiles />;
-    }
-    case "summary": {
-      return <Summary />;
-    }
     case "experience": {
       return <Experience />;
     }
@@ -612,8 +642,9 @@ const mapSectionToComponent = (section: SectionKey) => {
 };
 
 export const NovoResume = ({ columns, isFirstPage = false }: TemplateProps) => {
+  const backgroundColor = useArtboardStore((state) => state.resume.metadata.theme.background);
   return (
-    <div className="p-custom space-y-4 bg-white">
+    <div className="p-custom space-y-4" style={{ backgroundColor }}>
       <Header />
 
       <div
