@@ -580,11 +580,16 @@ Return the complete optimized resume as a JSON object with this structure:
 
 Guidelines for 1-page optimization:
 - Prioritize most relevant experiences (limit to 2-3 work experiences)
-- Keep project descriptions concise but impactful
+- Keep project descriptions concise but impactful, limit them to 2 points in the summary max, set the showKeywords to false by default
 - Focus on skills that match job requirements
 - Remove or minimize less relevant sections
 - Use bullet points effectively
 - Ensure content fits on single page when printed
+- For interests set the showKeywords to false
+- For Languages set the showDescription to false
+- For skills set the showDescription to false
+- Remove the summary for education
+- If there are 3 experenices, limit each experience to the most 2-3 points max in the summary
 
 Return only the JSON object, no additional text.`;
 
