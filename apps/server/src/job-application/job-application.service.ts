@@ -1489,6 +1489,8 @@ export class JobApplicationService {
         date: data.date || this.formatDateRange(proj.startDate, proj.endDate) || "Recent",
         summary: data.summary || `<p>${proj.description || "No description available"}</p>`,
         keywords: data.keywords || (typeof proj.skills === "string" ? JSON.parse(proj.skills) : proj.skills || []),
+        showDescription: data.showDescription !== undefined ? data.showDescription : true,
+        showKeywords: data.showKeywords !== undefined ? data.showKeywords : true,
         url: this.ensureValidUrl(data.url),
         contentId: proj.id,
         sourceContentId: null,
@@ -1532,6 +1534,8 @@ export class JobApplicationService {
         keywords: data.keywords || (typeof skill.skills === "string"
           ? JSON.parse(skill.skills ?? "[]")
           : (skill.skills ?? [])),
+        showDescription: data.showDescription !== undefined ? data.showDescription : true,
+        showKeywords: data.showKeywords !== undefined ? data.showKeywords : true,
         contentId: skill.id,
         sourceContentId: null,
       };
@@ -1552,6 +1556,8 @@ export class JobApplicationService {
         keywords: data.keywords || (typeof skill.skills === "string"
           ? JSON.parse(skill.skills ?? "[]")
           : (skill.skills ?? [])),
+        showDescription: data.showDescription !== undefined ? data.showDescription : true,
+        showKeywords: data.showKeywords !== undefined ? data.showKeywords : true,
         contentId: skill.id,
         sourceContentId: null,
       };
@@ -1598,6 +1604,7 @@ export class JobApplicationService {
         ? new Date(pub.startDate).getFullYear().toString()
           : new Date().getFullYear().toString()),
         summary: data.summary || `<p>${pub.description || "No description available"}</p>`,
+        showDescription: data.showDescription !== undefined ? data.showDescription : true,
         url: this.ensureValidUrl(data.url || { label: "", href: pub.url || "" }),
       contentId: pub.id,
       sourceContentId: null,
@@ -1654,6 +1661,7 @@ export class JobApplicationService {
           ? `${lang.proficiencyLevel}% proficiency (Level ${convertedLevel}/5)`
           : lang.description || "No proficiency level specified"),
         level: convertedLevel,
+        showDescription: data.showDescription !== undefined ? data.showDescription : true,
         contentId: lang.id,
         sourceContentId: null,
       };
@@ -1673,6 +1681,7 @@ export class JobApplicationService {
         keywords: data.keywords || (typeof interest.keywords === "string"
           ? JSON.parse(interest.keywords)
           : interest.keywords || []),
+        showKeywords: data.showKeywords !== undefined ? data.showKeywords : true,
       contentId: interest.id,
       sourceContentId: null,
       };
@@ -1712,6 +1721,7 @@ export class JobApplicationService {
         name: data.name || ref.title || "Reference",
         description: data.description || ref.position || ref.company || "Reference",
         summary: data.summary || `<p>${ref.description || "No description available"}</p>`,
+        showDescription: data.showDescription !== undefined ? data.showDescription : true,
         url: this.ensureValidUrl(data.url || { label: "", href: ref.url || "" }),
       contentId: ref.id,
       sourceContentId: null,

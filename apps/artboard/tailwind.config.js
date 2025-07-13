@@ -13,6 +13,7 @@ module.exports = {
       colors: {
         foreground: "var(--color-foreground)",
         primary: "var(--color-primary)",
+        secondary: "var(--color-secondary)",
         background: "var(--color-background)",
       },
       lineHeight: {

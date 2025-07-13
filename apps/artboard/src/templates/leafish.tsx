@@ -224,7 +224,7 @@ const Section = <T,>({
 
                 {level !== undefined && level > 0 && <Rating level={level} />}
 
-                {keywords !== undefined && keywords.length > 0 && (
+                {keywords !== undefined && keywords.length > 0 && (item as any).showKeywords !== false && (
                   <p className="text-sm">{keywords.join(", ")}</p>
                 )}
 
@@ -322,7 +322,7 @@ const Skills = () => {
       {(item) => (
         <div>
           <div className="font-bold">{item.name}</div>
-          <div>{item.description}</div>
+          {item.description && !item.showDescription && <div>{item.description}</div>}
         </div>
       )}
     </Section>
@@ -390,7 +390,7 @@ const Languages = () => {
       {(item) => (
         <div>
           <div className="font-bold">{item.name}</div>
-          <div>{item.description}</div>
+          {item.description && !item.showDescription && <div>{item.description}</div>}
         </div>
       )}
     </Section>
@@ -411,7 +411,7 @@ const Projects = () => {
               separateLinks={section.separateLinks}
               className="font-bold"
             />
-            <div>{item.description}</div>
+            {item.description && !item.showDescription && <div>{item.description}</div>}
             <div className="font-bold">{item.date}</div>
           </div>
         </div>
@@ -433,7 +433,7 @@ const References = () => {
             separateLinks={section.separateLinks}
             className="font-bold"
           />
-          <div>{item.description}</div>
+          {item.description && !item.showDescription && <div>{item.description}</div>}
         </div>
       )}
     </Section>
@@ -459,7 +459,7 @@ const Custom = ({ id }: { id: string }) => {
               separateLinks={section.separateLinks}
               className="font-bold"
             />
-            <div>{item.description}</div>
+            {item.description && !item.showDescription && <div>{item.description}</div>}
             <div>{item.location}</div>
             <div className="font-bold">{item.date}</div>
           </div>

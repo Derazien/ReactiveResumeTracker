@@ -1,11 +1,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { t } from "@lingui/macro";
+import { t, Trans } from "@lingui/macro";
 import { X } from "@phosphor-icons/react";
 import type { CustomSection } from "@reactive-resume/schema";
 import { customSectionSchema, defaultCustomSection } from "@reactive-resume/schema";
 import {
   Badge,
   BadgeInput,
+  Checkbox,
   FormControl,
   FormDescription,
   FormField,
@@ -74,6 +75,22 @@ export const CustomSectionDialog = () => {
               <FormControl>
                 <Input {...field} />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          name="showDescription"
+          control={form.control}
+          render={({ field }) => (
+            <FormItem>
+              <div className="flex items-center gap-2">
+                <FormControl>
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                </FormControl>
+                <span><Trans>Show Description</Trans></span>
+              </div>
               <FormMessage />
             </FormItem>
           )}
@@ -165,6 +182,22 @@ export const CustomSectionDialog = () => {
                 </FormDescription>
                 <FormMessage />
               </FormItem>
+
+              <FormField
+                name="showKeywords"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex items-center gap-2">
+                      <FormControl>
+                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                      </FormControl>
+                      <span><Trans>Show Keywords</Trans></span>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <div className="flex flex-wrap items-center gap-x-2 gap-y-3">
                 <AnimatePresence>

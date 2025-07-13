@@ -6,6 +6,7 @@ import { defaultItem, itemSchema } from "../shared";
 export const languageSchema = itemSchema.extend({
   name: z.string().min(1),
   description: z.string(),
+  showDescription: z.boolean().default(true),
   level: z.coerce.number().min(0).max(5).default(1),
 });
 
@@ -17,5 +18,6 @@ export const defaultLanguage: Language = {
   ...defaultItem,
   name: "",
   description: "",
+  showDescription: true,
   level: 1,
 };

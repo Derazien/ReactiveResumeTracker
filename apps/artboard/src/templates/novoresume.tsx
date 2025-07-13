@@ -26,13 +26,17 @@ import type { TemplateProps } from "../types/template";
 
 
 const Header = () => {
-  const resume    = useArtboardStore((s) => s.resume);
+  const resume = useArtboardStore((s) => s.resume);
   const { basics } = resume;
-  const summary   = resume.sections.summary;
-  const profiles  = resume.sections.profiles;
+  const summary = resume.sections.summary;
+  const profiles = resume.sections.profiles;
   const primaryColor = useArtboardStore((state) => state.resume.metadata.theme.primary);
+  const secondaryColor = useArtboardStore((state) => state.resume.metadata.theme.secondary);
   const backgroundColor = useArtboardStore((state) => state.resume.metadata.theme.background);
   const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
+  
+  // Helper function to create muted text color
+  const getMutedTextColor = (opacity: number = 0.6) => hexToRgb(textColor, opacity);
 
   /* ---------- PHOTO PRESENCE (same predicate the Picture cmp uses) ------------ */
   const pic = basics.picture;
@@ -79,46 +83,45 @@ const Header = () => {
         {photoPresent && (<Picture className="place-self-center rounded-full object-cover" />)}
         
         {/* RIGHT block */}
-        <div className="space-y-2 text-sm justify-self-end" style={{ color: textColor }}>
+        <div className="space-y-2 text-sm justify-self-end self-center text-right" style={{ color: textColor }}>
           {basics.location && (
-            <div className="flex items-center gap-2">
-              <i className="ph ph-map-pin" style={{ color: primaryColor }} />
+            <div className="flex items-center gap-2 justify-end">
               <span>{basics.location}</span>
+              <i className="ph ph-map-pin" style={{ color: primaryColor }} />
             </div>
           )}
 
           {basics.phone && (
-            <div className="flex items-center gap-2">
-              <i className="ph ph-phone" style={{ color: primaryColor }} />
+            <div className="flex items-center gap-2 justify-end">
               <a href={`tel:${basics.phone}`} style={{ color: textColor, textDecoration: 'underline' }}>
                 {basics.phone}
               </a>
+              <i className="ph ph-phone" style={{ color: primaryColor }} />
             </div>
           )}
 
           {basics.email && (
-            <div className="flex items-center gap-2">
-              <i className="ph ph-at" style={{ color: primaryColor }} />
+            <div className="flex items-center gap-2 justify-end">
               <a href={`mailto:${basics.email}`} style={{ color: textColor, textDecoration: 'underline' }}>
                 {basics.email}
               </a>
+              <i className="ph ph-at" style={{ color: primaryColor }} />
             </div>
           )}
 
           {/* personal website (string **or** {label,href}) */}
           {websiteHref && (
-            <div className="flex items-center gap-2">
-              <i className="ph ph-globe" style={{ color: primaryColor }} />
+            <div className="flex items-center gap-2 justify-end">
               <a href={websiteHref} style={{ color: textColor, textDecoration: 'underline' }} target="_blank" rel="noreferrer">
                 {websiteLabel}
               </a>
+              <i className="ph ph-globe" style={{ color: primaryColor }} />
             </div>
           )}
 
           {/* custom fields untouched */}
           {basics.customFields?.map((f) => (
-            <div key={f.id} className="flex items-center gap-2">
-              <i className={`ph ph-${f.icon || "info"}`} style={{ color: primaryColor }} />
+            <div key={f.id} className="flex items-center gap-2 justify-end">
               {isUrl(f.value) ? (
                 <a href={f.value} style={{ color: textColor, textDecoration: 'underline' }} target="_blank" rel="noreferrer">
                   {f.value}
@@ -126,6 +129,7 @@ const Header = () => {
               ) : (
                 <span>{[f.name, f.value].filter(Boolean).join(": ")}</span>
               )}
+              <i className={`ph ph-${f.icon || "info"}`} style={{ color: primaryColor }} />
             </div>
           ))}
 
@@ -136,13 +140,13 @@ const Header = () => {
               const href = extractHref(item.url);
               if (!href) return null;
               return (
-                <div key={item.id} className="flex items-center gap-2">
+                <div key={item.id} className="flex items-center gap-2 justify-end">
                   {isUrl(item.url.href) ? (
                     <Link url={item.url} label={item.username} icon={<BrandIcon slug={item.icon} />} />
                   ) : (
-                    <p className="text-slate-700">{item.username}</p>
+                    <p style={{ color: getMutedTextColor(0.7) }}>{item.username}</p>
                   )}
-                  {!item.icon && <p className="text-sm text-slate-600">{item.network}</p>}
+                  {!item.icon && <p className="text-sm" style={{ color: getMutedTextColor(0.6) }}>{item.network}</p>}
                 </div>
               );
             })}
@@ -288,7 +292,7 @@ const Section = <T,>({
 
                 {level !== undefined && level > 0 && <Rating level={level} />}
 
-                {keywords !== undefined && keywords.length > 0 && (
+                {keywords !== undefined && keywords.length > 0 && (item as any).showKeywords !== false && (
                   <div className="flex flex-wrap gap-1">
                     {keywords.map((keyword, index) => (
                       <span
@@ -317,25 +321,28 @@ const Section = <T,>({
 
 const Experience = () => {
   const section = useArtboardStore((state) => state.resume.sections.experience);
+  const secondaryColor = useArtboardStore((state) => state.resume.metadata.theme.secondary);
+  const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
+  const getMutedTextColor = (opacity: number = 0.6) => hexToRgb(textColor, opacity);
 
   return (
     <Section<Experience> section={section} urlKey="url" summaryKey="summary">
       {(item) => (
-        <div className="border-l-4 border-blue-600 pl-4">
+        <div className="border-l-4 pl-4" style={{ borderColor: secondaryColor }}>
           <div className="mb-2 flex items-start justify-between">
             <div className="text-left">
               <LinkedEntity
                 name={item.company}
                 url={item.url}
                 separateLinks={section.separateLinks}
-                className="text-base font-bold text-slate-800"
+                className="text-base font-bold"
               />
-              <div className="font-medium text-slate-600">{item.position}</div>
+              <div className="font-medium" style={{ color: getMutedTextColor(0.6) }}>{item.position}</div>
             </div>
 
             <div className="shrink-0 text-right">
-              <div className="font-semibold text-blue-600">{item.date}</div>
-              <div className="text-sm text-slate-600">{item.location}</div>
+              <div className="font-semibold" style={{ color: secondaryColor }}>{item.date}</div>
+              <div className="text-sm" style={{ color: getMutedTextColor(0.6) }}>{item.location}</div>
             </div>
           </div>
         </div>
@@ -346,26 +353,29 @@ const Experience = () => {
 
 const Education = () => {
   const section = useArtboardStore((state) => state.resume.sections.education);
+  const secondaryColor = useArtboardStore((state) => state.resume.metadata.theme.secondary);
+  const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
+  const getMutedTextColor = (opacity: number = 0.6) => hexToRgb(textColor, opacity);
 
   return (
     <Section<Education> section={section} urlKey="url" summaryKey="summary">
       {(item) => (
-        <div className="border-l-4 border-blue-600 pl-4">
+        <div className="border-l-4 pl-4" style={{ borderColor: secondaryColor }}>
           <div className="mb-2 flex items-start justify-between">
             <div className="text-left">
               <LinkedEntity
                 name={item.institution}
                 url={item.url}
                 separateLinks={section.separateLinks}
-                className="text-base font-bold text-slate-800"
+                className="text-base font-bold"
               />
-              <div className="font-medium text-slate-600">{item.area}</div>
-              {item.score && <div className="text-sm text-slate-600">{item.score}</div>}
+              <div className="font-medium" style={{ color: getMutedTextColor(0.6) }}>{item.area}</div>
+              {item.score && <div className="text-sm" style={{ color: getMutedTextColor(0.6) }}>{item.score}</div>}
             </div>
 
             <div className="shrink-0 text-right">
-              <div className="font-semibold text-blue-600">{item.date}</div>
-              <div className="text-sm text-slate-600">{item.studyType}</div>
+              <div className="font-semibold" style={{ color: secondaryColor }}>{item.date}</div>
+              <div className="text-sm" style={{ color: getMutedTextColor(0.6) }}>{item.studyType}</div>
             </div>
           </div>
         </div>
@@ -376,23 +386,26 @@ const Education = () => {
 
 const Awards = () => {
   const section = useArtboardStore((state) => state.resume.sections.awards);
+  const secondaryColor = useArtboardStore((state) => state.resume.metadata.theme.secondary);
+  const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
+  const getMutedTextColor = (opacity: number = 0.6) => hexToRgb(textColor, opacity);
 
   return (
     <Section<Award> section={section} urlKey="url" summaryKey="summary">
       {(item) => (
         <div className="flex items-start justify-between">
           <div className="text-left">
-            <div className="font-bold text-slate-800">{item.title}</div>
+            <div className="font-bold" style={{ color: textColor }}>{item.title}</div>
             <LinkedEntity
               name={item.awarder}
               url={item.url}
               separateLinks={section.separateLinks}
-              className="text-slate-600"
+              className=""
             />
           </div>
 
           <div className="shrink-0 text-right">
-            <div className="font-semibold text-blue-600">{item.date}</div>
+            <div className="font-semibold" style={{ color: secondaryColor }}>{item.date}</div>
           </div>
         </div>
       )}
@@ -402,23 +415,26 @@ const Awards = () => {
 
 const Certifications = () => {
   const section = useArtboardStore((state) => state.resume.sections.certifications);
+  const secondaryColor = useArtboardStore((state) => state.resume.metadata.theme.secondary);
+  const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
+  const getMutedTextColor = (opacity: number = 0.6) => hexToRgb(textColor, opacity);
 
   return (
     <Section<Certification> section={section} urlKey="url" summaryKey="summary">
       {(item) => (
         <div className="flex items-start justify-between">
           <div className="text-left">
-            <div className="font-bold text-slate-800">{item.name}</div>
+            <div className="font-bold" style={{ color: textColor }}>{item.name}</div>
             <LinkedEntity
               name={item.issuer}
               url={item.url}
               separateLinks={section.separateLinks}
-              className="text-slate-600"
+              className=""
             />
           </div>
 
           <div className="shrink-0 text-right">
-            <div className="font-semibold text-blue-600">{item.date}</div>
+            <div className="font-semibold" style={{ color: secondaryColor }}>{item.date}</div>
           </div>
         </div>
       )}
@@ -428,13 +444,18 @@ const Certifications = () => {
 
 const Skills = () => {
   const section = useArtboardStore((state) => state.resume.sections.skills);
+  const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
+  const primaryColor = useArtboardStore((state) => state.resume.metadata.theme.primary);
+  const getMutedTextColor = (opacity: number = 0.6) => hexToRgb(textColor, opacity);
 
   return (
     <Section<Skill> section={section} levelKey="level" keywordsKey="keywords">
       {(item) => (
         <div>
-          <div className="font-bold text-slate-800">{item.name}</div>
-          {item.description && <div className="text-sm text-slate-600">{item.description}</div>}
+          <div className="font-bold" style={{ color: textColor }}>{item.name}</div>
+          {item.description && item.showDescription !== false && (
+            <div className="text-sm" style={{ color: getMutedTextColor(0.6) }}>{item.description}</div>
+          )}
         </div>
       )}
     </Section>
@@ -443,16 +464,20 @@ const Skills = () => {
 
 const Interests = () => {
   const section = useArtboardStore((state) => state.resume.sections.interests);
+  const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
 
   return (
     <Section<Interest> section={section} keywordsKey="keywords" className="space-y-1">
-      {(item) => <div className="font-bold text-slate-800">{item.name}</div>}
+      {(item) => <div className="font-bold" style={{ color: textColor }}>{item.name}</div>}
     </Section>
   );
 };
 
 const Publications = () => {
   const section = useArtboardStore((state) => state.resume.sections.publications);
+  const secondaryColor = useArtboardStore((state) => state.resume.metadata.theme.secondary);
+  const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
+  const getMutedTextColor = (opacity: number = 0.6) => hexToRgb(textColor, opacity);
 
   return (
     <Section<Publication> section={section} urlKey="url" summaryKey="summary">
@@ -463,13 +488,13 @@ const Publications = () => {
               name={item.name}
               url={item.url}
               separateLinks={section.separateLinks}
-              className="font-bold text-slate-800"
+              className="font-bold"
             />
-            <div className="text-slate-600">{item.publisher}</div>
+            <div style={{ color: getMutedTextColor(0.6) }}>{item.publisher}</div>
           </div>
 
           <div className="shrink-0 text-right">
-            <div className="font-semibold text-blue-600">{item.date}</div>
+            <div className="font-semibold" style={{ color: secondaryColor }}>{item.date}</div>
           </div>
         </div>
       )}
@@ -479,6 +504,9 @@ const Publications = () => {
 
 const Volunteer = () => {
   const section = useArtboardStore((state) => state.resume.sections.volunteer);
+  const secondaryColor = useArtboardStore((state) => state.resume.metadata.theme.secondary);
+  const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
+  const getMutedTextColor = (opacity: number = 0.6) => hexToRgb(textColor, opacity);
 
   return (
     <Section<Volunteer> section={section} urlKey="url" summaryKey="summary">
@@ -489,14 +517,14 @@ const Volunteer = () => {
               name={item.organization}
               url={item.url}
               separateLinks={section.separateLinks}
-              className="font-bold text-slate-800"
+              className="font-bold"
             />
-            <div className="text-slate-600">{item.position}</div>
+            <div style={{ color: getMutedTextColor(0.6) }}>{item.position}</div>
           </div>
 
           <div className="shrink-0 text-right">
-            <div className="font-semibold text-blue-600">{item.date}</div>
-            <div className="text-sm text-slate-600">{item.location}</div>
+            <div className="font-semibold" style={{ color: secondaryColor }}>{item.date}</div>
+            <div className="text-sm" style={{ color: getMutedTextColor(0.6) }}>{item.location}</div>
           </div>
         </div>
       )}
@@ -506,13 +534,15 @@ const Volunteer = () => {
 
 const Languages = () => {
   const section = useArtboardStore((state) => state.resume.sections.languages);
+  const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
+  const getMutedTextColor = (opacity: number = 0.6) => hexToRgb(textColor, opacity);
 
   return (
     <Section<Language> section={section} levelKey="level">
       {(item) => (
         <div className="space-y-1">
-          <div className="font-bold text-slate-800">{item.name}</div>
-          {item.description && <div className="text-sm text-slate-600">{item.description}</div>}
+          <div className="font-bold" style={{ color: textColor }}>{item.name}</div>
+          {item.description && <div className="text-sm" style={{ color: getMutedTextColor(0.6) }}>{item.description}</div>}
         </div>
       )}
     </Section>
@@ -521,6 +551,9 @@ const Languages = () => {
 
 const Projects = () => {
   const section = useArtboardStore((state) => state.resume.sections.projects);
+  const secondaryColor = useArtboardStore((state) => state.resume.metadata.theme.secondary);
+  const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
+  const getMutedTextColor = (opacity: number = 0.6) => hexToRgb(textColor, opacity);
 
   return (
     <Section<Project> section={section} urlKey="url" summaryKey="summary" keywordsKey="keywords">
@@ -531,13 +564,13 @@ const Projects = () => {
               name={item.name}
               url={item.url}
               separateLinks={section.separateLinks}
-              className="font-bold text-slate-800"
+              className="font-bold"
             />
-            <div className="text-sm text-slate-600">{item.description}</div>
+            <div className="text-sm" style={{ color: getMutedTextColor(0.6) }}>{item.description}</div>
           </div>
 
           <div className="shrink-0 text-right">
-            <div className="font-semibold text-blue-600">{item.date}</div>
+            <div className="font-semibold" style={{ color: secondaryColor }}>{item.date}</div>
           </div>
         </div>
       )}
@@ -547,6 +580,8 @@ const Projects = () => {
 
 const References = () => {
   const section = useArtboardStore((state) => state.resume.sections.references);
+  const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
+  const getMutedTextColor = (opacity: number = 0.6) => hexToRgb(textColor, opacity);
 
   return (
     <Section<Reference> section={section} urlKey="url" summaryKey="summary">
@@ -556,9 +591,9 @@ const References = () => {
             name={item.name}
             url={item.url}
             separateLinks={section.separateLinks}
-            className="font-bold text-slate-800"
+            className="font-bold"
           />
-          <div className="text-sm text-slate-600">{item.description}</div>
+          <div className="text-sm" style={{ color: getMutedTextColor(0.6) }}>{item.description}</div>
         </div>
       )}
     </Section>
@@ -567,6 +602,9 @@ const References = () => {
 
 const Custom = ({ id }: { id: string }) => {
   const section = useArtboardStore((state) => state.resume.sections.custom[id]);
+  const secondaryColor = useArtboardStore((state) => state.resume.metadata.theme.secondary);
+  const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
+  const getMutedTextColor = (opacity: number = 0.6) => hexToRgb(textColor, opacity);
 
   return (
     <Section<CustomSection>
@@ -582,13 +620,13 @@ const Custom = ({ id }: { id: string }) => {
               name={item.name}
               url={item.url}
               separateLinks={section.separateLinks}
-              className="font-bold text-slate-800"
+              className="font-bold"
             />
-            <div className="text-sm text-slate-600">{item.description}</div>
+            <div className="text-sm" style={{ color: getMutedTextColor(0.6) }}>{item.description}</div>
           </div>
 
           <div className="shrink-0 text-right">
-            <div className="font-semibold text-blue-600">{item.date}</div>
+            <div className="font-semibold" style={{ color: secondaryColor }}>{item.date}</div>
           </div>
         </div>
       )}

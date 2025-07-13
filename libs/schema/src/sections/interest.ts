@@ -6,6 +6,7 @@ import { defaultItem, itemSchema } from "../shared";
 export const interestSchema = itemSchema.extend({
   name: z.string().min(1),
   keywords: z.array(z.string()).default([]),
+  showKeywords: z.boolean().default(true),
 });
 
 // Type
@@ -16,4 +17,5 @@ export const defaultInterest: Interest = {
   ...defaultItem,
   name: "",
   keywords: [],
+  showKeywords: true,
 };

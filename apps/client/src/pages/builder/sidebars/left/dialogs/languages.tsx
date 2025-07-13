@@ -1,7 +1,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { t } from "@lingui/macro";
+import { t, Trans } from "@lingui/macro";
 import { defaultLanguage, languageSchema } from "@reactive-resume/schema";
 import {
+  Checkbox,
   FormControl,
   FormField,
   FormItem,
@@ -51,6 +52,22 @@ export const LanguagesDialog = () => {
               <FormControl>
                 <Input {...field} />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          name="showDescription"
+          control={form.control}
+          render={({ field }) => (
+            <FormItem>
+              <div className="flex items-center gap-2">
+                <FormControl>
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                </FormControl>
+                <span><Trans>Show Description</Trans></span>
+              </div>
               <FormMessage />
             </FormItem>
           )}

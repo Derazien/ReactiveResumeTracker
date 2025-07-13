@@ -70,6 +70,36 @@ export const ThemeSection = () => {
         </div>
 
         <div className="space-y-1.5">
+          <Label htmlFor="theme.secondary">{t`Secondary Color`}</Label>
+          <div className="relative">
+            <Popover>
+              <PopoverTrigger asChild>
+                <div
+                  className="absolute inset-y-0 left-3 my-2.5 size-4 cursor-pointer rounded-full ring-primary ring-offset-2 ring-offset-background transition-shadow hover:ring-1"
+                  style={{ backgroundColor: theme.secondary }}
+                />
+              </PopoverTrigger>
+              <PopoverContent className="rounded-lg border-none bg-transparent p-0">
+                <HexColorPicker
+                  color={theme.secondary}
+                  onChange={(color) => {
+                    setValue("metadata.theme.secondary", color);
+                  }}
+                />
+              </PopoverContent>
+            </Popover>
+            <Input
+              id="theme.secondary"
+              value={theme.secondary}
+              className="pl-10"
+              onChange={(event) => {
+                setValue("metadata.theme.secondary", event.target.value);
+              }}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-1.5">
           <Label htmlFor="theme.primary">{t`Background Color`}</Label>
           <div className="relative">
             <Popover>

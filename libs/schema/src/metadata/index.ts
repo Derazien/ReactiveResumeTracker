@@ -27,6 +27,7 @@ export const metadataSchema = z.object({
     background: z.string().default("#ffffff"),
     text: z.string().default("#000000"),
     primary: z.string().default("#dc2626"),
+    secondary: z.string().default("#3b82f6"),
   }),
   typography: z.object({
     font: z.object({
@@ -65,6 +66,7 @@ export const defaultMetadata: Metadata = {
     background: "#ffffff",
     text: "#000000",
     primary: "#dc2626",
+    secondary: "#3b82f6",
   },
   typography: {
     font: {

@@ -1,10 +1,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { t } from "@lingui/macro";
+import { t, Trans } from "@lingui/macro";
 import { X } from "@phosphor-icons/react";
 import { defaultInterest, interestSchema } from "@reactive-resume/schema";
 import {
   Badge,
   BadgeInput,
+  Checkbox,
   FormControl,
   FormDescription,
   FormField,
@@ -69,6 +70,22 @@ export const InterestsDialog = () => {
                 </FormDescription>
                 <FormMessage />
               </FormItem>
+
+              <FormField
+                name="showKeywords"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex items-center gap-2">
+                      <FormControl>
+                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                      </FormControl>
+                      <span><Trans>Show Keywords</Trans></span>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <div className="flex flex-wrap items-center gap-x-2 gap-y-3">
                 <AnimatePresence>

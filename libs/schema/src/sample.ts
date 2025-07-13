@@ -202,10 +202,12 @@ export const sampleResume: ResumeData = {
           visible: true,
           name: "E-Commerce Platform",
           description: "Project Lead",
+          showDescription: true,
           date: "",
           summary:
             "<p>Led the development of a full-stack e-commerce platform, improving sales conversion by 25%.</p>",
           keywords: [],
+          showKeywords: true,
           url: {
             label: "",
             href: "",
@@ -216,10 +218,12 @@ export const sampleResume: ResumeData = {
           visible: true,
           name: "Interactive Dashboard",
           description: "Frontend Developer",
+          showDescription: true,
           date: "",
           summary:
             "<p>Created an interactive analytics dashboard for a SaaS application, enhancing data visualization for clients.</p>",
           keywords: [],
+          showKeywords: true,
           url: {
             label: "",
             href: "",
@@ -247,6 +251,7 @@ export const sampleResume: ResumeData = {
           visible: true,
           name: "Available upon request",
           description: "",
+          showDescription: true,
           summary: "",
           url: {
             label: "",
@@ -269,6 +274,8 @@ export const sampleResume: ResumeData = {
           description: "Advanced",
           level: 0,
           keywords: ["HTML5", "JavaScript", "PHP", "Python"],
+          showDescription: true,
+          showKeywords: true,
         },
         {
           id: "r8c3y47vykausqrgmzwg5pur",
@@ -277,6 +284,8 @@ export const sampleResume: ResumeData = {
           description: "Intermediate",
           level: 0,
           keywords: ["React.js", "Angular", "Vue.js", "Laravel", "Django"],
+          showDescription: true,
+          showKeywords: true,
         },
         {
           id: "b5l75aseexqv17quvqgh73fe",
@@ -285,6 +294,8 @@ export const sampleResume: ResumeData = {
           description: "Intermediate",
           level: 0,
           keywords: ["Webpack", "Git", "Jenkins", "Docker", "JIRA"],
+          showDescription: true,
+          showKeywords: true,
         },
       ],
     },
@@ -323,6 +334,7 @@ export const sampleResume: ResumeData = {
       background: "#ffffff",
       text: "#000000",
       primary: "#ca8a04",
+      secondary: "#3b82f6",
     },
     typography: {
       font: {
