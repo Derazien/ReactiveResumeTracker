@@ -16,6 +16,10 @@ module.exports = {
         secondary: "var(--color-secondary)",
         background: "var(--color-background)",
       },
+      gridTemplateColumns: {
+        '10': 'repeat(10, minmax(0, 1fr))',
+        '20': 'repeat(20, minmax(0, 1fr))',
+      },
       lineHeight: {
         tight: "calc(var(--line-height) - 0.5)",
         snug: "calc(var(--line-height) - 0.3)",
@@ -24,6 +28,14 @@ module.exports = {
         loose: "calc(var(--line-height) + 0.5)",
       },
       spacing: { custom: "var(--margin)" },
+      fontSize: {
+        body: ["1rem"], // 16 px
+        meta: ["0.875rem"], // 14 px
+        chip: ["0.75rem"], // 12 px
+        title: ["1.375rem"], // 22 px
+        section: ["1.75rem", { lineHeight: "2rem" }], // 28 px
+        h1: ["2.875rem", { lineHeight: "3rem" }], // 46 px
+      },
       typography: () => ({
         foreground: {
           css: {

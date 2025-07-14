@@ -14,9 +14,9 @@ export const basicsSchema = z.object({
   customFields: z.array(customFieldSchema),
   picture: z.object({
     url: z.string(),
-    size: z.number().default(64),
+    size: z.number().default(90),
     aspectRatio: z.number().default(1),
-    borderRadius: z.number().default(0),
+    borderRadius: z.number().default(9999),
     effects: z.object({
       hidden: z.boolean().default(false),
       border: z.boolean().default(false),
@@ -39,9 +39,9 @@ export const defaultBasics: Basics = {
   customFields: [],
   picture: {
     url: "",
-    size: 64,
+    size: 90,
     aspectRatio: 1,
-    borderRadius: 0,
+    borderRadius: 9999,
     effects: {
       hidden: false,
       border: false,

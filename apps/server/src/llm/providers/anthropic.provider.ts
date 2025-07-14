@@ -537,17 +537,19 @@ CRITICAL FORMATTING REQUIREMENTS FOR EXPERIENCE, PROJECTS, AND VOLUNTEER SECTION
 - Each achievement/description should be formatted as: <li>Key result in <strong>bold</strong> followed by supporting details</li>
 - Use <strong> tags to highlight quantifiable achievements, key skills, and important results
 - Example format: <li>Increased team productivity by <strong>25%</strong> through implementation of automated testing</li>
-- Keep bullet points concise but impactful
+- Keep bullet points detailed but concise and impactful.
 - Do NOT apply this formatting to other sections (education, skills, etc.)
+- Always make sure to have clean punctuation. Periods at the end of the bullet points, commas, etc.
+- No need to highlight a tech stack section for each experience, the tech stack would be mentioned within the bullet points and the skills section
 
 CRITICAL REQUIREMENTS: Return the COMPLETE resume JSON structure with all optimizations applied. You MUST:
 1. Keep resume to 1 PAGE maximum (limit content strategically)
 2. Optimize section order for job relevance
 3. Enhance descriptions with job-relevant keywords
 4. Add/modify skills to match job requirements
-5. Improve professional summary for job fit, only 2 lines maximum with information given from existing summaries. 1 line max for the immigration or highlighted status, 1 line max for catchy experience description.
+5. Improve professional summary for job fit, only 2 lines maximum with information given from existing summaries. 1 line max for the immigration or highlighted status, 1 line max for catchy experience description. 120 characters max for the summary.
 6. Maintain original JSON structure exactly - especially metadata.layout
-7. Do not create new Projects or rename their names, only a small addition or tweak to the titles, and tailor the summary of the projectto highlight the most relevant skills and experiences for the job.
+7. Do not create new Projects or rename their names, only a small addition or tweak to the titles, and tailor the summary of the projectto highlight the most relevant skills and experiences for the job. keep it 
 8. Do not create new Experiences, you may tweak the titles slightly, and tailor the summary of the experience to highlight the most relevant skills and experiences for the job. No need to add the job title to the summary 
 9. For basics.headline make sure it's relevent to the job description but relative to the user's experience, you may add 2 titles seperated by a "|" for example "Lead Software Engineer | Full Stack Developer".
 
@@ -579,8 +581,7 @@ Return the complete optimized resume as a JSON object with this structure:
 }
 
 Guidelines for 1-page optimization:
-- Prioritize most relevant experiences (limit to 2-3 work experiences)
-- Keep project descriptions concise but impactful, limit them to 2 points in the summary max, set the showKeywords to false by default
+- Keep project descriptions, limit them to 2 points in the summary max, 
 - Focus on skills that match job requirements
 - Remove or minimize less relevant sections
 - Use bullet points effectively
@@ -589,7 +590,9 @@ Guidelines for 1-page optimization:
 - For Languages set the showDescription to false
 - For skills set the showDescription to false
 - Remove the summary for education
-- If there are 3 experenices, limit each experience to the most 2-3 points max in the summary
+- Keep the project summary concise but impactful, 2 bullet points max, and keep them short to one line max (100 characters or so). Set the showKeywords to false by default
+- Limit the total count of all summary in the bullet points of all experiences combined to 2650 characters max.
+- do not make up sourceContentId or contentId, if its a new item added leave them as null
 
 Return only the JSON object, no additional text.`;
 

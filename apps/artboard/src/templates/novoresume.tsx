@@ -3,9 +3,7 @@ import type {
   Certification,
   CustomSection,
   CustomSectionGroup,
-  Interest,
   Language,
-  Profile,
   Project,
   Publication,
   Reference,
@@ -17,7 +15,7 @@ import type {
 import { Education, Experience, Volunteer } from "@reactive-resume/schema";
 import { cn, isEmptyString, isUrl, sanitize, hexToRgb } from "@reactive-resume/utils";
 import get from "lodash.get";
-import { Fragment } from "react";
+import React from "react";
 
 import { BrandIcon } from "../components/brand-icon";
 import { Picture } from "../components/picture";
@@ -30,6 +28,7 @@ const Header = () => {
   const { basics } = resume;
   const summary = resume.sections.summary;
   const profiles = resume.sections.profiles;
+  // Swap primary and secondary color assignments
   const primaryColor = useArtboardStore((state) => state.resume.metadata.theme.primary);
   const secondaryColor = useArtboardStore((state) => state.resume.metadata.theme.secondary);
   const backgroundColor = useArtboardStore((state) => state.resume.metadata.theme.background);
@@ -58,7 +57,9 @@ const Header = () => {
   const websiteLabel = extractLabel(basics.url);
 
   return (
-    <div className="relative mb-6 rounded-lg p-6" style={{ backgroundColor: hexToRgb(primaryColor, 0.08) }}>
+    <div className="relative rounded-lg margin-header" style={{ backgroundColor: hexToRgb(primaryColor, 0.08) }}>
+
+      
       <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundColor }}>
         <div className="size-full bg-[radial-gradient(circle_at_1px_1px,_rgb(0_0_0)_1px,_transparent_0)] bg-[length:20px_20px]" />
       </div>
@@ -68,12 +69,26 @@ const Header = () => {
 
         {/* LEFT block */}
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold" style={{ color: textColor }}>{basics.name}</h1>
-          {basics.headline && <h2 className="text-lg font-medium" style={{ color: primaryColor }}>{basics.headline}</h2>}
+          {/* Name and headline container with accent block */}
+          <div className="relative">
+            {/* Accent block aligned to name and headline only */}
+            <div 
+              className="absolute left-0 pointer-events-none" 
+              style={{ 
+                backgroundColor: primaryColor,
+                width: '1rem',
+                top: 0,
+                bottom: 0,
+                transform: 'translateX(calc(-1 * var(--margin) * 2))'
+              }} 
+            />
+            <h1 className="text-h1" style={{ color: primaryColor }}>{basics.name}</h1>
+            {basics.headline && <h2 className="text-title" style={{ color: secondaryColor }}>{basics.headline}</h2>}
+          </div>
           {summary.visible && summary.content?.trim() && (
             <div
               dangerouslySetInnerHTML={{ __html: summary.content }}
-              className="text-sm leading-relaxed"
+              className="text-body"
               style={{ color: textColor }}
             />
           )}
@@ -152,25 +167,27 @@ const Header = () => {
             })}
         </div>
       </div>
+      <div style={{ width: '100%', height: '0.2px', background: primaryColor, marginTop: '1rem', position: 'absolute', left: 0, bottom: 0 }} />
     </div>
   );
 };
 
-type RatingProps = { level: number };
+type RatingProps = { level: number; size?: string };
 
-const Rating = ({ level }: RatingProps) => {
-  const primaryColor = useArtboardStore((state) => state.resume.metadata.theme.primary);
+const Rating = ({ level, size = '1em' }: RatingProps) => {
+  const color = useArtboardStore((state) => state.resume.metadata.theme.secondary);
   return (
-    <div className="flex items-center gap-x-1">
+    <div className="flex items-center gap-x-1" style={{ minWidth: 0 }}>
       {Array.from({ length: 5 }).map((_, index) => (
         <div
           key={index}
           style={{
-            border: `1.5px solid ${primaryColor}`,
-            backgroundColor: level > index ? primaryColor : undefined,
+            border: `1.5px solid ${color}`,
+            backgroundColor: level > index ? color : undefined,
             borderRadius: '50%',
-            width: 18,
-            height: 18,
+            width: size,
+            height: size,
+            flexShrink: 0,
           }}
         />
       ))}
@@ -213,9 +230,10 @@ type LinkedEntityProps = {
   url: URL;
   separateLinks: boolean;
   className?: string;
+  style?: React.CSSProperties;
 };
 
-const LinkedEntity = ({ name, url, separateLinks, className }: LinkedEntityProps) => {
+const LinkedEntity = ({ name, url, separateLinks, className, style }: LinkedEntityProps) => {
   const primaryColor = useArtboardStore((state) => state.resume.metadata.theme.primary);
   const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
   return !separateLinks && isUrl(url.href) ? (
@@ -227,7 +245,9 @@ const LinkedEntity = ({ name, url, separateLinks, className }: LinkedEntityProps
       className={className}
     />
   ) : (
-    <div className={className} style={{ color: textColor }}>{name}</div>
+    <div className={className} style={style ?? { color: textColor }}>
+      {name}
+    </div>
   );
 };
 
@@ -251,20 +271,21 @@ const Section = <T,>({
   keywordsKey,
 }: SectionProps<T>) => {
   const primaryColor = useArtboardStore((state) => state.resume.metadata.theme.primary);
+  const secondaryColor = useArtboardStore((state) => state.resume.metadata.theme.secondary);
   const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
+  const backgroundColor = useArtboardStore((state) => state.resume.metadata.theme.background);
   if (!section.visible || section.items.length === 0) return null;
 
   return (
-    <section id={section.id} className="mb-6">
+    <section id={section.id} className="grid">
       <h4
-        className="mb-4 inline-block pb-1 text-lg font-bold"
-        style={{ borderBottom: `2px solid ${primaryColor}`, color: primaryColor }}
+        className="mb-2 text-section font-bold"
+        style={{ color: primaryColor, textTransform: 'uppercase' }}
       >
         {section.name}
       </h4>
-
       <div
-        className="grid gap-x-6 gap-y-4"
+        className="grid gap-x-4 gap-y-2"
         style={{ gridTemplateColumns: `repeat(${section.columns}, 1fr)` }}
       >
         {section.items
@@ -276,33 +297,28 @@ const Section = <T,>({
             const keywords = (keywordsKey && get(item, keywordsKey, [])) as string[] | undefined;
 
             return (
-              <div key={item.id} className={cn("space-y-2", className)} style={{ color: textColor }}>
-                <div>
+              <div key={item.id} className={cn("space-y-1", className)} style={{ color: textColor }}>
+                <div style={{ flex: 1 }}>
                   {children?.(item as T)}
                   {url !== undefined && section.separateLinks && <Link url={url} />}
-                </div>
-
                 {summary !== undefined && !isEmptyString(summary) && (
                   <div
                     dangerouslySetInnerHTML={{ __html: sanitize(summary) }}
-                    className="wysiwyg text-sm leading-relaxed"
+                      className="wysiwyg text-body leading-relaxed custom-bullets"
                     style={{ color: textColor }}
                   />
                 )}
-
-                {level !== undefined && level > 0 && <Rating level={level} />}
-
                 {keywords !== undefined && keywords.length > 0 && (item as any).showKeywords !== false && (
-                  <div className="flex flex-wrap gap-1">
+                    <div className="flex flex-wrap gap-1 mt-1">
                     {keywords.map((keyword, index) => (
                       <span
                         key={index}
+                          className="text-chip"
                         style={{
-                          backgroundColor: hexToRgb(primaryColor, 0.12),
-                          color: primaryColor,
+                          backgroundColor: hexToRgb(primaryColor, 0.5),
+                          color: backgroundColor,
                           borderRadius: 9999,
                           padding: '2px 8px',
-                          fontSize: 12,
                         }}
                       >
                         {keyword}
@@ -310,6 +326,7 @@ const Section = <T,>({
                     ))}
                   </div>
                 )}
+                </div>
               </div>
             );
           })}
@@ -323,26 +340,44 @@ const Experience = () => {
   const section = useArtboardStore((state) => state.resume.sections.experience);
   const secondaryColor = useArtboardStore((state) => state.resume.metadata.theme.secondary);
   const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
-  const getMutedTextColor = (opacity: number = 0.6) => hexToRgb(textColor, opacity);
+  const getMutedTextColor = (opacity = 0.6) => hexToRgb(textColor, opacity);
 
   return (
-    <Section<Experience> section={section} urlKey="url" summaryKey="summary">
+    <Section<Experience> section={section} summaryKey="summary">
       {(item) => (
-        <div className="border-l-4 pl-4" style={{ borderColor: secondaryColor }}>
-          <div className="mb-2 flex items-start justify-between">
-            <div className="text-left">
+        <div className="relative flex items-start">
+          {/* Block accent - positioned outside left margin, centered and aligned to content height */}
+          <div
+            className="absolute pointer-events-none"
+            style={{
+              left: 'calc(-1 * var(--margin) * 2 + 0.25rem)', // Center the 8px block in 1rem space
+              top: 0,
+              bottom: 0,
+              width: 8,
+              backgroundColor: secondaryColor,
+              borderRadius: 4,
+            }}
+          />
+          <div className="flex-1">
+            <div className="text-title font-bold">{item.position}</div>
               <LinkedEntity
                 name={item.company}
                 url={item.url}
                 separateLinks={section.separateLinks}
-                className="text-base font-bold"
+              style={{ color: getMutedTextColor(0.6) }}
+              className="text-title font-medium"
               />
-              <div className="font-medium" style={{ color: getMutedTextColor(0.6) }}>{item.position}</div>
+            <div className="flex items-start justify-between">
+              <div className="text-left">
+                <div className="text-meta italic" style={{ color: secondaryColor }}>{item.date}</div>
+              </div>
+              <div className="text-right">
+                {item.location && (
+                  <div className="text-meta italic" style={{ color: secondaryColor }}>
+                    {item.location}
+                  </div>
+                )}
             </div>
-
-            <div className="shrink-0 text-right">
-              <div className="font-semibold" style={{ color: secondaryColor }}>{item.date}</div>
-              <div className="text-sm" style={{ color: getMutedTextColor(0.6) }}>{item.location}</div>
             </div>
           </div>
         </div>
@@ -355,27 +390,51 @@ const Education = () => {
   const section = useArtboardStore((state) => state.resume.sections.education);
   const secondaryColor = useArtboardStore((state) => state.resume.metadata.theme.secondary);
   const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
-  const getMutedTextColor = (opacity: number = 0.6) => hexToRgb(textColor, opacity);
+  const getMutedTextColor = (opacity = 0.6) => hexToRgb(textColor, opacity);
 
   return (
     <Section<Education> section={section} urlKey="url" summaryKey="summary">
       {(item) => (
-        <div className="border-l-4 pl-4" style={{ borderColor: secondaryColor }}>
-          <div className="mb-2 flex items-start justify-between">
-            <div className="text-left">
+        <div className="relative">
+          {/* Left border - positioned outside left margin, centered */}
+          <div
+            className="absolute pointer-events-none"
+            style={{
+              left: 'calc(-1 * var(--margin) * 2 + 0.375rem)', // Center the 4px border in 1rem space
+              top: 0,
+              bottom: 0,
+              width: 4,
+              backgroundColor: secondaryColor,
+            }}
+          />
+          <div className="mb-2">
+            <div className="text-title font-bold">{item.area}</div>
+            <div className="flex items-center gap-1">
               <LinkedEntity
                 name={item.institution}
                 url={item.url}
                 separateLinks={section.separateLinks}
-                className="text-base font-bold"
+                className="text-sm"
+                style={{ color: getMutedTextColor(0.6) }}
               />
-              <div className="font-medium" style={{ color: getMutedTextColor(0.6) }}>{item.area}</div>
-              {item.score && <div className="text-sm" style={{ color: getMutedTextColor(0.6) }}>{item.score}</div>}
+              {item.studyType && (
+                <>
+                  <span className="text-sm" style={{ color: getMutedTextColor(0.6) }}>-</span>
+                  <span className="text-sm" style={{ color: getMutedTextColor(0.6) }}>{item.studyType}</span>
+                </>
+              )}
             </div>
-
-            <div className="shrink-0 text-right">
-              <div className="font-semibold" style={{ color: secondaryColor }}>{item.date}</div>
-              <div className="text-sm" style={{ color: getMutedTextColor(0.6) }}>{item.studyType}</div>
+            <div className="flex items-start justify-between">
+              <div className="text-left">
+                <div className="text-meta italic" style={{ color: secondaryColor }}>{item.date}</div>
+              </div>
+              <div className="text-right">
+                {item.score && (
+                  <div className="text-meta italic" style={{ color: secondaryColor }}>
+                    {item.score}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -388,12 +447,12 @@ const Awards = () => {
   const section = useArtboardStore((state) => state.resume.sections.awards);
   const secondaryColor = useArtboardStore((state) => state.resume.metadata.theme.secondary);
   const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
-  const getMutedTextColor = (opacity: number = 0.6) => hexToRgb(textColor, opacity);
+  const getMutedTextColor = (opacity = 0.6) => hexToRgb(textColor, opacity);
 
   return (
     <Section<Award> section={section} urlKey="url" summaryKey="summary">
       {(item) => (
-        <div className="flex items-start justify-between">
+        <div className="flex items-start justify-between group-[.sidebar]:flex-col group-[.sidebar]:items-start">
           <div className="text-left">
             <div className="font-bold" style={{ color: textColor }}>{item.title}</div>
             <LinkedEntity
@@ -404,8 +463,8 @@ const Awards = () => {
             />
           </div>
 
-          <div className="shrink-0 text-right">
-            <div className="font-semibold" style={{ color: secondaryColor }}>{item.date}</div>
+          <div className="shrink-0 text-right group-[.sidebar]:text-left">
+            <div className="text-meta italic" style={{ color: secondaryColor }}>{item.date}</div>
           </div>
         </div>
       )}
@@ -417,12 +476,12 @@ const Certifications = () => {
   const section = useArtboardStore((state) => state.resume.sections.certifications);
   const secondaryColor = useArtboardStore((state) => state.resume.metadata.theme.secondary);
   const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
-  const getMutedTextColor = (opacity: number = 0.6) => hexToRgb(textColor, opacity);
+  const getMutedTextColor = (opacity = 0.6) => hexToRgb(textColor, opacity);
 
   return (
     <Section<Certification> section={section} urlKey="url" summaryKey="summary">
       {(item) => (
-        <div className="flex items-start justify-between">
+        <div className="flex items-start justify-between group-[.sidebar]:flex-col group-[.sidebar]:items-start">
           <div className="text-left">
             <div className="font-bold" style={{ color: textColor }}>{item.name}</div>
             <LinkedEntity
@@ -433,8 +492,8 @@ const Certifications = () => {
             />
           </div>
 
-          <div className="shrink-0 text-right">
-            <div className="font-semibold" style={{ color: secondaryColor }}>{item.date}</div>
+          <div className="shrink-0 text-right group-[.sidebar]:text-left">
+            <div className="text-meta italic" style={{ color: secondaryColor }}>{item.date}</div>
           </div>
         </div>
       )}
@@ -446,16 +505,17 @@ const Skills = () => {
   const section = useArtboardStore((state) => state.resume.sections.skills);
   const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
   const primaryColor = useArtboardStore((state) => state.resume.metadata.theme.primary);
-  const getMutedTextColor = (opacity: number = 0.6) => hexToRgb(textColor, opacity);
+  const getMutedTextColor = (opacity = 0.6) => hexToRgb(textColor, opacity);
 
   return (
     <Section<Skill> section={section} levelKey="level" keywordsKey="keywords">
       {(item) => (
         <div>
-          <div className="font-bold" style={{ color: textColor }}>{item.name}</div>
-          {item.description && item.showDescription !== false && (
-            <div className="text-sm" style={{ color: getMutedTextColor(0.6) }}>{item.description}</div>
-          )}
+          <div className="flex items-center justify-between">
+            <div className="font-bold text-body" style={{ color: textColor }}>{item.name}</div>
+            {item.level && item.level > 0 && <Rating level={item.level} />}
+          </div>
+          {item.description && item.showDescription !== false && <div>{item.description}</div>}
         </div>
       )}
     </Section>
@@ -464,12 +524,40 @@ const Skills = () => {
 
 const Interests = () => {
   const section = useArtboardStore((state) => state.resume.sections.interests);
-  const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
+  const secondaryColor = useArtboardStore((state) => state.resume.metadata.theme.secondary);
+  const primaryColor = useArtboardStore((state) => state.resume.metadata.theme.primary);
+  const backgroundColor = useArtboardStore((state) => state.resume.metadata.theme.background);
+
+  if (!section.visible || section.items.length === 0) return null;
 
   return (
-    <Section<Interest> section={section} keywordsKey="keywords" className="space-y-1">
-      {(item) => <div className="font-bold" style={{ color: textColor }}>{item.name}</div>}
-    </Section>
+    <section id={section.id} className="grid">
+      <h4
+        className="mb-2 text-section font-bold"
+        style={{ color: primaryColor, textTransform: 'uppercase' }}
+      >
+        {section.name}
+      </h4>
+      <div className="flex flex-wrap gap-1">
+        {section.items
+          .filter((item) => item.visible)
+          .map((item) => (
+            <span
+              key={item.id}
+              className="text-body"
+              style={{
+                backgroundColor: hexToRgb(secondaryColor, 0.18),
+                color: secondaryColor,
+                border: `0.5px solid ${secondaryColor}`,
+                borderRadius: 10,
+                padding: '2px 8px',
+              }}
+            >
+              {item.name}
+            </span>
+          ))}
+      </div>
+    </section>
   );
 };
 
@@ -477,12 +565,12 @@ const Publications = () => {
   const section = useArtboardStore((state) => state.resume.sections.publications);
   const secondaryColor = useArtboardStore((state) => state.resume.metadata.theme.secondary);
   const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
-  const getMutedTextColor = (opacity: number = 0.6) => hexToRgb(textColor, opacity);
+  const getMutedTextColor = (opacity = 0.6) => hexToRgb(textColor, opacity);
 
   return (
     <Section<Publication> section={section} urlKey="url" summaryKey="summary">
       {(item) => (
-        <div className="flex items-start justify-between">
+        <div className="flex items-start justify-between group-[.sidebar]:flex-col group-[.sidebar]:items-start">
           <div className="text-left">
             <LinkedEntity
               name={item.name}
@@ -493,8 +581,8 @@ const Publications = () => {
             <div style={{ color: getMutedTextColor(0.6) }}>{item.publisher}</div>
           </div>
 
-          <div className="shrink-0 text-right">
-            <div className="font-semibold" style={{ color: secondaryColor }}>{item.date}</div>
+          <div className="shrink-0 text-right group-[.sidebar]:text-left">
+            <div className="text-meta italic" style={{ color: secondaryColor }}>{item.date}</div>
           </div>
         </div>
       )}
@@ -506,12 +594,12 @@ const Volunteer = () => {
   const section = useArtboardStore((state) => state.resume.sections.volunteer);
   const secondaryColor = useArtboardStore((state) => state.resume.metadata.theme.secondary);
   const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
-  const getMutedTextColor = (opacity: number = 0.6) => hexToRgb(textColor, opacity);
+  const getMutedTextColor = (opacity = 0.6) => hexToRgb(textColor, opacity);
 
   return (
     <Section<Volunteer> section={section} urlKey="url" summaryKey="summary">
       {(item) => (
-        <div className="flex items-start justify-between">
+        <div className="flex items-start justify-between group-[.sidebar]:flex-col group-[.sidebar]:items-start">
           <div className="text-left">
             <LinkedEntity
               name={item.organization}
@@ -522,9 +610,9 @@ const Volunteer = () => {
             <div style={{ color: getMutedTextColor(0.6) }}>{item.position}</div>
           </div>
 
-          <div className="shrink-0 text-right">
-            <div className="font-semibold" style={{ color: secondaryColor }}>{item.date}</div>
-            <div className="text-sm" style={{ color: getMutedTextColor(0.6) }}>{item.location}</div>
+          <div className="shrink-0 text-right group-[.sidebar]:text-left">
+            <div className="text-meta italic" style={{ color: secondaryColor }}>{item.date}</div>
+            <div className="text-meta italic" style={{ color: getMutedTextColor(0.6) }}>{item.location}</div>
           </div>
         </div>
       )}
@@ -535,14 +623,17 @@ const Volunteer = () => {
 const Languages = () => {
   const section = useArtboardStore((state) => state.resume.sections.languages);
   const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
-  const getMutedTextColor = (opacity: number = 0.6) => hexToRgb(textColor, opacity);
+  const getMutedTextColor = (opacity = 0.6) => hexToRgb(textColor, opacity);
 
   return (
     <Section<Language> section={section} levelKey="level">
       {(item) => (
-        <div className="space-y-1">
-          <div className="font-bold" style={{ color: textColor }}>{item.name}</div>
-          {item.description && <div className="text-sm" style={{ color: getMutedTextColor(0.6) }}>{item.description}</div>}
+        <div>
+          <div className="flex items-center justify-between">
+            <div className="font-bold text-body" style={{ color: textColor }}>{item.name}</div>
+            {item.level && item.level > 0 && <Rating level={item.level} />}
+          </div>
+          {item.description && item.showDescription !== false && <div>{item.description}</div>}
         </div>
       )}
     </Section>
@@ -553,12 +644,12 @@ const Projects = () => {
   const section = useArtboardStore((state) => state.resume.sections.projects);
   const secondaryColor = useArtboardStore((state) => state.resume.metadata.theme.secondary);
   const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
-  const getMutedTextColor = (opacity: number = 0.6) => hexToRgb(textColor, opacity);
+  const getMutedTextColor = (opacity = 0.6) => hexToRgb(textColor, opacity);
 
   return (
     <Section<Project> section={section} urlKey="url" summaryKey="summary" keywordsKey="keywords">
       {(item) => (
-        <div className="flex items-start justify-between">
+        <div className="flex items-start justify-between group-[.sidebar]:flex-col group-[.sidebar]:items-start">
           <div className="text-left">
             <LinkedEntity
               name={item.name}
@@ -569,8 +660,8 @@ const Projects = () => {
             <div className="text-sm" style={{ color: getMutedTextColor(0.6) }}>{item.description}</div>
           </div>
 
-          <div className="shrink-0 text-right">
-            <div className="font-semibold" style={{ color: secondaryColor }}>{item.date}</div>
+          <div className="shrink-0 text-right group-[.sidebar]:text-left">
+            <div className="text-meta italic" style={{ color: secondaryColor }}>{item.date}</div>
           </div>
         </div>
       )}
@@ -581,7 +672,7 @@ const Projects = () => {
 const References = () => {
   const section = useArtboardStore((state) => state.resume.sections.references);
   const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
-  const getMutedTextColor = (opacity: number = 0.6) => hexToRgb(textColor, opacity);
+  const getMutedTextColor = (opacity = 0.6) => hexToRgb(textColor, opacity);
 
   return (
     <Section<Reference> section={section} urlKey="url" summaryKey="summary">
@@ -604,7 +695,7 @@ const Custom = ({ id }: { id: string }) => {
   const section = useArtboardStore((state) => state.resume.sections.custom[id]);
   const secondaryColor = useArtboardStore((state) => state.resume.metadata.theme.secondary);
   const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
-  const getMutedTextColor = (opacity: number = 0.6) => hexToRgb(textColor, opacity);
+  const getMutedTextColor = (opacity = 0.6) => hexToRgb(textColor, opacity);
 
   return (
     <Section<CustomSection>
@@ -614,7 +705,7 @@ const Custom = ({ id }: { id: string }) => {
       keywordsKey="keywords"
     >
       {(item) => (
-        <div className="flex items-start justify-between">
+        <div className="flex items-start justify-between group-[.sidebar]:flex-col group-[.sidebar]:items-start">
           <div className="text-left">
             <LinkedEntity
               name={item.name}
@@ -625,8 +716,8 @@ const Custom = ({ id }: { id: string }) => {
             <div className="text-sm" style={{ color: getMutedTextColor(0.6) }}>{item.description}</div>
           </div>
 
-          <div className="shrink-0 text-right">
-            <div className="font-semibold" style={{ color: secondaryColor }}>{item.date}</div>
+          <div className="shrink-0 text-right group-[.sidebar]:text-left">   
+            <div className="text-meta italic" style={{ color: secondaryColor }}>{item.date}</div>
           </div>
         </div>
       )}
@@ -635,68 +726,150 @@ const Custom = ({ id }: { id: string }) => {
 };
 
 const mapSectionToComponent = (section: SectionKey) => {
+  let component = null;
+  
   switch (section) {
     case "experience": {
-      return <Experience />;
+      component = <Experience />;
+      break;
     }
     case "education": {
-      return <Education />;
+      component = <Education />;
+      break;
     }
     case "awards": {
-      return <Awards />;
+      component = <Awards />;
+      break;
     }
     case "certifications": {
-      return <Certifications />;
+      component = <Certifications />;
+      break;
     }
     case "skills": {
-      return <Skills />;
+      component = <Skills />;
+      break;
     }
     case "interests": {
-      return <Interests />;
+      component = <Interests />;
+      break;
     }
     case "publications": {
-      return <Publications />;
+      component = <Publications />;
+      break;
     }
     case "volunteer": {
-      return <Volunteer />;
+      component = <Volunteer />;
+      break;
     }
     case "languages": {
-      return <Languages />;
+      component = <Languages />;
+      break;
     }
     case "projects": {
-      return <Projects />;
+      component = <Projects />;
+      break;
     }
     case "references": {
-      return <References />;
+      component = <References />;
+      break;
     }
     default: {
       if (section.startsWith("custom.")) {
-        return <Custom id={section.split(".")[1]} />;
+        component = <Custom id={section.split(".")[1]} />;
       }
-
-      return null;
     }
   }
+
+  // Only render the wrapper if the component exists and is visible
+  if (!component) return null;
+
+  return (
+    <div className="margin-section space-y-4">
+      {component}
+    </div>
+  );
 };
 
 export const NovoResume = ({ columns, isFirstPage = false }: TemplateProps) => {
   const backgroundColor = useArtboardStore((state) => state.resume.metadata.theme.background);
-  return (
-    <div className="p-custom space-y-4" style={{ backgroundColor }}>
-      <Header />
+  const secondaryColor = useArtboardStore((state) => state.resume.metadata.theme.secondary);
+  const primaryColor = useArtboardStore((state) => state.resume.metadata.theme.primary);
+  const columnSplit = useArtboardStore((state) => state.resume.metadata.columnSplit ?? 50);
 
-      <div
-        className="grid gap-x-6 gap-y-4"
-        style={{ gridTemplateColumns: `repeat(${columns.length}, 1fr)` }}
+  const [leftColumn, rightColumn] = columns;
+
+  // Convert percentage to columns (30-70% range mapped to 20-column grid)
+  const leftColumns = Math.round(columnSplit / 5);   // 30% = 6, 50% = 10, 70% = 14
+  const rightColumns = 20 - leftColumns;             // Remaining columns
+
+  return (
+    <div style={{ backgroundColor }}>
+      <Header />
+      <div className="grid min-h-[inherit] grid-cols-20 gap-x-4">
+        <div 
+          className="sidebar group flex flex-col"
+          style={{ gridColumn: `span ${leftColumns}` }}
       >
-        {columns.map((column, columnIndex) => (
-          <div key={columnIndex} className="space-y-4">
-            {column.map((section) => (
-              <Fragment key={section}>{mapSectionToComponent(section)}</Fragment>
+          {leftColumn.map((section) => (
+            <div key={section}>
+              {mapSectionToComponent(section)}
+            </div>
+          ))}
+        </div>
+
+        <div 
+          className="main group"
+          style={{ gridColumn: `span ${rightColumns}` }}
+        >
+          {rightColumn.map((section) => (
+            <div key={section}>
+              {mapSectionToComponent(section)}
+            </div>
             ))}
           </div>
-        ))}
       </div>
+      {/* Custom bullet color style and margin utilities */}
+      <style>{`
+        .custom-bullets ul {
+          padding-left: 1.2em;
+        }
+        .custom-bullets ul li::marker {
+          color: ${secondaryColor};
+          font-weight: bold;
+        }
+        .margin-section {
+          padding-left: calc(var(--margin) * 2);
+          padding-right: calc(var(--margin) * 2);
+          padding-top: var(--margin);
+          margin-bottom: 0;
+        }
+        .margin-section + .margin-section {
+          padding-top: 0;
+        }
+        .sidebar .margin-section {
+          padding-right: var(--margin);
+        }
+        .main .margin-section {
+          padding-left: var(--margin);
+        }
+        /* Adjust unbound decorative elements for sidebar positioning */
+        .sidebar [style*="left: calc(-1 * var(--margin) * 2 + 0.25rem)"] {
+          left: calc(-1 * var(--margin) + 0.25rem) !important;
+        }
+        .sidebar [style*="left: calc(-1 * var(--margin) * 2 + 0.375rem)"] {
+          left: calc(-1 * var(--margin) + 0.375rem) !important;
+        }
+        .sidebar [style*="transform: translateX(calc(-1 * var(--margin) * 2))"] {
+          transform: translateX(calc(-1 * var(--margin))) !important;
+        }
+        .margin-header {
+          padding-left: calc(var(--margin) * 2);
+          padding-right: calc(var(--margin) * 2);
+          padding-top: var(--margin);
+          padding-bottom: var(--margin);
+          margin-bottom: 0;
+        }
+      `}</style>
     </div>
   );
 };

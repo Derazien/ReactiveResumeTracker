@@ -64,6 +64,25 @@ export const PageSection = () => {
         </div>
 
         <div className="space-y-1.5">
+          <Label>{t`Column Split`}</Label>
+          <div className="flex items-center gap-x-4 py-1">
+            <Slider
+              min={30}
+              max={70}
+              step={5}
+              value={[useResumeStore((state) => state.resume.data.metadata.columnSplit ?? 50)]}
+              onValueChange={(value) => {
+                setValue("metadata.columnSplit", value[0]);
+              }}
+            />
+
+            <span className="text-base font-bold">
+              {useResumeStore((state) => state.resume.data.metadata.columnSplit ?? 50)}%
+            </span>
+          </div>
+        </div>
+
+        <div className="space-y-1.5">
           <Label>{t`Options`}</Label>
 
           <div className="py-2">

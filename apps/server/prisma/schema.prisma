@@ -61,6 +61,8 @@ model User {
   jobApplications  JobApplication[]
   tags             Tag[]
   llmSettings      UserLLMSettings?
+  storyBlocks      StoryBlock[]
+  answerSnippets   AnswerSnippet[]
 }
 
 model Secrets {
@@ -245,7 +247,10 @@ model JobApplication {
 
 model CoverLetter {
   id               String         @id @default(cuid())
-  content          String
+  content          String         // Final generated cover letter content
+  templateName     String?        // Reference to static template file (e.g., "professional", "creative")
+  generatedFrom    String         @default("[]")  // JSON array of StoryBlock IDs used in generation
+  tone             String         @default("neutral")  // Tone used during generation
   jobApplicationId String
   jobApplication   JobApplication @relation(fields: [jobApplicationId], references: [id], onDelete: Cascade)
   createdAt        DateTime       @default(now())
@@ -265,4 +270,40 @@ model Interview {
   createdAt        DateTime       @default(now())
   
   @@index(fields: [jobApplicationId])
+}
+
+model StoryBlock {
+  id          String   @id @default(cuid())
+  text        String   // The actual story/experience text
+  tags        String   @default("[]")  // JSON array of tags
+  skillTheme  String   // Primary skill/competency this story demonstrates
+  tone        String   @default("neutral")  // professional, casual, enthusiastic, etc.
+  embedding   String?  // Vector embedding JSON string (matches existing pattern)
+  embeddingHash String? // Cache hash for embedding
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index(fields: [userId, skillTheme])
+  @@index(fields: [userId, createdAt])
+}
+
+model AnswerSnippet {
+  id          String   @id @default(cuid())
+  text        String   // The answer text
+  questionTag String   // Type of question this answers (e.g., "why_company", "strength", "weakness")
+  tags        String   @default("[]")  // JSON array of tags
+  skillTheme  String   // Primary skill/competency this demonstrates
+  tone        String   @default("neutral")
+  embedding   String?  // Vector embedding JSON string
+  embeddingHash String? // Cache hash for embedding
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index(fields: [userId, questionTag])
+  @@index(fields: [userId, skillTheme])
+  @@index(fields: [userId, createdAt])
 }

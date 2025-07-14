@@ -2,13 +2,14 @@
 # ReactiveResumeTracker - Complete Project Setup Script
 # The definitive script to set up and run ReactiveResumeTracker with LLM integration
 # Author: ReactiveResumeTracker Setup Team
-# Version: 1.0
+# Version: 2.0 - Now with Docker PDF Generation Support
 
 param(
     [switch]$OnlySetup,
     [switch]$SkipBuild,
     [switch]$Debug,
-    [switch]$Help
+    [switch]$Help,
+    [switch]$SkipDocker
 )
 
 if ($Help) {
@@ -20,11 +21,15 @@ if ($Help) {
     Write-Host "  -OnlySetup     Only run setup, don't start servers" -ForegroundColor White
     Write-Host "  -SkipBuild     Skip building the project" -ForegroundColor White
     Write-Host "  -Debug         Start backend in debug mode (port 9229)" -ForegroundColor White
+    Write-Host "  -SkipDocker    Skip Docker services (Chrome & Minio)" -ForegroundColor White
     Write-Host "  -Help          Show this help message" -ForegroundColor White
     Write-Host ""
     Write-Host "Debug Mode Usage:" -ForegroundColor Yellow
     Write-Host "  .\setup.ps1 -Debug    # Start backend in debug mode" -ForegroundColor White
     Write-Host "  Then attach VS Code debugger to the running process" -ForegroundColor White
+    Write-Host ""
+    Write-Host "Docker-Free Mode:" -ForegroundColor Yellow
+    Write-Host "  .\setup.ps1 -SkipDocker    # Skip Docker services (PDF generation disabled)" -ForegroundColor White
     Write-Host ""
     exit 0
 }
@@ -32,7 +37,7 @@ if ($Help) {
 Write-Host ""
 Write-Host "ReactiveResumeTracker Setup and Launch" -ForegroundColor Cyan
 Write-Host "=======================================" -ForegroundColor Cyan
-Write-Host "Complete project setup with LLM integration" -ForegroundColor White
+Write-Host "Complete project setup with LLM integration and PDF generation" -ForegroundColor White
 
 # Step 1: Check Dependencies
 Write-Host ""
@@ -64,6 +69,36 @@ catch {
     }
 }
 
+# Check Docker if not skipping
+$dockerAvailable = $false
+if (-not $SkipDocker) {
+    try {
+        $dockerVersion = docker --version
+        Write-Host "Docker is available: $dockerVersion" -ForegroundColor Green
+        try {
+            $dockerComposeVersion = docker compose version
+            Write-Host "Docker Compose is available: $dockerComposeVersion" -ForegroundColor Green
+            $dockerAvailable = $true
+        }
+        catch {
+            Write-Host "Docker Compose is not available. Please install Docker Compose." -ForegroundColor Red
+            Write-Host "You can continue with -SkipDocker flag to disable PDF generation." -ForegroundColor Yellow
+            exit 1
+        }
+    }
+    catch {
+        Write-Host "Docker is not installed or not running." -ForegroundColor Red
+        Write-Host "Docker is required for PDF generation (Chrome & Minio services)." -ForegroundColor Yellow
+        Write-Host "Options:" -ForegroundColor White
+        Write-Host "  1. Install Docker Desktop and restart this script" -ForegroundColor Green
+        Write-Host "  2. Run with -SkipDocker flag to continue without PDF generation" -ForegroundColor Yellow
+        exit 1
+    }
+} else {
+    Write-Host "Docker check skipped (-SkipDocker flag used)" -ForegroundColor Yellow
+    Write-Host "PDF generation will not be available" -ForegroundColor Yellow
+}
+
 # Step 2: Install Dependencies  
 Write-Host ""
 Write-Host "Installing project dependencies..." -ForegroundColor Yellow
@@ -90,50 +125,201 @@ elseif (Test-Path ".env.example") {
     Write-Host "Please configure your .env file with proper values before continuing" -ForegroundColor Yellow
 }
 else {
-    Write-Host "No .env file found. Creating basic .env..." -ForegroundColor Yellow
+    Write-Host "No .env file found. Creating production-ready .env..." -ForegroundColor Yellow
+    
+    $chromeConfig = if ($dockerAvailable) {
+        @"
+# PDF Generation Mode (auto = detect based on NODE_ENV, local = no Docker, docker = requires Docker)
+PDF_GENERATION_MODE=docker
+
+# Chrome/Puppeteer for PDF generation (only needed when PDF_GENERATION_MODE=docker)
+CHROME_TOKEN=chrome_token
+CHROME_URL=ws://localhost:3001
+"@
+    } else {
+        @"
+# PDF Generation Mode (auto = detect based on NODE_ENV, local = no Docker, docker = requires Docker)
+PDF_GENERATION_MODE=auto
+
+# Chrome/Puppeteer for PDF generation (DISABLED - Docker not available)
+# CHROME_TOKEN=chrome_token
+# CHROME_URL=ws://localhost:3000
+"@
+    }
+    
+    $storageConfig = if ($dockerAvailable) {
+        @"
+# Storage (Minio via Docker)
+STORAGE_ENDPOINT=localhost
+STORAGE_PORT=9000
+STORAGE_REGION=us-east-1
+STORAGE_BUCKET=default
+STORAGE_ACCESS_KEY=minioadmin
+STORAGE_SECRET_KEY=minioadmin
+STORAGE_USE_SSL=false
+STORAGE_SKIP_BUCKET_CHECK=false
+"@
+    } else {
+        @"
+# Storage (Local file storage - Docker not available)
+STORAGE_ENDPOINT=localhost
+STORAGE_PORT=9000
+STORAGE_REGION=us-east-1
+STORAGE_BUCKET=default
+STORAGE_ACCESS_KEY=minioadmin
+STORAGE_SECRET_KEY=minioadmin
+STORAGE_USE_SSL=false
+STORAGE_SKIP_BUCKET_CHECK=false
+"@
+    }
     
     $envContent = @"
+# =================================================================
+# ReactiveResumeTracker - Environment Configuration
+# =================================================================
+# Generated by setup.ps1 on $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
+
+# =================================================================
+# CRITICAL REQUIRED VARIABLES (Server won't start without these)
+# =================================================================
+
 # Basic Configuration
 NODE_ENV=development
 PORT=3000
 PUBLIC_URL=http://localhost:3000
-CLIENT_URL=http://localhost:5173
+STORAGE_URL=http://localhost:9000/default
 
-# Database - SQLite for development
-DATABASE_URL="file:./dev.db"
+# Database (SQLite for development)
+DATABASE_URL=file:./apps/server/prisma/dev.db
 
-# JWT Secrets - generate your own for production
-ACCESS_TOKEN_SECRET=your-secret-key-here
-REFRESH_TOKEN_SECRET=your-refresh-secret-here
+# Authentication & Security (CHANGE THESE IN PRODUCTION!)
+ACCESS_TOKEN_SECRET=dev-access-token-secret-change-in-production-$(Get-Random)
+REFRESH_TOKEN_SECRET=dev-refresh-token-secret-change-in-production-$(Get-Random)
 
-# LLM Configuration - optional
+$chromeConfig
+
+$storageConfig
+
+# =================================================================
+# OPTIONAL VARIABLES (AI Features & Integrations)
+# =================================================================
+
+# LLM Integration (Optional but recommended)
 LLM_PROVIDER=anthropic
-ANTHROPIC_API_KEY=your_claude_api_key_here
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
 OPENAI_API_KEY=your_openai_api_key_here
 
-# Storage - optional
-STORAGE_PROVIDER=local
-STORAGE_LOCAL_PATH=./uploads
+# Email Configuration (Optional)
+MAIL_FROM=noreply@localhost
+# SMTP_URL=smtp://user:pass@smtp:587
 
-# Email - optional
-MAIL_FROM_NAME="Reactive Resume"
-MAIL_FROM_EMAIL=noreply@localhost
-
-# Disable features that require external services
-DISABLE_EMAIL_AUTH=true
+# Feature Flags (Optional)
 DISABLE_SIGNUPS=false
+DISABLE_EMAIL_AUTH=false
+CHROME_IGNORE_HTTPS_ERRORS=false
 
-# Chrome/Puppeteer for PDF generation
-CHROME_TOKEN=your_chrome_token_here
-CHROME_URL=ws://localhost:3000
+# =================================================================
+# OAUTH PROVIDERS (Optional)
+# =================================================================
+
+# GitHub OAuth (Optional)
+# GITHUB_CLIENT_ID=your_github_client_id
+# GITHUB_CLIENT_SECRET=your_github_client_secret
+# GITHUB_CALLBACK_URL=http://localhost:3000/api/auth/github/callback
+
+# Google OAuth (Optional)
+# GOOGLE_CLIENT_ID=your_google_client_id
+# GOOGLE_CLIENT_SECRET=your_google_client_secret
+# GOOGLE_CALLBACK_URL=http://localhost:3000/api/auth/google/callback
+
+# =================================================================
+# ADVANCED CONFIGURATION (Usually not needed)
+# =================================================================
+
+# Crowdin (Optional)
+# CROWDIN_PROJECT_ID=your_project_id
+# CROWDIN_PERSONAL_TOKEN=your_crowdin_token
+
+# =================================================================
+# SETUP NOTES
+# =================================================================
+# 1. Update ANTHROPIC_API_KEY and OPENAI_API_KEY for AI features
+# 2. Docker services: $(if ($dockerAvailable) { "ENABLED" } else { "DISABLED" })
+# 3. PDF Generation: $(if ($dockerAvailable) { "ENABLED" } else { "DISABLED" })
+# 4. Database path: apps/server/prisma/dev.db
 "@
     
     Set-Content -Path ".env" -Value $envContent
-    Write-Host "Created basic .env file" -ForegroundColor Green
-    Write-Host "Please update the .env file with your actual configuration values" -ForegroundColor Yellow
+    Write-Host "Created comprehensive .env file" -ForegroundColor Green
+    Write-Host "Please update LLM API keys in .env for AI features" -ForegroundColor Yellow
 }
 
-# Step 4: Database Setup
+# Validate critical environment variables
+Write-Host ""
+Write-Host "Validating environment configuration..." -ForegroundColor Yellow
+
+$envContent = Get-Content ".env" -Raw
+$missingVars = @()
+
+# Check critical variables
+$criticalVars = @(
+    "NODE_ENV", "PORT", "PUBLIC_URL", "STORAGE_URL", "DATABASE_URL", 
+    "ACCESS_TOKEN_SECRET", "REFRESH_TOKEN_SECRET"
+)
+
+if ($dockerAvailable) {
+    $criticalVars += @("CHROME_TOKEN", "CHROME_URL", "STORAGE_ENDPOINT", "STORAGE_PORT")
+}
+
+foreach ($var in $criticalVars) {
+    if (-not ($envContent -match "$var=.+")) {
+        $missingVars += $var
+    }
+}
+
+if ($missingVars.Count -gt 0) {
+    Write-Host "Missing or empty critical environment variables:" -ForegroundColor Red
+    foreach ($var in $missingVars) {
+        Write-Host "  - $var" -ForegroundColor Red
+    }
+    Write-Host "Please update your .env file before continuing" -ForegroundColor Yellow
+} else {
+    Write-Host "Environment configuration validated successfully" -ForegroundColor Green
+}
+
+# Step 4: Docker Services Setup
+if ($dockerAvailable) {
+    Write-Host ""
+    Write-Host "Setting up Docker services for PDF generation..." -ForegroundColor Yellow
+    
+    # Check if Docker services are already running
+    $runningServices = docker compose -f tools/compose/development.yml ps --services --filter status=running 2>$null
+    
+    if ($runningServices -contains "chrome" -and $runningServices -contains "minio") {
+        Write-Host "Docker services (Chrome & Minio) are already running" -ForegroundColor Green
+    } else {
+        Write-Host "Starting Docker services (Chrome & Minio)..." -ForegroundColor White
+        Write-Host "This may take a few minutes on first run..." -ForegroundColor White
+        
+        # Start only the required services for development
+        docker compose -f tools/compose/development.yml --env-file .env up -d chrome minio
+        
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "Docker services started successfully" -ForegroundColor Green
+            Write-Host "  - Chrome (PDF generation): Running on ws://localhost:3001" -ForegroundColor Green
+            Write-Host "  - Minio (File storage): Running on http://localhost:9000" -ForegroundColor Green
+            Write-Host "  - Minio Console: http://localhost:9001 (admin/admin123)" -ForegroundColor Green
+        } else {
+            Write-Host "Failed to start Docker services" -ForegroundColor Red
+            Write-Host "You can continue without PDF generation or fix Docker and restart" -ForegroundColor Yellow
+        }
+    }
+} else {
+    Write-Host ""
+    Write-Host "Docker services skipped - PDF generation will not be available" -ForegroundColor Yellow
+}
+
+# Step 5: Database Setup
 Write-Host ""
 Write-Host "Setting up database schema..." -ForegroundColor Yellow
 
@@ -154,7 +340,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 Write-Host "Database schema synced successfully" -ForegroundColor Green
 
-# Step 5: Check for existing users and create initial user if needed
+# Step 6: Check for existing users and create initial user if needed
 Write-Host ""
 Write-Host "Checking for existing users..." -ForegroundColor Yellow
 
@@ -343,7 +529,7 @@ checkContent();
     exit 1
 }
 
-# Step 6: Build Project
+# Step 7: Build Project
 if ($SkipBuild) {
     Write-Host ""
     Write-Host "Build skipped (-SkipBuild flag used)" -ForegroundColor Yellow
@@ -360,7 +546,7 @@ if ($SkipBuild) {
     Write-Host "Project built successfully" -ForegroundColor Green
 }
 
-# Step 7: Setup Complete
+# Step 8: Setup Complete
 Write-Host ""
 Write-Host "Setup Complete!" -ForegroundColor Cyan
 Write-Host "===============" -ForegroundColor Cyan
@@ -375,6 +561,17 @@ if ($OnlySetup) {
     Write-Host ""
     Write-Host "To import resume content, run:" -ForegroundColor White
     Write-Host "   node tools/db-scripts/import-content.js" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "Docker Services Status:" -ForegroundColor Yellow
+    if ($dockerAvailable) {
+        Write-Host "   Chrome (PDF): ENABLED - ws://localhost:3001" -ForegroundColor Green
+        Write-Host "   Minio (Storage): ENABLED - http://localhost:9000" -ForegroundColor Green
+        Write-Host "   PDF Generation: FULLY FUNCTIONAL" -ForegroundColor Green
+    } else {
+        Write-Host "   Docker Services: DISABLED" -ForegroundColor Red
+        Write-Host "   PDF Generation: NOT AVAILABLE" -ForegroundColor Red
+        Write-Host "   To enable: Install Docker and run setup again" -ForegroundColor Yellow
+    }
 } else {
     Write-Host ""
     if ($Debug) {
@@ -471,6 +668,17 @@ if ($OnlySetup) {
         Write-Host "   [CHECK] AI-powered resume generation" -ForegroundColor Green
         Write-Host "   [CHECK] Smart content matching" -ForegroundColor Green
         Write-Host "   [CHECK] Interview question generation" -ForegroundColor Green
+        Write-Host ""
+        Write-Host "[PDF] SMART PDF GENERATION:" -ForegroundColor Cyan
+        if ($dockerAvailable) {
+            Write-Host "   [AUTO] Development: Local Puppeteer (fast)" -ForegroundColor Green
+            Write-Host "   [AUTO] Production: Docker Chrome (scalable)" -ForegroundColor Green
+            Write-Host "   [CHECK] Both modes available" -ForegroundColor Green
+        } else {
+            Write-Host "   [AUTO] Development: Local Puppeteer (fast)" -ForegroundColor Green
+            Write-Host "   [WARN] Production: Docker unavailable" -ForegroundColor Yellow
+            Write-Host "   [INFO] PDF generation will use local Puppeteer in production" -ForegroundColor White
+        }
     Write-Host ""
         Write-Host "[CONTENT] CONTENT LIBRARY:" -ForegroundColor Cyan
     if ($contentCount -gt "0") {
@@ -485,6 +693,13 @@ if ($OnlySetup) {
     Write-Host "   Database: apps/server/prisma/dev.db" -ForegroundColor White
     Write-Host "   Environment: .env (project root)" -ForegroundColor White
     Write-Host "   LLM Provider: Check .env file for current setting" -ForegroundColor White
+    if ($dockerAvailable) {
+        Write-Host "   Docker Services: RUNNING (Chrome + Minio)" -ForegroundColor Green
+        Write-Host "   PDF Generation: ENABLED" -ForegroundColor Green
+    } else {
+        Write-Host "   Docker Services: DISABLED" -ForegroundColor Red
+        Write-Host "   PDF Generation: NOT AVAILABLE" -ForegroundColor Red
+    }
     Write-Host ""
         Write-Host "[START] GETTING STARTED:" -ForegroundColor Cyan
     Write-Host "   1. Wait for all servers to start" -ForegroundColor White

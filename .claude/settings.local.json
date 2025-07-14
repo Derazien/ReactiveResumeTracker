@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm prisma migrate dev:*)",
+      "Bash(find:*)",
+      "Bash(pnpm typecheck:*)",
+      "Bash(true)",
+      "Bash(./setup.ps1 -OnlySetup)",
+      "Bash(ls:*)",
+      "Bash(pnpm dev:*)",
+      "Bash(npx tsc:*)",
+      "Bash(pnpm build:*)",
+      "Bash(timeout 60 pnpm build:*)",
+      "Bash(timeout:*)"
+    ],
+    "deny": []
+  }
+}

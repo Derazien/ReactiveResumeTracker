@@ -695,13 +695,13 @@ export class JobApplicationService {
         "summary",
         "experience",
         "education",
-        "projects",
         "volunteer",
         "references",
       ];
       const rightPriority = [
         "profiles",
         "skills",
+        "projects",
         "certifications",
         "languages",
         "interests",
@@ -837,7 +837,7 @@ export class JobApplicationService {
                 itemFixed = true;
               }
               if (!item.summary || typeof item.summary !== "string") {
-                item.summary = "<p>No description available</p>";
+                item.summary = "";
                 itemFixed = true;
               }
               if (
@@ -866,7 +866,7 @@ export class JobApplicationService {
                 itemFixed = true;
               }
               if (!item.summary || typeof item.summary !== "string") {
-                item.summary = "<p>No description available</p>";
+                item.summary = "";
                 itemFixed = true;
               }
               if (!Array.isArray(item.keywords)) {
@@ -907,7 +907,7 @@ export class JobApplicationService {
                 itemFixed = true;
               }
               if (!item.summary || typeof item.summary !== "string") {
-                item.summary = "<p>No description available</p>";
+                item.summary = "";
                 itemFixed = true;
               }
               if (
@@ -982,7 +982,7 @@ export class JobApplicationService {
                 itemFixed = true;
               }
               if (!item.summary || typeof item.summary !== "string") {
-                item.summary = "<p>No description available</p>";
+                item.summary = "";
                 itemFixed = true;
               }
               if (
@@ -1011,7 +1011,7 @@ export class JobApplicationService {
                 itemFixed = true;
               }
               if (!item.summary || typeof item.summary !== "string") {
-                item.summary = "<p>No description available</p>";
+                item.summary = "";
                 itemFixed = true;
               }
               if (
@@ -1040,7 +1040,7 @@ export class JobApplicationService {
                 itemFixed = true;
               }
               if (!item.summary || typeof item.summary !== "string") {
-                item.summary = "<p>No description available</p>";
+                item.summary = "";
                 itemFixed = true;
               }
               if (
@@ -1077,7 +1077,7 @@ export class JobApplicationService {
                 itemFixed = true;
               }
               if (!item.summary || typeof item.summary !== "string") {
-                item.summary = "<p>No description available</p>";
+                item.summary = "";
                 itemFixed = true;
               }
               if (
@@ -1374,8 +1374,12 @@ export class JobApplicationService {
         ...data, // This includes: name, headline, email, phone, location, url, customFields, picture
         name: user.name, // Override with user name
         picture: {
-          ...data.picture, // Preserve existing picture settings (size, aspectRatio, borderRadius, effects)
+          ...data.picture,
+           // Preserve existing picture settings (aspectRatio, borderRadius, effects)
           url: user.picture || "", // Only override the URL with user picture
+          size: 90, // Explicitly set picture size to 90
+          aspectRatio: 1,
+          borderRadius: 9999,
         },
         url: data?.url ?? { href: "", label: "" },
         headline: data.headline || jobApplication.title, // Override headline for job relevance
@@ -1389,10 +1393,13 @@ export class JobApplicationService {
       this.logger.log("Using existing contact data from content library");
     } else {
       // No contact content found, use user defaults
-    resumeData.basics.name = user.name;
-    resumeData.basics.email = user.email;
+      resumeData.basics.name = user.name;
+      resumeData.basics.email = user.email;
       resumeData.basics.headline = jobApplication.title;
-    resumeData.basics.picture.url = user.picture || "";
+      resumeData.basics.picture.url = user.picture || "";
+      resumeData.basics.picture.size = 90;
+      resumeData.basics.picture.aspectRatio = 1;
+      resumeData.basics.picture.borderRadius = 9999;
       
       this.logger.log("Using user defaults for basics as no contact content was found");
     }
@@ -1418,25 +1425,8 @@ export class JobApplicationService {
       this.logger.log("Generated basic summary as no summary content was found");
     }
 
-    // CRITICAL: Ensure proper metadata layout structure is maintained
-    // The defaultResumeData should have this, but let's ensure it's correct
-    if (!resumeData.metadata.layout || !Array.isArray(resumeData.metadata.layout)) {
-      this.logger.warn("Default resume data missing proper layout - fixing");
-      resumeData.metadata.layout = [
-        [
-          ["summary", "experience", "education", "projects", "volunteer", "references"],
-          [
-            "profiles",
-            "skills",
-            "certifications",
-            "languages",
-            "interests",
-            "awards",
-            "publications",
-          ],
-        ],
-      ];
-    }
+    // Use the default layout from schema - no need to override
+    this.logger.log("Using default layout from schema configuration");
 
     // Process content by section key
     const workExperiences = selectedContent.filter((c) => c.section?.key === "experience");
@@ -1467,7 +1457,7 @@ export class JobApplicationService {
         position: data.position || exp.position || exp.title || "Position", 
         location: data.location || exp.location || "",
         date: data.date || this.formatDateRange(exp.startDate, exp.endDate) || "Present",
-        summary: data.summary || exp.description || "<p>No description available</p>",
+        summary: data.summary || exp.description || "",
         url: this.ensureValidUrl(data.url),
         contentId: exp.id,
         sourceContentId: null,
@@ -1487,7 +1477,7 @@ export class JobApplicationService {
         name: data.name || proj.title || "Project",
         description: data.description || proj.position || "Project",
         date: data.date || this.formatDateRange(proj.startDate, proj.endDate) || "Recent",
-        summary: data.summary || `<p>${proj.description || "No description available"}</p>`,
+        summary: data.summary || "",
         keywords: data.keywords || (typeof proj.skills === "string" ? JSON.parse(proj.skills) : proj.skills || []),
         showDescription: data.showDescription !== undefined ? data.showDescription : true,
         showKeywords: data.showKeywords !== undefined ? data.showKeywords : true,
@@ -1512,7 +1502,7 @@ export class JobApplicationService {
         area: data.area || edu.location || "",
         score: data.score || "",
         date: data.date || this.formatDateRange(edu.startDate, edu.endDate) || "Graduated",
-        summary: data.summary || `<p>${edu.description || "No description available"}</p>`,
+        summary: data.summary || "",
         url: this.ensureValidUrl(data.url),
       contentId: edu.id,
       sourceContentId: null,
@@ -1581,7 +1571,7 @@ export class JobApplicationService {
         date: data.date || (cert.startDate
         ? new Date(cert.startDate).getFullYear().toString()
           : new Date().getFullYear().toString()),
-        summary: data.summary || `<p>${cert.description || "No description available"}</p>`,
+        summary: data.summary || "",
         url: this.ensureValidUrl(data.url),
       contentId: cert.id,
       sourceContentId: null,
@@ -1603,7 +1593,7 @@ export class JobApplicationService {
         date: data.date || (pub.startDate
         ? new Date(pub.startDate).getFullYear().toString()
           : new Date().getFullYear().toString()),
-        summary: data.summary || `<p>${pub.description || "No description available"}</p>`,
+        summary: data.summary || "",
         showDescription: data.showDescription !== undefined ? data.showDescription : true,
         url: this.ensureValidUrl(data.url || { label: "", href: pub.url || "" }),
       contentId: pub.id,
@@ -1626,7 +1616,7 @@ export class JobApplicationService {
         date: data.date || (award.startDate
         ? new Date(award.startDate).getFullYear().toString()
           : new Date().getFullYear().toString()),
-        summary: data.summary || `<p>${award.description || "No description available"}</p>`,
+        summary: data.summary || "",
         url: this.ensureValidUrl(data.url || { label: "", href: award.url || "" }),
       contentId: award.id,
       sourceContentId: null,
@@ -1701,7 +1691,7 @@ export class JobApplicationService {
         position: data.position || vol.position || vol.title || "Volunteer",
         location: data.location || vol.location || "",
         date: data.date || this.formatDateRange(vol.startDate, vol.endDate) || "Recent",
-        summary: data.summary || `<p>${vol.description || "No description available"}</p>`,
+        summary: data.summary || "",
         url: this.ensureValidUrl(data.url || { label: "", href: vol.url || "" }),
       contentId: vol.id,
       sourceContentId: null,
@@ -1720,7 +1710,7 @@ export class JobApplicationService {
         // Map the existing data structure to the expected fields
         name: data.name || ref.title || "Reference",
         description: data.description || ref.position || ref.company || "Reference",
-        summary: data.summary || `<p>${ref.description || "No description available"}</p>`,
+        summary: data.summary || "",
         showDescription: data.showDescription !== undefined ? data.showDescription : true,
         url: this.ensureValidUrl(data.url || { label: "", href: ref.url || "" }),
       contentId: ref.id,
@@ -1806,30 +1796,6 @@ export class JobApplicationService {
     return `${formatDate(startDate)} - ${formatDate(endDate)}`;
   }
 
-  /**
-   * Format experience content with achievements
-   */
-  private formatExperienceContent(description: string, content: any, achievements: any[]): string {
-    let html = `<p>${description || "No description available"}</p>`;
-
-    if (content?.responsibilities && Array.isArray(content.responsibilities)) {
-      html += "<ul>";
-      content.responsibilities.forEach((resp: string) => {
-        html += `<li><p>${resp}</p></li>`;
-      });
-      html += "</ul>";
-    }
-
-    if (achievements && Array.isArray(achievements) && achievements.length > 0) {
-      html += "<ul>";
-      achievements.forEach((achievement: string) => {
-        html += `<li><p>🏆 ${achievement}</p></li>`;
-      });
-      html += "</ul>";
-    }
-
-    return html || "<p>No description available</p>";
-  }
 
   /**
    * Group skills by category for better organization

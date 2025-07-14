@@ -18,7 +18,7 @@ export const Picture = ({ className }: PictureProps) => {
       alt="Profile"
       className={cn(
         "relative z-20 object-cover",
-        picture.effects.border && "border-primary",
+        picture.effects.border && "border-secondary",
         picture.effects.grayscale && "grayscale",
         className,
       )}

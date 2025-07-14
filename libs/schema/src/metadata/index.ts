@@ -2,8 +2,8 @@ import { z } from "zod";
 
 export const defaultLayout = [
   [
-    ["profiles", "summary", "experience", "education", "projects", "volunteer", "references"],
-    ["skills", "interests", "certifications", "awards", "publications", "languages"],
+    ["summary", "experience", "education", "volunteer", "references"],
+    ["profiles", "skills", "projects", "certifications", "languages", "interests", "awards", "publications"],
   ],
 ];
 
@@ -26,21 +26,22 @@ export const metadataSchema = z.object({
   theme: z.object({
     background: z.string().default("#ffffff"),
     text: z.string().default("#000000"),
-    primary: z.string().default("#dc2626"),
-    secondary: z.string().default("#3b82f6"),
+    primary: z.string().default("#313c4e"),
+    secondary: z.string().default("#449399"),
   }),
   typography: z.object({
     font: z.object({
       family: z.string().default("Ubuntu"),
       subset: z.string().default("latin"),
       variants: z.array(z.string()).default(["regular"]),
-      size: z.number().default(14),
+      size: z.number().default(13),
     }),
     lineHeight: z.number().default(1.5),
     hideIcons: z.boolean().default(false),
     underlineLinks: z.boolean().default(true),
   }),
   notes: z.string().default(""),
+  columnSplit: z.number().min(30).max(70).default(50),
 });
 
 // Type
@@ -65,19 +66,20 @@ export const defaultMetadata: Metadata = {
   theme: {
     background: "#ffffff",
     text: "#000000",
-    primary: "#dc2626",
-    secondary: "#3b82f6",
+    primary: "#313c4e",
+    secondary: "#449399",
   },
   typography: {
     font: {
       family: "Ubuntu",
       subset: "latin",
       variants: ["regular", "italic", "600"],
-      size: 14,
+      size: 13,
     },
     lineHeight: 1.5,
     hideIcons: false,
     underlineLinks: true,
   },
   notes: "",
+  columnSplit: 50,
 };

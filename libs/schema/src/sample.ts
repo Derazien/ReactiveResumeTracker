@@ -305,17 +305,8 @@ export const sampleResume: ResumeData = {
     template: "novoresume",
     layout: [
       [
-        ["summary", "experience", "education", "projects", "references"],
-        [
-          "profiles",
-          "skills",
-          "certifications",
-          "interests",
-          "languages",
-          "awards",
-          "volunteer",
-          "publications",
-        ],
+        ["profiles", "summary", "experience", "education", "projects", "volunteer", "references"],
+        ["skills", "interests", "certifications", "awards", "publications", "languages"],
       ],
     ],
     css: {
@@ -323,7 +314,7 @@ export const sampleResume: ResumeData = {
       visible: false,
     },
     page: {
-      margin: 14,
+      margin: 18,
       format: "a4",
       options: {
         breakLine: true,
@@ -333,20 +324,21 @@ export const sampleResume: ResumeData = {
     theme: {
       background: "#ffffff",
       text: "#000000",
-      primary: "#ca8a04",
+      primary: "#dc2626",
       secondary: "#3b82f6",
     },
     typography: {
       font: {
         family: "Ubuntu",
         subset: "latin",
-        variants: ["regular"],
-        size: 13,
+        variants: ["regular", "italic", "600"],
+        size: 14,
       },
-      lineHeight: 1.75,
+      lineHeight: 1.5,
       hideIcons: false,
       underlineLinks: true,
     },
     notes: "",
+    columnSplit: 50,
   },
 };

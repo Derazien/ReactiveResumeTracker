@@ -36,16 +36,18 @@ services:
 
   # Chrome Browser (for printing and previews)
   chrome:
-    image: ghcr.io/browserless/chromium:latest
+    image: ghcr.io/browserless/chromium:v2.18.0 # Upgrading to newer versions causes issues
     restart: unless-stopped
+    ports:
+      - "3001:3000"  # Expose Chrome service to host on port 3001
     extra_hosts:
       - "host.docker.internal:host-gateway"
     environment:
-      HEALTH: "true"
+      TIMEOUT: 10000
+      CONCURRENT: 10
       TOKEN: chrome_token
-      PROXY_HOST: "chrome"
-      PROXY_PORT: 3000
-      PROXY_SSL: "false"
+      EXIT_ON_HEALTH_FAILURE: "true"
+      PRE_REQUEST_HEALTH_CHECK: "true"
 
   app:
     image: amruthpillai/reactive-resume:latest
@@ -67,6 +69,7 @@ services:
       # -- Printer (Chrome) --
       CHROME_TOKEN: chrome_token
       CHROME_URL: ws://chrome:3000
+      CHROME_IGNORE_HTTPS_ERRORS: "true"
 
       # -- Database (SQLite) --
       DATABASE_URL: file:./dev.db
@@ -122,3 +125,4 @@ volumes:
   minio_data:
   # postgres_data: (removed)
   # ./data:/data (for sqlite db)
+  
