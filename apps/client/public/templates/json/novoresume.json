@@ -108,7 +108,10 @@
           "url": {
             "label": "",
             "href": "https://creativesolutions.inc/"
-          }
+          },
+          "contacts": [
+            { "name": "Youssef Jradeh", "email": "youssef.jradeh@anywr-group.com" }
+          ]
         },
         {
           "id": "r6543lil53ntrxmvel53gbtm",
@@ -121,7 +124,10 @@
           "url": {
             "label": "",
             "href": "https://techadvancers.com/"
-          }
+          },
+          "contacts": [
+            { "name": "Jane Doe", "email": "jane.doe@techadvancers.com" }
+          ]
         }
       ]
     },

@@ -18,6 +18,8 @@ export type SectionListItemProps = {
   title: string;
   visible?: boolean;
   description?: string;
+  className?: string;
+  badge?: React.ReactNode;
 
   // Callbacks
   onUpdate?: () => void;
@@ -31,6 +33,8 @@ export const SectionListItem = ({
   title,
   description,
   visible = true,
+  className,
+  badge,
   onUpdate,
   onDuplicate,
   onDelete,
@@ -53,7 +57,7 @@ export const SectionListItem = ({
       initial={{ opacity: 0, y: -50 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: -50 }}
-      className="border-x border-t bg-secondary/10 first-of-type:rounded-t last-of-type:rounded-b last-of-type:border-b"
+      className={cn("border-x border-t bg-secondary/10 first-of-type:rounded-t last-of-type:rounded-b last-of-type:border-b rounded-lg", className)}
     >
       <div style={style} className="flex transition-opacity">
         {/* Drag Handle */}
@@ -80,6 +84,7 @@ export const SectionListItem = ({
             >
               <h4 className="font-medium leading-relaxed">{title}</h4>
               {description && <p className="text-xs leading-relaxed opacity-50">{description}</p>}
+              {badge && <div className="mt-2">{badge}</div>}
             </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent>

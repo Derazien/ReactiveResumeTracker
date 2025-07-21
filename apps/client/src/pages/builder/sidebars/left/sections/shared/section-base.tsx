@@ -202,29 +202,27 @@ export const SectionBase = <T extends SectionItem>({ id, title, description }: P
           <SortableContext items={section.items} strategy={verticalListSortingStrategy}>
             <AnimatePresence>
               {section.items.map((item, index) => (
-                <div key={item.id} className={cn("rounded-lg", getItemStyling(item))}>
-                  <div className="flex items-center gap-x-2">
-                    <SectionListItem
-                      id={item.id}
-                      visible={item.visible}
-                      title={title(item as T)}
-                      description={description?.(item as T)}
-                      onUpdate={() => {
-                        onUpdate(item as T);
-                      }}
-                      onDelete={() => {
-                        onDelete(item as T);
-                      }}
-                      onDuplicate={() => {
-                        onDuplicate(item as T);
-                      }}
-                      onToggleVisibility={() => {
-                        onToggleVisibility(index);
-                      }}
-                    />
-                    {getContentLibraryBadge(item)}
-                  </div>
-                </div>
+                <SectionListItem
+                  key={item.id}
+                  id={item.id}
+                  visible={item.visible}
+                  title={title(item as T)}
+                  description={description?.(item as T)}
+                  className={getItemStyling(item)}
+                  badge={getContentLibraryBadge(item)}
+                  onUpdate={() => {
+                    onUpdate(item as T);
+                  }}
+                  onDelete={() => {
+                    onDelete(item as T);
+                  }}
+                  onDuplicate={() => {
+                    onDuplicate(item as T);
+                  }}
+                  onToggleVisibility={() => {
+                    onToggleVisibility(index);
+                  }}
+                />
               ))}
             </AnimatePresence>
           </SortableContext>

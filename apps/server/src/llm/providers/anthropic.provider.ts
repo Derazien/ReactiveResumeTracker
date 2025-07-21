@@ -591,7 +591,7 @@ Guidelines for 1-page optimization:
 - For skills set the showDescription to false
 - Remove the summary for education
 - Keep the project summary concise but impactful, 2 bullet points max, and keep them short to one line max (100 characters or so). Set the showKeywords to false by default
-- Limit the total count of all summary in the bullet points of all experiences combined to 2650 characters max.
+- Limit the total count of all summary in the bullet points of all experiences combined to 2600 characters max.
 - do not make up sourceContentId or contentId, if its a new item added leave them as null
 
 Return only the JSON object, no additional text.`;

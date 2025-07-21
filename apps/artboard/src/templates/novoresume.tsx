@@ -33,6 +33,7 @@ const Header = () => {
   const secondaryColor = useArtboardStore((state) => state.resume.metadata.theme.secondary);
   const backgroundColor = useArtboardStore((state) => state.resume.metadata.theme.background);
   const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
+  const underlineLinks = useArtboardStore((state) => state.resume.metadata.typography.underlineLinks);
   
   // Helper function to create muted text color
   const getMutedTextColor = (opacity: number = 0.6) => hexToRgb(textColor, opacity);
@@ -108,7 +109,7 @@ const Header = () => {
 
           {basics.phone && (
             <div className="flex items-center gap-2 justify-end">
-              <a href={`tel:${basics.phone}`} style={{ color: textColor, textDecoration: 'underline' }}>
+              <a href={`tel:${basics.phone}`} style={{ color: textColor, textDecoration: underlineLinks ? 'underline' : 'none' }}>
                 {basics.phone}
               </a>
               <i className="ph ph-phone" style={{ color: primaryColor }} />
@@ -117,7 +118,7 @@ const Header = () => {
 
           {basics.email && (
             <div className="flex items-center gap-2 justify-end">
-              <a href={`mailto:${basics.email}`} style={{ color: textColor, textDecoration: 'underline' }}>
+              <a href={`mailto:${basics.email}`} style={{ color: textColor, textDecoration: underlineLinks ? 'underline' : 'none' }}>
                 {basics.email}
               </a>
               <i className="ph ph-at" style={{ color: primaryColor }} />
@@ -127,7 +128,7 @@ const Header = () => {
           {/* personal website (string **or** {label,href}) */}
           {websiteHref && (
             <div className="flex items-center gap-2 justify-end">
-              <a href={websiteHref} style={{ color: textColor, textDecoration: 'underline' }} target="_blank" rel="noreferrer">
+              <a href={websiteHref} style={{ color: textColor, textDecoration: underlineLinks ? 'underline' : 'none' }} target="_blank" rel="noreferrer">
                 {websiteLabel}
               </a>
               <i className="ph ph-globe" style={{ color: primaryColor }} />
@@ -135,18 +136,38 @@ const Header = () => {
           )}
 
           {/* custom fields untouched */}
-          {basics.customFields?.map((f) => (
-            <div key={f.id} className="flex items-center gap-2 justify-end">
-              {isUrl(f.value) ? (
-                <a href={f.value} style={{ color: textColor, textDecoration: 'underline' }} target="_blank" rel="noreferrer">
+          {basics.customFields?.map((f) => {
+            let renderedValue;
+            if (isUrl(f.value)) {
+              renderedValue = (
+                <a href={f.value} style={{ color: textColor, textDecoration: underlineLinks ? 'underline' : 'none' }} target="_blank" rel="noreferrer">
                   {f.value}
                 </a>
-              ) : (
-                <span>{[f.name, f.value].filter(Boolean).join(": ")}</span>
-              )}
-              <i className={`ph ph-${f.icon || "info"}`} style={{ color: primaryColor }} />
-            </div>
-          ))}
+              );
+            } else if (/^\+?[0-9\s-]+$/.test(f.value)) {
+              renderedValue = (
+                <a href={`tel:${f.value.replace(/\s+/g, '')}`} style={{ color: textColor, textDecoration: underlineLinks ? 'underline' : 'none' }}>
+                  {f.value}
+                </a>
+              );
+            } else if (/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.value)) {
+              renderedValue = (
+                <a href={`mailto:${f.value}`} style={{ color: textColor, textDecoration: underlineLinks ? 'underline' : 'none' }}>
+                  {f.value}
+                </a>
+              );
+            } else {
+              renderedValue = (
+                <span style={{ textDecoration: underlineLinks ? 'underline' : 'none' }}>{f.value}</span>
+              );
+            }
+            return (
+              <div key={f.id} className="flex items-center gap-2 justify-end">
+                {renderedValue}
+                <i className={`ph ph-${f.icon || "info"}`} style={{ color: primaryColor }} />
+              </div>
+            );
+          })}
 
           {/* social profiles (url may be object) */}
           {profiles.items
@@ -157,7 +178,7 @@ const Header = () => {
               return (
                 <div key={item.id} className="flex items-center gap-2 justify-end">
                   {isUrl(item.url.href) ? (
-                    <Link url={item.url} label={item.username} icon={<BrandIcon slug={item.icon} />} />
+                    <Link url={item.url} label={item.username} icon={<BrandIcon slug={item.icon} />} underlineLinks={underlineLinks} />
                   ) : (
                     <p style={{ color: getMutedTextColor(0.7) }}>{item.username}</p>
                   )}
@@ -203,7 +224,7 @@ type LinkProps = {
   className?: string;
 };
 
-const Link = ({ url, icon, iconOnRight, label, className }: LinkProps) => {
+const Link = ({ url, icon, iconOnRight, label, className, underlineLinks = true }: LinkProps & { underlineLinks?: boolean }) => {
   const primaryColor = useArtboardStore((state) => state.resume.metadata.theme.primary);
   const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
   if (!isUrl(url.href)) return null;
@@ -216,7 +237,7 @@ const Link = ({ url, icon, iconOnRight, label, className }: LinkProps) => {
         target="_blank"
         rel="noreferrer noopener nofollow"
         className={cn(className)}
-        style={{ color: textColor, textDecoration: 'underline' }}
+        style={{ color: textColor, textDecoration: underlineLinks ? 'underline' : 'none' }}
       >
         {label ?? (url.label || url.href)}
       </a>
@@ -233,7 +254,7 @@ type LinkedEntityProps = {
   style?: React.CSSProperties;
 };
 
-const LinkedEntity = ({ name, url, separateLinks, className, style }: LinkedEntityProps) => {
+const LinkedEntity = ({ name, url, separateLinks, className, style, underlineLinks = true }: LinkedEntityProps & { underlineLinks?: boolean }) => {
   const primaryColor = useArtboardStore((state) => state.resume.metadata.theme.primary);
   const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
   return !separateLinks && isUrl(url.href) ? (
@@ -243,6 +264,7 @@ const LinkedEntity = ({ name, url, separateLinks, className, style }: LinkedEnti
       icon={<i className="ph ph-bold ph-globe" style={{ color: primaryColor }} />}
       iconOnRight={true}
       className={className}
+      underlineLinks={underlineLinks}
     />
   ) : (
     <div className={className} style={style ?? { color: textColor }}>
@@ -259,6 +281,7 @@ type SectionProps<T> = {
   levelKey?: keyof T;
   summaryKey?: keyof T;
   keywordsKey?: keyof T;
+  renderAfterSummary?: (item: T) => React.ReactNode;
 };
 
 const Section = <T,>({
@@ -269,6 +292,7 @@ const Section = <T,>({
   levelKey,
   summaryKey,
   keywordsKey,
+  renderAfterSummary,
 }: SectionProps<T>) => {
   const primaryColor = useArtboardStore((state) => state.resume.metadata.theme.primary);
   const secondaryColor = useArtboardStore((state) => state.resume.metadata.theme.secondary);
@@ -301,31 +325,32 @@ const Section = <T,>({
                 <div style={{ flex: 1 }}>
                   {children?.(item as T)}
                   {url !== undefined && section.separateLinks && <Link url={url} />}
-                {summary !== undefined && !isEmptyString(summary) && (
-                  <div
-                    dangerouslySetInnerHTML={{ __html: sanitize(summary) }}
+                  {summary !== undefined && !isEmptyString(summary) && (
+                    <div
+                      dangerouslySetInnerHTML={{ __html: sanitize(summary) }}
                       className="wysiwyg text-body leading-relaxed custom-bullets"
-                    style={{ color: textColor }}
-                  />
-                )}
-                {keywords !== undefined && keywords.length > 0 && (item as any).showKeywords !== false && (
+                      style={{ color: textColor }}
+                    />
+                  )}
+                  {renderAfterSummary?.(item as T)}
+                  {keywords !== undefined && keywords.length > 0 && (item as any).showKeywords !== false && (
                     <div className="flex flex-wrap gap-1 mt-1">
-                    {keywords.map((keyword, index) => (
-                      <span
-                        key={index}
+                      {keywords.map((keyword, index) => (
+                        <span
+                          key={index}
                           className="text-chip"
-                        style={{
-                          backgroundColor: hexToRgb(primaryColor, 0.5),
-                          color: backgroundColor,
-                          borderRadius: 9999,
-                          padding: '2px 8px',
-                        }}
-                      >
-                        {keyword}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                          style={{
+                            backgroundColor: hexToRgb(primaryColor, 0.5),
+                            color: backgroundColor,
+                            borderRadius: 9999,
+                            padding: '2px 8px',
+                          }}
+                        >
+                          {keyword}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             );
@@ -340,17 +365,41 @@ const Experience = () => {
   const section = useArtboardStore((state) => state.resume.sections.experience);
   const secondaryColor = useArtboardStore((state) => state.resume.metadata.theme.secondary);
   const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
+  const underlineLinks = useArtboardStore((state) => state.resume.metadata.typography.underlineLinks);
   const getMutedTextColor = (opacity = 0.6) => hexToRgb(textColor, opacity);
 
   return (
-    <Section<Experience> section={section} summaryKey="summary">
+    <Section<Experience>
+      section={section}
+      summaryKey="summary"
+      renderAfterSummary={(item) =>
+        item.contacts && item.contacts.length > 0 && (
+          <div className="flex items-start gap-2 mt-1">
+            <span className="text-meta italic" style={{ color: secondaryColor }}>Contact:</span>
+            <div className="flex flex-col gap-1">
+              {item.contacts.map((contact, idx) => (
+                <span key={idx} className="text-meta italic" style={{ color: textColor }}>
+                  {contact.name}
+                  {contact.email && (
+                    <>
+                      {" - "}
+                      <a href={`mailto:${contact.email}`} style={{ color: textColor, textDecoration: underlineLinks ? 'underline' : 'none' }}>{contact.email}</a>
+                    </>
+                  )}
+                </span>
+              ))}
+            </div>
+          </div>
+        )
+      }
+    >
       {(item) => (
         <div className="relative flex items-start">
           {/* Block accent - positioned outside left margin, centered and aligned to content height */}
           <div
             className="absolute pointer-events-none"
             style={{
-              left: 'calc(-1 * var(--margin) * 2 + 0.25rem)', // Center the 8px block in 1rem space
+              left: 'calc(-1 * var(--margin) * 2 + 0.25rem)',
               top: 0,
               bottom: 0,
               width: 8,
@@ -360,13 +409,14 @@ const Experience = () => {
           />
           <div className="flex-1">
             <div className="text-title font-bold">{item.position}</div>
-              <LinkedEntity
-                name={item.company}
-                url={item.url}
-                separateLinks={section.separateLinks}
+            <LinkedEntity
+              name={item.company}
+              url={item.url}
+              separateLinks={section.separateLinks}
               style={{ color: getMutedTextColor(0.6) }}
               className="text-title font-medium"
-              />
+              underlineLinks={underlineLinks}
+            />
             <div className="flex items-start justify-between">
               <div className="text-left">
                 <div className="text-meta italic" style={{ color: secondaryColor }}>{item.date}</div>
@@ -377,7 +427,7 @@ const Experience = () => {
                     {item.location}
                   </div>
                 )}
-            </div>
+              </div>
             </div>
           </div>
         </div>
@@ -809,7 +859,7 @@ export const NovoResume = ({ columns, isFirstPage = false }: TemplateProps) => {
         <div 
           className="sidebar group flex flex-col"
           style={{ gridColumn: `span ${leftColumns}` }}
-      >
+        >
           {leftColumn.map((section) => (
             <div key={section}>
               {mapSectionToComponent(section)}
@@ -825,8 +875,8 @@ export const NovoResume = ({ columns, isFirstPage = false }: TemplateProps) => {
             <div key={section}>
               {mapSectionToComponent(section)}
             </div>
-            ))}
-          </div>
+          ))}
+        </div>
       </div>
       {/* Custom bullet color style and margin utilities */}
       <style>{`
