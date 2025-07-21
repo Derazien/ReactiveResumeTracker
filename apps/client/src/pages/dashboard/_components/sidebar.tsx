@@ -1,5 +1,5 @@
 import { t } from "@lingui/macro";
-import { Briefcase, Database, FadersHorizontal, FileText } from "@phosphor-icons/react";
+import { Briefcase, Database, FadersHorizontal, FileText, Microphone } from "@phosphor-icons/react";
 import { Button, KeyboardShortcut, Separator } from "@reactive-resume/ui";
 import { cn } from "@reactive-resume/utils";
 import { motion } from "framer-motion";
@@ -84,6 +84,11 @@ export const Sidebar = ({ setOpen }: SidebarProps) => {
     setOpen?.(false);
   });
 
+  useKeyboardShortcut(["shift", "v"], () => {
+    void navigate("/dashboard/voice-stories");
+    setOpen?.(false);
+  });
+
   useKeyboardShortcut(["shift", "s"], () => {
     void navigate("/dashboard/settings");
     setOpen?.(false);
@@ -107,6 +112,12 @@ export const Sidebar = ({ setOpen }: SidebarProps) => {
       name: t`Content Library`,
       shortcut: "⇧C",
       icon: <Database />,
+    },
+    {
+      path: "/dashboard/voice-stories",
+      name: t`Voice Stories`,
+      shortcut: "⇧V",
+      icon: <Microphone />,
     },
     {
       path: "/dashboard/settings",

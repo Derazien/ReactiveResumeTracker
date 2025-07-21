@@ -2018,4 +2018,57 @@ Tags:`;
 
     return Math.min(wordSimilarity + semanticBoost, 1);
   }
+
+  /**
+   * Process AI-powered resume editing actions (improve, fix, tone)
+   */
+  async processAction(userId: string, action: "improve" | "fix" | "tone", value: string, mood?: string): Promise<string> {
+    const provider = await this.getProviderForUser(userId);
+    let prompt = "";
+    
+    if (action === "improve") {
+      prompt = `You are an AI writing assistant specialized in writing copy for resumes.
+Do not return anything else except the text you improved. It should not begin with a newline. It should not have any prefix or suffix text.
+Improve the writing of the following paragraph and returns in the language of the text:
+
+Text: """${value}"""
+
+Revised Text: """`;
+    } else if (action === "fix") {
+      prompt = `You are an AI writing assistant specialized in writing copy for resumes.
+Do not return anything else except the text you improved. It should not begin with a newline. It should not have any prefix or suffix text.
+Just fix the spelling and grammar of the following paragraph, do not change the meaning and returns in the language of the text:
+
+Text: """${value}"""
+
+Revised Text: """`;
+    } else if (action === "tone") {
+      if (!mood) throw new Error("Mood is required for tone action");
+      prompt = `You are an AI writing assistant specialized in writing copy for resumes.
+Do not return anything else except the text you improved. It should not begin with a newline. It should not have any prefix or suffix text.
+Change the tone of the following paragraph to be ${mood} and returns in the language of the text:
+
+Text: """${value}"""
+
+Revised Text: """`;
+    } else {
+      throw new Error("Invalid action");
+    }
+    
+    const messages: ChatMessage[] = [
+      { role: "user", content: prompt },
+    ];
+    
+    const result = await provider.chat(messages, {
+      temperature: action === "tone" ? 0.5 : 0,
+      maxTokens: 4000,
+      stopSequences: ['"""'],
+    });
+    
+    if (!result.success || !result.data) {
+      throw new Error(result.error || "LLM provider failed");
+    }
+    
+    return result.data;
+  }
 }

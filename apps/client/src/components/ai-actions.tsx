@@ -19,9 +19,6 @@ import { cn } from "@reactive-resume/utils";
 import { useState } from "react";
 
 import { toast } from "../hooks/use-toast";
-import { changeTone } from "../services/openai/change-tone";
-import { fixGrammar } from "../services/openai/fix-grammar";
-import { improveWriting } from "../services/openai/improve-writing";
 import { useLLMStore } from "../stores/llm";
 
 type Action = "improve" | "fix" | "tone";
@@ -31,6 +28,22 @@ type Props = {
   value: string;
   onChange: (value: string) => void;
   className?: string;
+};
+
+// Utility to call backend LLM action endpoint
+const llmAction = async (
+  action: Action,
+  value: string,
+  mood?: Mood
+): Promise<string> => {
+  const res = await fetch("/api/llm/action", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action, value, mood }),
+  });
+  const data = await res.json();
+  if (!res.ok || data.error) throw new Error(data.error || "Unknown error");
+  return data.result;
 };
 
 export const AiActions = ({ value, onChange, className }: Props) => {
@@ -43,12 +56,7 @@ export const AiActions = ({ value, onChange, className }: Props) => {
     try {
       setLoading(action);
 
-      let result = value;
-
-      if (action === "improve") result = await improveWriting(value);
-      if (action === "fix") result = await fixGrammar(value);
-      if (action === "tone" && mood) result = await changeTone(value, mood);
-
+      const result = await llmAction(action, value, mood);
       onChange(result);
     } catch (error) {
       toast({

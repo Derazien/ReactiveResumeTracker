@@ -106,4 +106,17 @@ export class LLMController {
   async chat(@User("id") userId: string, @Body() body: ChatRequest) {
     return this.llmService.chat(body.messages);
   }
+
+
+  @Post("action")
+  @ApiOperation({ summary: "Perform AI-powered resume editing action (improve, fix, tone)" })
+  async processAction(@User("id") userId: string, @Body() body: LLMActionRequest) {
+    const { action, value, mood } = body;
+    try {
+      const result = await this.llmService.processAction(userId, action, value, mood);
+      return { result };
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : "Unknown error" };
+    }
+  }
 }
