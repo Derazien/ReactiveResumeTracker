@@ -348,6 +348,15 @@ export const ContentEditDialog = ({
       );
     }
 
+    if (sectionKey === 'experience') {
+      return (
+        <ExperienceSectionForm
+          values={sectionValues}
+          errors={sectionErrors}
+          onChange={handleSectionChange}
+        />
+      );
+    }
 
     if (sectionKey === 'summary') {
       return (
