@@ -26,6 +26,25 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useAvailableTags } from "@/client/services/content-library/content-library";
+import { ContactSectionForm, ExperienceSectionForm, SummarySectionForm } from "@reactive-resume/ui";
+import { 
+  basicsSchema, 
+  defaultBasics, 
+  educationSchema, 
+  defaultEducation,
+  experienceSchema,
+  defaultExperience,
+  type CustomField 
+} from "@reactive-resume/schema";
+
+// Simple summary schema for content library
+const summarySchema = z.object({
+  content: z.string(),
+});
+
+const defaultSummary = {
+  content: "",
+};
 
 // Define tag type for better type safety
 type Tag = {
@@ -34,20 +53,47 @@ type Tag = {
   color: string | null;
 };
 
-// Form schema for content editing
+// Section mapping for different content types
+const SECTION_FORM_MAP = {
+  'contact': { 
+    schema: basicsSchema, 
+    default: defaultBasics, 
+    component: ContactSectionForm,
+    label: 'Contact Information'
+  },
+  'basics': { 
+    schema: basicsSchema, 
+    default: defaultBasics, 
+    component: ContactSectionForm,
+    label: 'Contact Information'
+  },
+  'education': { 
+    schema: educationSchema, 
+    default: defaultEducation, 
+    component: null, // TODO: Create EducationSectionForm
+    label: 'Education'
+  },
+  'experience': { 
+    schema: experienceSchema, 
+    default: defaultExperience, 
+    component: null, // TODO: Create ExperienceSectionForm
+    label: 'Experience'
+  },
+  'summary': { 
+    schema: summarySchema, 
+    default: defaultSummary, 
+    component: null,
+    label: 'Summary'
+  },
+  // Add more sections as needed
+} as const;
+
+type SectionKey = keyof typeof SECTION_FORM_MAP;
+
+// Form schema for shared content fields
 const contentSchema = z.object({
-  title: z.string().min(1, "Title is required"),
+  title: z.string().min(1, "Content Title is required"),
   description: z.string().optional(),
-  company: z.string().optional(),
-  position: z.string().optional(),
-  location: z.string().optional(),
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
-  isPresent: z.boolean().optional(),
-  skills: z.array(z.string()).default([]),
-  achievements: z.array(z.string()).default([]),
-  courses: z.array(z.string()).default([]),
-  keywords: z.array(z.string()).default([]),
   tags: z
     .array(
       z.object({
@@ -57,13 +103,6 @@ const contentSchema = z.object({
       }),
     )
     .default([]),
-  url: z.string().optional(),
-  issuer: z.string().optional(),
-  score: z.string().optional(),
-  proficiencyLevel: z.number().min(0).max(100).optional(),
-  category: z.string().optional(),
-  contactPerson: z.string().optional(),
-  contactInfo: z.string().optional(),
 });
 
 type ContentFormData = z.infer<typeof contentSchema>;
@@ -71,8 +110,36 @@ type ContentFormData = z.infer<typeof contentSchema>;
 type ContentEditDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  content?: any;
-  sectionId?: string | null;
+  content?: {
+    id?: string;
+    title?: string;
+    description?: string;
+    tags?: Tag[];
+    section?: { key: SectionKey };
+    data?: string; // JSON string
+  };
+  sectionId?: SectionKey | null;
+};
+
+// Parse tags from content data
+const parseTags = (tagsData: any[] | undefined): Tag[] => {
+  if (Array.isArray(tagsData)) {
+    return tagsData.map((tagItem) => {
+      if (tagItem.tag) {
+        return {
+          id: tagItem.tag.id,
+          name: tagItem.tag.name,
+          color: tagItem.tag.color,
+        };
+      }
+      return {
+        id: tagItem.id,
+        name: tagItem.name,
+        color: tagItem.color,
+      };
+    });
+  }
+  return [];
 };
 
 export const ContentEditDialog = ({
@@ -81,178 +148,87 @@ export const ContentEditDialog = ({
   content,
   sectionId,
 }: ContentEditDialogProps) => {
-  const [skillInput, setSkillInput] = useState("");
-  const [achievementInput, setAchievementInput] = useState("");
-  const [courseInput, setCourseInput] = useState("");
-  const [keywordInput, setKeywordInput] = useState("");
   const [tagInput, setTagInput] = useState("");
-
   const { data: availableTags } = useAvailableTags();
   const isEditing = !!content;
 
+  // Determine section configuration (only when dialog is open)
+  const sectionConfig = useMemo(() => {
+    if (!open) return null;
+    
+    const sectionKey = content?.section?.key ?? sectionId;
+    const config = sectionKey ? SECTION_FORM_MAP[sectionKey] : null;
+    
+    return config;
+  }, [open, content?.section?.key, sectionId]);
+
+  // Prepare section data BEFORE rendering (prevents multiple re-renders)
+  const [sectionValues, setSectionValues] = useState<any>({});
+  const preparedSectionData = useMemo(() => {
+    if (!open || !sectionConfig) {
+      return null; // Not ready to render
+    }
+
+    // Prepare default values
+    let sectionValues = sectionConfig.default;
+    
+    // Parse data if available
+    if (content?.data) {
+      try {
+        sectionValues = JSON.parse(content.data);
+      } catch {
+        sectionValues = sectionConfig.default;
+      }
+    }
+    setSectionValues(sectionValues);
+    return {
+      values: sectionValues,
+      errors: {},
+      config: sectionConfig
+    };
+  }, [open, content?.data, content?.id, sectionConfig]);
+
+  // Shared form for title, description, tags
   const form = useForm<ContentFormData>({
     resolver: zodResolver(contentSchema),
     defaultValues: {
       title: "",
       description: "",
-      company: "",
-      position: "",
-      location: "",
-      startDate: "",
-      endDate: "",
-      isPresent: false,
-      skills: [],
-      achievements: [],
-      courses: [],
-      keywords: [],
       tags: [],
-      url: "",
-      issuer: "",
-      score: "",
-      proficiencyLevel: undefined,
-      category: "",
-      contactPerson: "",
-      contactInfo: "",
     },
   });
 
-  // Reset form when content changes
+  // Initialize section values directly with prepared data (no useEffect needed)
+  const [sectionErrors, setSectionErrors] = useState<Record<string, string>>({});
+
+  // Update section values when prepared data changes (only when dialog is open)
   useEffect(() => {
-    if (content) {
-      // Parse JSON strings safely
-      const parseJsonArray = (value: any): string[] => {
-        if (Array.isArray(value)) return value;
-        if (typeof value === "string") {
-          try {
-            return JSON.parse(value) || [];
-          } catch {
-            return [];
-          }
-        }
-        return [];
-      };
+    if (!open || !preparedSectionData) return;
 
-      // Parse tags from content
-      const parseTags = (tagsData: any) => {
-        if (Array.isArray(tagsData)) {
-          return tagsData.map((tagItem) => {
-            // Handle the nested tag structure from the API
-            if (tagItem.tag) {
-              return {
-                id: tagItem.tag.id,
-                name: tagItem.tag.name,
-                color: tagItem.tag.color,
-              };
-            }
-            // Handle direct tag objects
-            return {
-              id: tagItem.id,
-              name: tagItem.name,
-              color: tagItem.color,
-            };
-          });
-        }
-        return [];
-      };
+    console.log('ContentFormData Triggering dialog set rest values');
+    // Initialize shared form
+    form.reset({
+      title: content?.title ?? "",
+      description: content?.description ?? "",
+      tags: parseTags(content?.tags),
+    });
 
-      form.reset({
-        title: content.title || "",
-        description: content.description || "",
-        company: content.company || "",
-        position: content.position || "",
-        location: content.location || "",
-        startDate: content.startDate ? new Date(content.startDate).toISOString().split("T")[0] : "",
-        endDate: content.endDate ? new Date(content.endDate).toISOString().split("T")[0] : "",
-        isPresent: content.isPresent || false,
-        skills: parseJsonArray(content.skills),
-        achievements: parseJsonArray(content.achievements),
-        courses: parseJsonArray(content.courses),
-        keywords: parseJsonArray(content.keywords),
-        tags: parseTags(content.tags),
-        url: content.url || "",
-        issuer: content.issuer || "",
-        score: content.score || "",
-        proficiencyLevel: content.proficiencyLevel,
-        category: content.category || "",
-        contactPerson: content.contactPerson || "",
-        contactInfo: content.contactInfo || "",
-      });
-    } else {
-      form.reset();
-    }
-  }, [content, form]);
+    // Update section values with prepared data
+    setSectionValues(preparedSectionData.values);
+    setSectionErrors({});
+  }, [open, content?.id, preparedSectionData, form]);
 
-  const addSkill = () => {
-    if (skillInput.trim()) {
-      const currentSkills = form.getValues("skills");
-      if (!currentSkills.includes(skillInput.trim())) {
-        form.setValue("skills", [...currentSkills, skillInput.trim()]);
-      }
-      setSkillInput("");
-    }
+  // Handler for section form changes
+  const handleSectionChange = (field: string, value: any) => {
+    setSectionValues((prev: any) => ({ ...prev, [field]: value }));
   };
 
-  const removeSkill = (skillToRemove: string) => {
-    const currentSkills = form.getValues("skills");
-    form.setValue(
-      "skills",
-      currentSkills.filter((skill) => skill !== skillToRemove),
-    );
+  const handleCustomFieldsChange = (fields: CustomField[]) => {
+    setSectionValues((prev: any) => ({ ...prev, customFields: fields }));
   };
 
-  const addAchievement = () => {
-    if (achievementInput.trim()) {
-      const currentAchievements = form.getValues("achievements");
-      form.setValue("achievements", [...currentAchievements, achievementInput.trim()]);
-      setAchievementInput("");
-    }
-  };
-
-  const removeAchievement = (index: number) => {
-    const currentAchievements = form.getValues("achievements");
-    form.setValue(
-      "achievements",
-      currentAchievements.filter((_, i) => i !== index),
-    );
-  };
-
-  const addCourse = () => {
-    if (courseInput.trim()) {
-      const currentCourses = form.getValues("courses");
-      if (!currentCourses.includes(courseInput.trim())) {
-        form.setValue("courses", [...currentCourses, courseInput.trim()]);
-      }
-      setCourseInput("");
-    }
-  };
-
-  const removeCourse = (courseToRemove: string) => {
-    const currentCourses = form.getValues("courses");
-    form.setValue(
-      "courses",
-      currentCourses.filter((course) => course !== courseToRemove),
-    );
-  };
-
-  const addKeyword = () => {
-    if (keywordInput.trim()) {
-      const currentKeywords = form.getValues("keywords");
-      if (!currentKeywords.includes(keywordInput.trim())) {
-        form.setValue("keywords", [...currentKeywords, keywordInput.trim()]);
-      }
-      setKeywordInput("");
-    }
-  };
-
-  const removeKeyword = (keywordToRemove: string) => {
-    const currentKeywords = form.getValues("keywords");
-    form.setValue(
-      "keywords",
-      currentKeywords.filter((keyword) => keyword !== keywordToRemove),
-    );
-  };
-
-  const addTag = (tagToAdd?: any) => {
+  // Tag management
+  const addTag = (tagToAdd?: Tag) => {
     const tagName = tagToAdd ? tagToAdd.name : tagInput.trim();
     if (!tagName) return;
 
@@ -261,16 +237,16 @@ export const ContentEditDialog = ({
 
     if (!tagExists) {
       const newTag = tagToAdd || {
-        id: `temp-${Date.now()}`, // Temporary ID for new tags
+        id: `temp-${Date.now()}`,
         name: tagName,
-        color: "#3B82F6", // Default blue color
+        color: "#3B82F6",
       };
       form.setValue("tags", [...currentTags, newTag]);
     }
     setTagInput("");
   };
 
-  const removeTag = (tagToRemove: any) => {
+  const removeTag = (tagToRemove: Tag) => {
     const currentTags = form.getValues("tags");
     form.setValue(
       "tags",
@@ -287,10 +263,35 @@ export const ContentEditDialog = ({
       return !isAlreadySelected && matchesInput;
     }) || [];
 
+  // Validate and submit
   const onSubmit = async (data: ContentFormData) => {
     try {
-      // Here you would make the API call to save/update the content
-      console.log("Saving content:", data);
+      if (!sectionConfig) {
+        console.error("No section configuration found");
+        return;
+      }
+
+      // Validate section data
+      const result = sectionConfig.schema.safeParse(sectionValues);
+      if (!result.success) {
+        const errors: Record<string, string> = {};
+        for (const err of result.error.errors) {
+          if (err.path?.[0]) {
+            errors[err.path[0] as string] = err.message;
+          }
+        }
+        setSectionErrors(errors);
+        return;
+      }
+
+      // Prepare data for save
+      const saveData = {
+        title: data.title,
+        description: data.description,
+        tags: data.tags,
+        data: JSON.stringify(sectionValues), // Convert to JSON string
+      };
+
       // TODO: Implement actual API call
       onOpenChange(false);
     } catch (error) {
@@ -300,18 +301,65 @@ export const ContentEditDialog = ({
 
   const handleClose = () => {
     form.reset();
-    setSkillInput("");
-    setAchievementInput("");
-    setCourseInput("");
-    setKeywordInput("");
     setTagInput("");
+    setSectionValues({});
+    setSectionErrors({});
     onOpenChange(false);
+  };
+
+  // Render section-specific form
+  const renderSectionForm = () => {
+    // Don't render until data is prepared
+    console.log('ContentFormData RENDER', preparedSectionData, sectionConfig, sectionValues);
+    if (!preparedSectionData || !sectionConfig?.component) {
+      if (!sectionConfig) {
+        return (
+          <div className="p-4 text-center text-muted-foreground">
+            Select a content type to continue.
+          </div>
+        );
+      }
+      
+      if (!sectionConfig.component) {
+        return (
+          <div className="p-4 text-center text-muted-foreground">
+            Form for {sectionConfig?.label ?? 'this section'} is not yet implemented.
+          </div>
+        );
+      }
+      
+      // Data is being prepared
+      return (
+        <div className="p-4 text-center text-muted-foreground">
+          Loading {sectionConfig.label} form...
+        </div>
+      );
+    }
+
+    const sectionKey = content?.section?.key ?? sectionId;
+    
+    if (sectionKey === 'contact' || sectionKey === 'basics') {
+      return (
+        <ContactSectionForm
+          values={sectionValues}
+          errors={sectionErrors}
+          onChange={handleSectionChange}
+          onCustomFieldsChange={handleCustomFieldsChange}
+        />
+      );
+    }
+
+
+    return null;
   };
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-h-[90vh] max-w-4xl">
-        <DialogHeader>
+      <DialogContent 
+        className="max-h-[95vh] max-w-5xl w-[95vw]"
+        key={`${content?.id ?? 'new'}-${content?.section?.key ?? sectionId ?? 'unknown'}`}
+      >
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle>{isEditing ? "Edit Content" : "Add New Content"}</DialogTitle>
           <DialogDescription>
             {isEditing
