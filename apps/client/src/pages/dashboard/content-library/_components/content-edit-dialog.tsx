@@ -19,9 +19,8 @@ import {
 import { Button } from "@reactive-resume/ui";
 import { Input } from "@reactive-resume/ui";
 import { Badge } from "@reactive-resume/ui";
-import { Switch } from "@reactive-resume/ui";
 import { ScrollArea } from "@reactive-resume/ui";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -350,6 +349,16 @@ export const ContentEditDialog = ({
     }
 
 
+    if (sectionKey === 'summary') {
+      return (
+        <SummarySectionForm
+          values={sectionValues}
+          errors={sectionErrors}
+          onChange={handleSectionChange}
+        />
+      );
+    }
+
     return null;
   };
 
@@ -369,19 +378,19 @@ export const ContentEditDialog = ({
         </DialogHeader>
 
         <Form {...form}>
-          <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
-            <ScrollArea className="max-h-[60vh] pr-4">
-              <div className="space-y-6">
-                {/* Basic Information */}
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <form className="flex flex-col h-full" onSubmit={form.handleSubmit(onSubmit)}>
+            <ScrollArea className="flex-1 max-h-[70vh] pr-4">
+              <div className="space-y-6 pb-4">
+                {/* Shared Fields - Title and Description */}
+                <div className="space-y-4">
                   <FormField
                     control={form.control}
                     name="title"
                     render={({ field }) => (
-                      <FormItem className="md:col-span-2">
-                        <FormLabel>Title *</FormLabel>
+                      <FormItem>
+                        <FormLabel>Content Title *</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter title..." {...field} />
+                          <Input placeholder="Enter content title..." {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -390,54 +399,16 @@ export const ContentEditDialog = ({
 
                   <FormField
                     control={form.control}
-                    name="company"
+                    name="description"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Company/Organization</FormLabel>
+                        <FormLabel>Content Description</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter company..." {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="position"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Position/Role</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter position..." {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="location"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Location</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter location..." {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="category"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Category</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter category..." {...field} />
+                          <textarea
+                            placeholder="Enter content description..."
+                            className="border-input placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-[100px] w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -445,73 +416,15 @@ export const ContentEditDialog = ({
                   />
                 </div>
 
-                {/* Description */}
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <textarea
-                          placeholder="Enter description..."
-                          className="border-input placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-[100px] w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {/* Section-Specific Form */}
+                {open && sectionConfig && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">{sectionConfig.label}</h3>
+                    {renderSectionForm()}
+                  </div>
+                )}
 
-                {/* Date Range */}
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                  <FormField
-                    control={form.control}
-                    name="startDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Start Date</FormLabel>
-                        <FormControl>
-                          <Input type="date" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="endDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>End Date</FormLabel>
-                        <FormControl>
-                          <Input type="date" {...field} disabled={form.watch("isPresent")} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="isPresent"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base">Current</FormLabel>
-                          <div className="text-muted-foreground text-sm">Is this ongoing?</div>
-                        </div>
-                        <FormControl>
-                          <Switch checked={field.value} onCheckedChange={field.onChange} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                {/* Tags */}
+                {/* Tags - At the bottom */}
                 <div>
                   <FormLabel>Tags</FormLabel>
                   <div className="space-y-2">
@@ -522,7 +435,7 @@ export const ContentEditDialog = ({
                         onChange={(e) => {
                           setTagInput(e.target.value);
                         }}
-                        onKeyPress={(e) => {
+                        onKeyDown={(e) => {
                           if (e.key === "Enter") {
                             e.preventDefault();
                             addTag();
@@ -542,7 +455,7 @@ export const ContentEditDialog = ({
                             >
                               <div
                                 className="size-3 rounded-full"
-                                style={{ backgroundColor: tag.color || "#3B82F6" }}
+                                style={{ backgroundColor: tag.color ?? "#3B82F6" }}
                               />
                               {tag.name}
                             </button>
@@ -572,13 +485,13 @@ export const ContentEditDialog = ({
                           variant="secondary"
                           className="gap-1 pr-1"
                           style={{
-                            borderColor: tag.color || "#3B82F6",
-                            color: tag.color || "#3B82F6",
+                            borderColor: tag.color ?? "#3B82F6",
+                            color: tag.color ?? "#3B82F6",
                           }}
                         >
                           <div
                             className="mr-1 size-2 rounded-full"
-                            style={{ backgroundColor: tag.color || "#3B82F6" }}
+                            style={{ backgroundColor: tag.color ?? "#3B82F6" }}
                           />
                           {tag.name}
                           <button
@@ -595,252 +508,10 @@ export const ContentEditDialog = ({
                     </div>
                   </div>
                 </div>
-
-                {/* Skills */}
-                <div>
-                  <FormLabel>Skills</FormLabel>
-                  <div className="space-y-2">
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="Add a skill..."
-                        value={skillInput}
-                        onChange={(e) => {
-                          setSkillInput(e.target.value);
-                        }}
-                        onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addSkill())}
-                      />
-                      <Button type="button" size="sm" onClick={addSkill}>
-                        <Plus className="size-4" />
-                      </Button>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {form.watch("skills").map((skill) => (
-                        <Badge key={skill} variant="secondary" className="gap-1">
-                          {skill}
-                          <button
-                            type="button"
-                            className="hover:text-destructive ml-1"
-                            onClick={() => {
-                              removeSkill(skill);
-                            }}
-                          >
-                            <X className="size-3" />
-                          </button>
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Achievements */}
-                <div>
-                  <FormLabel>Achievements</FormLabel>
-                  <div className="space-y-2">
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="Add an achievement..."
-                        value={achievementInput}
-                        onChange={(e) => {
-                          setAchievementInput(e.target.value);
-                        }}
-                        onKeyPress={(e) =>
-                          e.key === "Enter" && (e.preventDefault(), addAchievement())
-                        }
-                      />
-                      <Button type="button" size="sm" onClick={addAchievement}>
-                        <Plus className="size-4" />
-                      </Button>
-                    </div>
-                    <div className="space-y-2">
-                      {form.watch("achievements").map((achievement, index) => (
-                        <div key={index} className="flex items-start gap-2 rounded border p-2">
-                          <span className="flex-1 text-sm">{achievement}</span>
-                          <button
-                            type="button"
-                            className="text-destructive hover:text-destructive/80"
-                            onClick={() => {
-                              removeAchievement(index);
-                            }}
-                          >
-                            <X className="size-4" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Additional Fields */}
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <FormField
-                    control={form.control}
-                    name="url"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>URL/Website</FormLabel>
-                        <FormControl>
-                          <Input placeholder="https://..." {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="issuer"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Issuer/Institution</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter issuer..." {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="score"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Score/Grade</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter score..." {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="proficiencyLevel"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Proficiency Level (%)</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            min="0"
-                            max="100"
-                            placeholder="0-100"
-                            {...field}
-                            onChange={(e) => {
-                              field.onChange(e.target.value ? Number(e.target.value) : undefined);
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="contactPerson"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Contact Person</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter contact person..." {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="contactInfo"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Contact Information</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter contact info..." {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                {/* Courses */}
-                <div>
-                  <FormLabel>Courses</FormLabel>
-                  <div className="space-y-2">
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="Add a course..."
-                        value={courseInput}
-                        onChange={(e) => {
-                          setCourseInput(e.target.value);
-                        }}
-                        onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addCourse())}
-                      />
-                      <Button type="button" size="sm" onClick={addCourse}>
-                        <Plus className="size-4" />
-                      </Button>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {form.watch("courses").map((course) => (
-                        <Badge key={course} variant="secondary" className="gap-1">
-                          {course}
-                          <button
-                            type="button"
-                            className="hover:text-destructive ml-1"
-                            onClick={() => {
-                              removeCourse(course);
-                            }}
-                          >
-                            <X className="size-3" />
-                          </button>
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Keywords */}
-                <div>
-                  <FormLabel>Keywords</FormLabel>
-                  <div className="space-y-2">
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="Add a keyword..."
-                        value={keywordInput}
-                        onChange={(e) => {
-                          setKeywordInput(e.target.value);
-                        }}
-                        onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addKeyword())}
-                      />
-                      <Button type="button" size="sm" onClick={addKeyword}>
-                        <Plus className="size-4" />
-                      </Button>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {form.watch("keywords").map((keyword) => (
-                        <Badge key={keyword} variant="secondary" outline={true} className="gap-1">
-                          {keyword}
-                          <button
-                            type="button"
-                            className="hover:text-destructive ml-1"
-                            onClick={() => {
-                              removeKeyword(keyword);
-                            }}
-                          >
-                            <X className="size-3" />
-                          </button>
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                </div>
               </div>
             </ScrollArea>
 
-            <DialogFooter>
+            <DialogFooter className="flex-shrink-0 pt-4 border-t">
               <Button type="button" variant="outline" onClick={handleClose}>
                 Cancel
               </Button>

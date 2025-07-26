@@ -37,4 +37,5 @@ export * from "./tooltip";
 export * from "./visually-hidden";
 export * from "./url-input";
 export * from "./resume-sections/contact-section-form";
+export * from "./resume-sections/summary-section-form";
 export * from "./custom-field";
