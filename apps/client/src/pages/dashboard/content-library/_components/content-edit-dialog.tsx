@@ -24,8 +24,8 @@ import { useEffect, useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { useAvailableTags } from "@/client/services/content-library/content-library";
-import { ContactSectionForm, ExperienceSectionForm, SummarySectionForm } from "@reactive-resume/ui";
+import { useAvailableTags, useCreateContentLibraryItem, useUpdateContentLibraryItem } from "@/client/services/content-library/content-library";
+import { ContactSectionForm, ExperienceSectionForm, SummarySectionForm, EducationSectionForm, ProfilesSectionForm, SkillsSectionForm, LanguagesSectionForm, ProjectsSectionForm, AwardsSectionForm, VolunteeringSectionForm, CertificatesSectionForm, InterestsSectionForm, PublicationsSectionForm, ReferencesSectionForm } from "@reactive-resume/ui";
 import { 
   basicsSchema, 
   defaultBasics, 
@@ -33,8 +33,29 @@ import {
   defaultEducation,
   experienceSchema,
   defaultExperience,
+  profileSchema,
+  defaultProfile,
+  skillSchema,
+  defaultSkill,
+  languageSchema,
+  defaultLanguage,
+  projectSchema,
+  defaultProject,
+  awardSchema,
+  defaultAward,
+  volunteerSchema,
+  defaultVolunteer,
+  certificationSchema,
+  defaultCertification,
+  interestSchema,
+  defaultInterest,
+  publicationSchema,
+  defaultPublication,
+  referenceSchema,
+  defaultReference,
   type CustomField 
 } from "@reactive-resume/schema";
+import { useToast } from "@/client/hooks/use-toast";
 
 // Simple summary schema for content library
 const summarySchema = z.object({
@@ -69,20 +90,80 @@ const SECTION_FORM_MAP = {
   'education': { 
     schema: educationSchema, 
     default: defaultEducation, 
-    component: null, // TODO: Create EducationSectionForm
+    component: EducationSectionForm,
     label: 'Education'
   },
   'experience': { 
     schema: experienceSchema, 
     default: defaultExperience, 
-    component: null, // TODO: Create ExperienceSectionForm
+    component: ExperienceSectionForm,
     label: 'Experience'
   },
   'summary': { 
     schema: summarySchema, 
     default: defaultSummary, 
-    component: null,
+    component: SummarySectionForm,
     label: 'Summary'
+  },
+  'profiles': { 
+    schema: profileSchema, 
+    default: defaultProfile, 
+    component: ProfilesSectionForm,
+    label: 'Profiles'
+  },
+  'skills': { 
+    schema: skillSchema, 
+    default: defaultSkill, 
+    component: SkillsSectionForm,
+    label: 'Skills'
+  },
+  'languages': { 
+    schema: languageSchema, 
+    default: defaultLanguage, 
+    component: LanguagesSectionForm,
+    label: 'Languages'
+  },
+  'projects': { 
+    schema: projectSchema, 
+    default: defaultProject, 
+    component: ProjectsSectionForm,
+    label: 'Projects'
+  },
+  'awards': { 
+    schema: awardSchema, 
+    default: defaultAward, 
+    component: AwardsSectionForm,
+    label: 'Awards'
+  },
+  'volunteer': { 
+    schema: volunteerSchema, 
+    default: defaultVolunteer, 
+    component: VolunteeringSectionForm,
+    label: 'Volunteering'
+  },
+  'certification': { 
+    schema: certificationSchema, 
+    default: defaultCertification, 
+    component: CertificatesSectionForm,
+    label: 'Certificates'
+  },
+  'interest': { 
+    schema: interestSchema, 
+    default: defaultInterest, 
+    component: InterestsSectionForm,
+    label: 'Interests'
+  },
+  'publication': { 
+    schema: publicationSchema, 
+    default: defaultPublication, 
+    component: PublicationsSectionForm,
+    label: 'Publications'
+  },
+  'reference': { 
+    schema: referenceSchema, 
+    default: defaultReference, 
+    component: ReferencesSectionForm,
+    label: 'References'
   },
   // Add more sections as needed
 } as const;
@@ -141,15 +222,57 @@ const parseTags = (tagsData: any[] | undefined): Tag[] => {
   return [];
 };
 
+// Normalize section values to ensure they match the expected schema
+const normalizeSectionValues = (values: any): any => {
+  if (!values || typeof values !== 'object') {
+    return values;
+  }
+
+  const normalized = { ...values };
+
+  // Normalize URL fields
+  if (normalized.url !== undefined) {
+    if (!normalized.url || typeof normalized.url !== 'object') {
+      normalized.url = { label: "", href: "" };
+    } else if (!normalized.url.label || !normalized.url.href) {
+      normalized.url = {
+        label: normalized.url.label || "",
+        href: normalized.url.href || ""
+      };
+    }
+  }
+
+  // Normalize other potential URL fields
+  ['website', 'linkedin', 'github', 'portfolio'].forEach(field => {
+    if (normalized[field] !== undefined) {
+      if (!normalized[field] || typeof normalized[field] !== 'object') {
+        normalized[field] = { label: "", href: "" };
+      } else if (!normalized[field].label || !normalized[field].href) {
+        normalized[field] = {
+          label: normalized[field].label || "",
+          href: normalized[field].href || ""
+        };
+      }
+    }
+  });
+
+  return normalized;
+};
+
 export const ContentEditDialog = ({
   open,
   onOpenChange,
   content,
   sectionId,
 }: ContentEditDialogProps) => {
-  const [tagInput, setTagInput] = useState("");
   const { data: availableTags } = useAvailableTags();
+  const createContentMutation = useCreateContentLibraryItem();
+  const updateContentMutation = useUpdateContentLibraryItem();
+  const { toast } = useToast();
+  
+  const [tagInput, setTagInput] = useState("");
   const isEditing = !!content;
+  const [isLoading, setIsLoading] = useState(false);
 
   // Determine section configuration (only when dialog is open)
   const sectionConfig = useMemo(() => {
@@ -264,37 +387,55 @@ export const ContentEditDialog = ({
 
   // Validate and submit
   const onSubmit = async (data: ContentFormData) => {
+    console.log('onSubmit called with data:', data);
+    console.log('sectionValues:', sectionValues);
+    console.log('isEditing:', isEditing, 'content?.id:', content?.id);
+    
     try {
-      if (!sectionConfig) {
-        console.error("No section configuration found");
-        return;
-      }
+      setIsLoading(true);
 
-      // Validate section data
-      const result = sectionConfig.schema.safeParse(sectionValues);
-      if (!result.success) {
-        const errors: Record<string, string> = {};
-        for (const err of result.error.errors) {
-          if (err.path?.[0]) {
-            errors[err.path[0] as string] = err.message;
-          }
-        }
-        setSectionErrors(errors);
-        return;
-      }
-
-      // Prepare data for save
       const saveData = {
         title: data.title,
         description: data.description,
-        tags: data.tags,
-        data: JSON.stringify(sectionValues), // Convert to JSON string
+        tagIds: data.tags.map(tag => tag.id),
+        data: JSON.stringify(normalizeSectionValues(sectionValues)), // Convert to JSON string
       };
 
-      // TODO: Implement actual API call
+      console.log('saveData', saveData, isEditing, content?.id);
+      if (isEditing && content?.id) {
+        // Update existing content
+        console.log('Calling update mutation with:', { id: content.id, data: saveData });
+        await updateContentMutation.mutateAsync({
+          id: content.id,
+          data: saveData,
+        });
+        toast({
+          title: "Content updated",
+          description: "Your content item has been updated.",
+        });
+      } else if (sectionId) {
+        // Create new content
+        console.log('Calling create mutation with:', { ...saveData, sectionId });
+        await createContentMutation.mutateAsync({
+          ...saveData,
+          sectionId,
+        });
+        toast({
+          title: "Content added",
+          description: "Your new content item has been added.",
+        });
+      }
+
       onOpenChange(false);
     } catch (error) {
       console.error("Failed to save content:", error);
+      toast({
+        title: "Failed to save content",
+        description: "There was an error saving your content item.",
+        variant: "error",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -361,6 +502,116 @@ export const ContentEditDialog = ({
     if (sectionKey === 'summary') {
       return (
         <SummarySectionForm
+          values={sectionValues}
+          errors={sectionErrors}
+          onChange={handleSectionChange}
+        />
+      );
+    }
+
+    if (sectionKey === 'education') {
+      return (
+        <EducationSectionForm
+          values={sectionValues}
+          errors={sectionErrors}
+          onChange={handleSectionChange}
+        />
+      );
+    }
+
+    if (sectionKey === 'profiles') {
+      return (
+        <ProfilesSectionForm
+          values={sectionValues}
+          errors={sectionErrors}
+          onChange={handleSectionChange}
+        />
+      );
+    }
+
+    if (sectionKey === 'skills') {
+      return (
+        <SkillsSectionForm
+          values={sectionValues}
+          errors={sectionErrors}
+          onChange={handleSectionChange}
+        />
+      );
+    }
+
+    if (sectionKey === 'languages') {
+      return (
+        <LanguagesSectionForm
+          values={sectionValues}
+          errors={sectionErrors}
+          onChange={handleSectionChange}
+        />
+      );
+    }
+
+    if (sectionKey === 'projects') {
+      return (
+        <ProjectsSectionForm
+          values={sectionValues}
+          errors={sectionErrors}
+          onChange={handleSectionChange}
+        />
+      );
+    }
+
+    if (sectionKey === 'awards') {
+      return (
+        <AwardsSectionForm
+          values={sectionValues}
+          errors={sectionErrors}
+          onChange={handleSectionChange}
+        />
+      );
+    }
+
+    if (sectionKey === 'volunteer') {
+      return (
+        <VolunteeringSectionForm
+          values={sectionValues}
+          errors={sectionErrors}
+          onChange={handleSectionChange}
+        />
+      );
+    }
+
+    if (sectionKey === 'certification') {
+      return (
+        <CertificatesSectionForm
+          values={sectionValues}
+          errors={sectionErrors}
+          onChange={handleSectionChange}
+        />
+      );
+    }
+
+    if (sectionKey === 'interest') {
+      return (
+        <InterestsSectionForm
+          values={sectionValues}
+          errors={sectionErrors}
+          onChange={handleSectionChange}
+        />
+      );
+    }
+
+    if (sectionKey === 'publication') {
+      return (
+        <PublicationsSectionForm
+          values={sectionValues}
+          errors={sectionErrors}
+          onChange={handleSectionChange}
+        />
+      );
+    }
+
+    if (sectionKey === 'reference') {
+      return (
+        <ReferencesSectionForm
           values={sectionValues}
           errors={sectionErrors}
           onChange={handleSectionChange}
@@ -524,7 +775,10 @@ export const ContentEditDialog = ({
               <Button type="button" variant="outline" onClick={handleClose}>
                 Cancel
               </Button>
-              <Button type="submit">{isEditing ? "Update Content" : "Add Content"}</Button>
+              <Button type="submit" disabled={isLoading} onClick={() => console.log('Submit button clicked')}>
+                {isEditing ? "Update Content" : "Add Content"}
+                {isLoading && "..."}
+              </Button>
             </DialogFooter>
           </form>
         </Form>

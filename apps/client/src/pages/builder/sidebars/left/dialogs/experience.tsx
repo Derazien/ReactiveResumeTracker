@@ -22,15 +22,15 @@ export const ExperienceDialog = () => {
         onChange={(field, value) => {
           form.setValue(field, value);
         }}
-        footer={(editor) => (
-          <AiActions
-            value={editor.getText()}
-            onChange={(value) => {
-              editor.commands.setContent(value, true);
+                  footer={(editor) => (
+                    <AiActions
+                      value={editor.getText()}
+                      onChange={(value) => {
+                        editor.commands.setContent(value, true);
               form.setValue("summary", value);
-            }}
-          />
-        )}
+                      }}
+                    />
+                  )}
       />
     </SectionDialog>
   );
