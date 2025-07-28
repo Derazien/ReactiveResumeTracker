@@ -9,17 +9,19 @@ import { queryClient } from "@/client/libs/query-client";
 import { findResumeById } from "@/client/services/resume";
 import { useBuilderStore } from "@/client/stores/builder";
 import { useResumeStore } from "@/client/stores/resume";
+import { useResumeSync } from "@/client/hooks/use-resume-sync";
 
 export const BuilderPage = () => {
   const frameRef = useBuilderStore((state) => state.frame.ref);
   const setFrameRef = useBuilderStore((state) => state.frame.setRef);
 
-  const resume = useResumeStore((state) => state.resume);
+  const resume = useResumeSync(); // Use the sync hook to ensure proper re-renders
   const title = useResumeStore((state) => state.resume.title);
 
   const syncResumeToArtboard = useCallback(() => {
     setImmediate(() => {
       if (!frameRef?.contentWindow) return;
+      console.log("Syncing resume to artboard:", resume.data);
       const message = { type: "SET_RESUME", payload: resume.data };
       frameRef.contentWindow.postMessage(message, "*");
     });

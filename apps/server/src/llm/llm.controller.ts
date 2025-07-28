@@ -40,6 +40,15 @@ type ChatRequest = {
   messages: ChatMessage[];
 };
 
+type LLMActionRequest = {
+  action: "improve" | "fix" | "tone" | "custom";
+  value: string;
+  mood?: "casual" | "professional" | "confident" | "friendly";
+  customPrompt?: string;
+  includeJobContext?: boolean;
+  resumeId?: string;
+};
+
 @ApiTags("LLM")
 @Controller("llm")
 @UseGuards(TwoFactorGuard)
@@ -108,12 +117,18 @@ export class LLMController {
   }
 
 
+  @Post("edit-resume")
+  @ApiOperation({ summary: "Edit resume using natural language prompt" })
+  async editResume(@User("id") userId: string, @Body() body: EditResumeDto) {
+    return this.llmService.editResume(userId, body.prompt, body.resumeData, body.includeJobContext);
+  }
+
   @Post("action")
-  @ApiOperation({ summary: "Perform AI-powered resume editing action (improve, fix, tone)" })
+  @ApiOperation({ summary: "Perform AI-powered resume editing action (improve, fix, tone, custom)" })
   async processAction(@User("id") userId: string, @Body() body: LLMActionRequest) {
-    const { action, value, mood } = body;
+    const { action, value, mood, customPrompt, includeJobContext, resumeId } = body;
     try {
-      const result = await this.llmService.processAction(userId, action, value, mood);
+      const result = await this.llmService.processAction(userId, action, value, mood, customPrompt, includeJobContext, resumeId);
       return { result };
     } catch (error) {
       return { error: error instanceof Error ? error.message : "Unknown error" };

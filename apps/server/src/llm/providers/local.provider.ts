@@ -361,10 +361,12 @@ ${JSON.stringify(currentResumeData, null, 2)}
 CRITICAL ONE-PAGE OPTIMIZATION INSTRUCTIONS:
 - This resume MUST fit on exactly ONE PAGE
 - The LLM should determine optimal number of experiences (2-3 are ideal, preferably 3 if space allows)
-- If using only 2 experiences, prioritize the most relevant ones and mention space optimization in changesSummary
+- **CRITICAL: ALWAYS include current job positions (those with "Present" end date) if they exist**
+- If using only 2 experiences, prioritize current job + most relevant past job
+- If using 3 experiences, prioritize: current job + 2 most relevant past jobs
 - Summary must be 1-2 short sentences maximum
 - All sections must be concise and optimized for single-page layout
-- Prioritize: most relevant experiences, key technical skills, education, certifications, projects
+- Prioritize: at least 1 current experience (preferably the most relevent one), most relevant past experiences, key technical skills, education, certifications, projects
 
 CRITICAL FORMATTING REQUIREMENTS FOR EXPERIENCE, PROJECTS, AND VOLUNTEER SECTIONS:
 - Experience, Projects, and Volunteer sections MUST use clean HTML bullet point formatting

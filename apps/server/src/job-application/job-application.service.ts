@@ -382,7 +382,7 @@ export class JobApplicationService {
           minSimilarity: 0, // Only include reasonably relevant content
           maxResults: 100,
           // Structured selection options for one-page resume
-          maxExperiences: 3, // LLM will determine if 2 or 3 fit on one page
+          maxExperiences: 5, // LLM will determine if 2 or 3 fit on one page
           maxProjects: 3,
           includeAllInterests: true,
           includeAllLanguages: true,

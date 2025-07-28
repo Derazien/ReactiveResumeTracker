@@ -3,6 +3,7 @@ import { forwardRef, Module } from "@nestjs/common";
 import { AuthModule } from "@/server/auth/auth.module";
 import { UserModule } from "@/server/user/user.module";
 import { ContentMatchingModule } from "@/server/content-matching/content-matching.module";
+import { EmbeddingModule } from "@/server/embedding/embedding.module";
 
 import { ContentLibraryModule } from "../content-library/content-library.module";
 import { LLMController } from "./llm.controller";
@@ -16,6 +17,7 @@ import { TagExtractionService } from "./tag-extraction.service";
   imports: [
     AuthModule, 
     UserModule, 
+    EmbeddingModule,
     forwardRef(() => ContentLibraryModule),
     forwardRef(() => ContentMatchingModule),
   ],

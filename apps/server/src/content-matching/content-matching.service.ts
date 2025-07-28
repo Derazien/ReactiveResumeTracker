@@ -205,9 +205,13 @@ export class ContentMatchingService {
       const groupedContent = this.groupContentBySection(contentDetails, allMatchedContent);
 
       
-      // Apply structured selection rules (PERMISSIVE - let LLM decide what's best)
+      // Apply structured selection rules with current job priority for experiences
       const structuredSelection: StructuredContentSelection = {
-        experiences: this.selectTopContent(groupedContent.experience ?? [], 3), // Max 3 experiences sorted by score
+        experiences: this.selectExperienceContentWithCurrentJobPriority(
+          groupedContent.experience ?? [], 
+          contentDetails, 
+          maxExperiences
+        ),
         projects: this.selectTopContent(groupedContent.projects ?? [], 3), // Max 3 projects regardless of score
         interests: this.selectTopContent(groupedContent.interests ?? [], 10), // Max 10 interests (reasonable limit)
         languages: this.selectTopContent(groupedContent.languages ?? [], 20), // Max 20 languages (very permissive)
@@ -349,9 +353,60 @@ export class ContentMatchingService {
    * NEW: Select top N content items by score
    */
   private selectTopContent(contentList: ContentMatchResult[], maxCount: number): ContentMatchResult[] {
+    // For now, use default sorting since we need content data to determine current jobs
+    // The current job priority is handled in the experience scoring logic
     return contentList
       .sort((a, b) => b.score - a.score)
       .slice(0, maxCount);
+  }
+
+  /**
+   * Select experience content with guaranteed current job inclusion
+   */
+  private selectExperienceContentWithCurrentJobPriority(
+    contentList: ContentMatchResult[], 
+    contentDetails: any[],
+    maxCount: number
+  ): ContentMatchResult[] {
+    // Create a map of content details for easy lookup
+    const contentMap = new Map(contentDetails.map(content => [content.id, content]));
+    
+    // Separate current jobs from past jobs
+    const currentJobs = contentList.filter(item => {
+      const content = contentMap.get(item.contentId);
+      return content && this.isCurrentJob(content);
+    });
+    const pastJobs = contentList.filter(item => {
+      const content = contentMap.get(item.contentId);
+      return content && !this.isCurrentJob(content);
+    });
+    
+    // Sort both lists by score
+    const sortedCurrentJobs = currentJobs.sort((a, b) => b.score - a.score);
+    const sortedPastJobs = pastJobs.sort((a, b) => b.score - a.score);
+    
+    // Ensure at least 1 current job is included if available
+    let result: ContentMatchResult[] = [];
+    
+    if (sortedCurrentJobs.length > 0) {
+      // Include the best current job
+      result.push(sortedCurrentJobs[0]);
+      
+      // Fill remaining slots with best overall jobs (current or past)
+      const remainingSlots = maxCount - 1;
+      const allJobs = [...sortedCurrentJobs.slice(1), ...sortedPastJobs];
+      const bestRemaining = allJobs.slice(0, remainingSlots);
+      
+      result.push(...bestRemaining);
+      
+      this.logger.log(`Experience selection: ${sortedCurrentJobs.length} current jobs, ${sortedPastJobs.length} past jobs. Selected ${result.length} total.`);
+    } else {
+      // No current jobs, use best past jobs
+      result = sortedPastJobs.slice(0, maxCount);
+      this.logger.log(`Experience selection: No current jobs found. Selected ${result.length} past jobs.`);
+    }
+    
+    return result;
   }
 
   /**
@@ -678,6 +733,14 @@ export class ContentMatchingService {
       else if (monthsOld < 12) score += 3;
     }
 
+    // Job recency bonus (when the job itself was held)
+    if (content.startDate && content.section?.key === "experience") {
+      const jobRecency = this.calculateJobRecency(content);
+      if (jobRecency < 1) score += 8; // Very recent job
+      else if (jobRecency < 3) score += 5; // Recent job
+      else if (jobRecency < 5) score += 3; // Moderately recent
+    }
+
     // Work experience duration bonus
     if (content.startDate && content.section?.key === "experience") {
       const yearsExp = this.estimateYearsExperience(content);
@@ -694,7 +757,7 @@ export class ContentMatchingService {
     const achievementsCount = this.parseJsonArray(content.achievements).length;
     if (achievementsCount >= 3) score += 2;
 
-    return Math.min(15, score);
+    return Math.min(50, score); // Increased max score to accommodate current job bonus
   }
 
   /**
@@ -708,6 +771,46 @@ export class ContentMatchingService {
     const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
     const diffYears = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 365));
 
+    return diffYears;
+  }
+
+  /**
+   * Check if a job is current (ongoing position)
+   */
+  private isCurrentJob(content: any): boolean {
+    // Check for "current" keyword in date field (temporary solution)
+    if (content.date && typeof content.date === 'string') {
+      return content.date.toLowerCase().includes('current');
+    }
+    
+    // Check for null/undefined endDate (current position)
+    if (content.endDate === null || content.endDate === undefined) {
+      return true;
+    }
+    
+    // Check if endDate is in the future or very recent (within 1 month)
+    if (content.endDate) {
+      const endDate = new Date(content.endDate);
+      const now = new Date();
+      const diffTime = now.getTime() - endDate.getTime();
+      const diffDays = diffTime / (1000 * 60 * 60 * 24);
+      return diffDays <= 30; // Within 30 days
+    }
+    
+    return false;
+  }
+
+  /**
+   * Calculate how recent a job is (in years)
+   */
+  private calculateJobRecency(content: any): number {
+    if (!content.startDate) return 999; // Very old if no start date
+    
+    const startDate = new Date(content.startDate);
+    const endDate = content.endDate ? new Date(content.endDate) : new Date();
+    const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+    const diffYears = diffTime / (1000 * 60 * 60 * 24 * 365);
+    
     return diffYears;
   }
 

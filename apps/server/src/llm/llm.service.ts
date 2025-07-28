@@ -3,6 +3,8 @@ import { ConfigService } from "@nestjs/config";
 
 import { UserLLMSettingsService } from "@/server/user/user-llm-settings.service";
 import { ContentMatchingService } from "@/server/content-matching/content-matching.service";
+import { PrismaService } from "nestjs-prisma";
+import { EmbeddingService } from "@/server/embedding/embedding.service";
 
 import { ContentLibraryService } from "../content-library/content-library.service";
 import {
@@ -46,6 +48,8 @@ export class LLMService {
     private contentLibraryService: ContentLibraryService,
     private readonly tagExtractionService: TagExtractionService,
     private readonly contentMatchingService: ContentMatchingService,
+    private readonly prisma: PrismaService,
+    private readonly embeddingService: EmbeddingService,
   ) {
     // Initialize with default provider (fallback)
     this.initializeProvider();
@@ -2020,16 +2024,493 @@ Tags:`;
   }
 
   /**
+   * Search story blocks by similarity (moved from VoiceService to avoid circular import)
+   */
+  private async searchStoryBlocks(userId: string, queryText: string, limit: number = 10) {
+    try {
+      // Generate embedding for query
+      const queryEmbedding = await this.embeddingService.generateEmbedding(queryText);
+
+      // Get all user's story blocks with embeddings
+      const storyBlocks = await this.prisma.storyBlock.findMany({
+        where: {
+          userId,
+          embedding: { not: null },
+        },
+      });
+
+      // Calculate similarities
+      const candidateEmbeddings = storyBlocks.map((block: any) => ({
+        id: block.id,
+        embedding: this.embeddingService.parseEmbedding(block.embedding!),
+        metadata: block,
+      }));
+
+      const similarities = this.embeddingService.findMostSimilar(
+        queryEmbedding.embedding,
+        candidateEmbeddings,
+        limit,
+        0.3 // Minimum similarity threshold
+      );
+
+      return similarities.map(result => ({
+        ...result.metadata,
+        similarity: result.similarity,
+      }));
+    } catch (error) {
+      this.logger.error(`Failed to search story blocks: ${error instanceof Error ? error.message : "Unknown error"}`);
+      return [];
+    }
+  }
+
+  /**
+   * Search answer snippets by similarity (moved from VoiceService to avoid circular import)
+   */
+  private async searchAnswerSnippets(userId: string, queryText: string, questionTag?: string, limit: number = 10) {
+    try {
+      // Generate embedding for query
+      const queryEmbedding = await this.embeddingService.generateEmbedding(queryText);
+
+      // Get answer snippets with optional filtering by question tag
+      const whereClause: any = {
+        userId,
+        embedding: { not: null },
+      };
+
+      if (questionTag) {
+        whereClause.questionTag = questionTag;
+      }
+
+      const answerSnippets = await this.prisma.answerSnippet.findMany({
+        where: whereClause,
+      });
+
+      // Calculate similarities
+      const candidateEmbeddings = answerSnippets.map((snippet: any) => ({
+        id: snippet.id,
+        embedding: this.embeddingService.parseEmbedding(snippet.embedding!),
+        metadata: snippet,
+      }));
+
+      const similarities = this.embeddingService.findMostSimilar(
+        queryEmbedding.embedding,
+        candidateEmbeddings,
+        limit,
+        0.3 // Minimum similarity threshold
+      );
+
+      return similarities.map(result => ({
+        ...result.metadata,
+        similarity: result.similarity,
+      }));
+    } catch (error) {
+      this.logger.error(`Failed to search answer snippets: ${error instanceof Error ? error.message : "Unknown error"}`);
+      return [];
+    }
+  }
+
+  /**
+   * Generate cover letter draft using RAG-matched story blocks
+   */
+  async generateCoverLetterDraft(
+    userId: string,
+    jobDescription: string,
+    jobRequirements?: string[],
+    templateName?: string,
+    tone?: string,
+    userProfile?: Record<string, unknown>,
+  ) {
+    try {
+      this.logger.debug(`Generating cover letter draft for user ${userId}`);
+
+      // Search for relevant story blocks using RAG
+      const relevantStories = await this.searchStoryBlocks(
+        userId,
+        `${jobDescription} ${jobRequirements?.join(" ") || ""}`,
+        5 // Top 5 most relevant stories
+      );
+
+      // Get LLM provider for user
+      const provider = await this.getProviderForUser(userId);
+
+      // Load template (default if not specified)
+      const template = await this.loadCoverLetterTemplate(templateName || "professional");
+
+      // Generate cover letter
+      const prompt = this.buildCoverLetterPrompt(
+        template,
+        jobDescription,
+        relevantStories,
+        tone || "professional",
+        userProfile
+      );
+
+      const result = await provider.chat([
+        { role: "system" as const, content: "You are a professional resume writer. Create compelling cover letters that highlight relevant experiences and match job requirements. Keep the tone consistent and ensure proper formatting." },
+        { role: "user" as const, content: prompt }
+      ]);
+
+      if (result.success && result.data) {
+        // Return cover letter with metadata about used stories
+        return {
+          success: true,
+          data: {
+            coverLetter: result.data,
+            template: templateName || "professional",
+            tone: tone || "professional",
+            usedStories: relevantStories.map(story => ({
+              id: story.id,
+              skillTheme: story.skillTheme,
+              similarity: story.similarity
+            })),
+            alternativeStories: await this.findAlternativeStories(userId, relevantStories)
+          }
+        };
+      } else {
+        throw new Error(result.error || "Failed to generate cover letter");
+      }
+    } catch (error) {
+      this.logger.error(`Cover letter generation failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Generate answer to job application question using user's stories
+   */
+  async generateQuestionAnswer(
+    userId: string,
+    questionText: string,
+    jobDescription?: string,
+    questionTag?: string,
+  ) {
+    try {
+      this.logger.debug(`Generating question answer for user ${userId}`);
+
+      // Search for relevant answer snippets first
+      let relevantAnswers = [];
+      if (questionTag) {
+        relevantAnswers = await this.searchAnswerSnippets(
+          userId,
+          questionText,
+          questionTag,
+          3
+        );
+      }
+
+      // If no specific answers found, search story blocks
+      let relevantStories = [];
+      if (relevantAnswers.length === 0) {
+        const searchQuery = `${questionText} ${jobDescription || ""}`;
+        relevantStories = await this.searchStoryBlocks(userId, searchQuery, 3);
+      }
+
+      const provider = await this.getProviderForUser(userId);
+
+      let prompt: string;
+      if (relevantAnswers.length > 0) {
+        // Use existing answer snippets as base
+        prompt = this.buildAnswerPromptFromSnippets(
+          questionText,
+          relevantAnswers,
+          jobDescription
+        );
+      } else {
+        // Generate new answer from story blocks
+        prompt = this.buildAnswerPromptFromStories(
+          questionText,
+          relevantStories,
+          jobDescription
+        );
+      }
+
+      const result = await provider.chat([
+        { role: "system" as const, content: "You are an expert at answering job application questions using specific examples from a candidate's experience. Provide concrete, compelling answers that directly address the question." },
+        { role: "user" as const, content: prompt }
+      ]);
+
+      if (result.success && result.data) {
+        return {
+          success: true,
+          data: {
+            answer: result.data,
+            questionTag: questionTag || this.extractQuestionTag(questionText),
+            usedContent: relevantAnswers.length > 0 ? 
+              relevantAnswers.map(a => ({ id: a.id, type: "answer", similarity: a.similarity })) :
+              relevantStories.map(s => ({ id: s.id, type: "story", similarity: s.similarity }))
+          }
+        };
+      } else {
+        throw new Error(result.error || "Failed to generate answer");
+      }
+    } catch (error) {
+      this.logger.error(`Question answer generation failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Load cover letter template from static files
+   */
+  private async loadCoverLetterTemplate(templateName: string): Promise<string> {
+    // Define default templates (can be moved to files later)
+    const templates = {
+      professional: `Dear Hiring Manager,
+
+I am writing to express my strong interest in the [[POSITION]] role at [[COMPANY]]. With my background in [[FIELD]], I am excited about the opportunity to contribute to your team.
+
+[[EXPERIENCE_HIGHLIGHT]]
+
+[[SKILLS_MATCH]]
+
+[[COMPANY_CONNECTION]]
+
+I am excited about the possibility of bringing my skills and passion to [[COMPANY]]. Thank you for your consideration, and I look forward to the opportunity to discuss how I can contribute to your team.
+
+Best regards,
+[[CANDIDATE_NAME]]`,
+
+      creative: `Hello [[COMPANY]] Team!
+
+I'm thrilled to apply for the [[POSITION]] role - this opportunity perfectly aligns with my passion for [[FIELD]] and my desire to make an impact.
+
+[[EXPERIENCE_HIGHLIGHT]]
+
+[[PERSONAL_STORY]]
+
+[[COMPANY_CONNECTION]]
+
+I can't wait to potentially join the [[COMPANY]] family and contribute to your mission. Let's chat soon!
+
+Warmly,
+[[CANDIDATE_NAME]]`,
+
+      technical: `Dear [[COMPANY]] Engineering Team,
+
+As a dedicated [[FIELD]] professional, I'm excited to apply for the [[POSITION]] role. Your technical challenges and innovative approach to [[DOMAIN]] strongly resonate with my experience and career goals.
+
+[[TECHNICAL_EXPERIENCE]]
+
+[[PROBLEM_SOLVING]]
+
+[[TECHNICAL_ALIGNMENT]]
+
+I'm eager to discuss how my technical background can contribute to [[COMPANY]]'s continued success. Thank you for your time and consideration.
+
+Best regards,
+[[CANDIDATE_NAME]]`
+    };
+
+    return templates[templateName as keyof typeof templates] || templates.professional;
+  }
+
+  /**
+   * Build cover letter generation prompt
+   */
+  private buildCoverLetterPrompt(
+    template: string,
+    jobDescription: string,
+    relevantStories: any[],
+    tone: string,
+    userProfile?: Record<string, unknown>
+  ): string {
+    const storiesText = relevantStories
+      .map((story, index) => `Story ${index + 1} (${story.skillTheme}): ${story.text}`)
+      .join("\n\n");
+
+    return `Generate a compelling cover letter using this template and the candidate's relevant stories.
+
+TEMPLATE:
+${template}
+
+JOB DESCRIPTION:
+${jobDescription}
+
+CANDIDATE'S RELEVANT STORIES:
+${storiesText}
+
+USER PROFILE:
+${userProfile ? JSON.stringify(userProfile, null, 2) : "Not provided"}
+
+INSTRUCTIONS:
+1. Fill all [[PLACEHOLDER]] fields in the template
+2. Use the candidate's stories to demonstrate relevant experience
+3. Match the ${tone} tone throughout
+4. Keep it concise (under 400 words)
+5. Make specific connections between stories and job requirements
+6. Ensure proper formatting and flow
+
+Generate the complete cover letter:`;
+  }
+
+  /**
+   * Build answer prompt from existing answer snippets
+   */
+  private buildAnswerPromptFromSnippets(
+    questionText: string,
+    relevantAnswers: any[],
+    jobDescription?: string
+  ): string {
+    const answersText = relevantAnswers
+      .map((answer, index) => `Previous Answer ${index + 1}: ${answer.text}`)
+      .join("\n\n");
+
+    return `Improve and tailor this answer to the specific question, using the candidate's previous responses as a foundation.
+
+QUESTION: ${questionText}
+
+JOB CONTEXT: ${jobDescription || "General application"}
+
+PREVIOUS ANSWERS:
+${answersText}
+
+INSTRUCTIONS:
+1. Use the previous answers as a starting point
+2. Tailor the response specifically to this question
+3. Keep the authentic voice and experiences
+4. Make it concise and impactful (150-200 words)
+5. Include specific examples when possible
+
+Generate the improved answer:`;
+  }
+
+  /**
+   * Build answer prompt from story blocks
+   */
+  private buildAnswerPromptFromStories(
+    questionText: string,
+    relevantStories: any[],
+    jobDescription?: string
+  ): string {
+    const storiesText = relevantStories
+      .map((story, index) => `Story ${index + 1} (${story.skillTheme}): ${story.text}`)
+      .join("\n\n");
+
+    return `Answer this job application question using the candidate's relevant experiences.
+
+QUESTION: ${questionText}
+
+JOB CONTEXT: ${jobDescription || "General application"}
+
+CANDIDATE'S RELEVANT EXPERIENCES:
+${storiesText}
+
+INSTRUCTIONS:
+1. Answer the question directly and specifically
+2. Use concrete examples from the candidate's stories
+3. Keep it concise and impactful (150-200 words)
+4. Show how the experience relates to the job
+5. Use a professional but authentic tone
+
+Generate the answer:`;
+  }
+
+  /**
+   * Extract question category/tag from question text
+   */
+  private extractQuestionTag(questionText: string): string {
+    const lowerQuestion = questionText.toLowerCase();
+    
+    if (lowerQuestion.includes("why") && (lowerQuestion.includes("company") || lowerQuestion.includes("work here"))) {
+      return "why_company";
+    }
+    if (lowerQuestion.includes("strength") || lowerQuestion.includes("what are you good at")) {
+      return "strength";
+    }
+    if (lowerQuestion.includes("weakness") || lowerQuestion.includes("area") && lowerQuestion.includes("improve")) {
+      return "weakness";
+    }
+    if (lowerQuestion.includes("challenge") || lowerQuestion.includes("difficult")) {
+      return "challenge";
+    }
+    if (lowerQuestion.includes("achievement") || lowerQuestion.includes("accomplishment")) {
+      return "achievement";
+    }
+    if (lowerQuestion.includes("goal") || lowerQuestion.includes("future")) {
+      return "goals";
+    }
+    
+    return "general";
+  }
+
+  /**
+   * Find alternative stories that could be used instead
+   */
+  private async findAlternativeStories(userId: string, usedStories: any[]): Promise<any[]> {
+    try {
+      const allStories = await this.prisma.storyBlock.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+      });
+      const usedIds = usedStories.map(s => s.id);
+      
+      return allStories
+        .filter((story: any) => !usedIds.includes(story.id))
+        .slice(0, 3); // Top 3 alternatives
+    } catch (error) {
+      this.logger.warn("Failed to find alternative stories:", error);
+      return [];
+    }
+  }
+
+  /**
    * Process AI-powered resume editing actions (improve, fix, tone)
    */
-  async processAction(userId: string, action: "improve" | "fix" | "tone", value: string, mood?: string): Promise<string> {
+  async processAction(
+    userId: string, 
+    action: "improve" | "fix" | "tone" | "custom", 
+    value: string, 
+    mood?: string,
+    customPrompt?: string,
+    includeJobContext?: boolean,
+    resumeId?: string
+  ): Promise<string> {
     const provider = await this.getProviderForUser(userId);
     let prompt = "";
     
+    // Get job context if requested
+    let jobContext = "";
+    if (includeJobContext && resumeId) {
+      try {
+        // Find the specific resume to get the job application
+        const resume = await this.prisma.resume.findFirst({
+          where: { 
+            userId,
+            id: resumeId
+          },
+          include: {
+            jobApplication: true
+          }
+        });
+        
+        if (resume?.jobApplication) {
+          const job = resume.jobApplication;
+          const requirements = JSON.parse(job.requirements || "[]");
+          jobContext = `
+
+JOB CONTEXT:
+Position: ${job.title}
+Company: ${job.company}
+Description: ${job.description || "Not provided"}
+Requirements: ${requirements.join(", ")}
+
+Please tailor the content to be relevant for this specific job position.`;
+        } else {
+          this.logger.warn(`Resume ${resumeId} not found or has no linked job application`);
+        }
+      } catch (error) {
+        this.logger.warn(`Failed to get job context for resume ${resumeId}: ${error instanceof Error ? error.message : "Unknown error"}`);
+        // Continue without job context
+      }
+    } else if (includeJobContext && !resumeId) {
+      this.logger.warn("Job context requested but no resume ID provided");
+    }
+    
+    // Build the base prompt
     if (action === "improve") {
       prompt = `You are an AI writing assistant specialized in writing copy for resumes.
 Do not return anything else except the text you improved. It should not begin with a newline. It should not have any prefix or suffix text.
-Improve the writing of the following paragraph and returns in the language of the text:
+Improve the writing of the following paragraph and returns in the language of the text:${jobContext}
 
 Text: """${value}"""
 
@@ -2037,7 +2518,7 @@ Revised Text: """`;
     } else if (action === "fix") {
       prompt = `You are an AI writing assistant specialized in writing copy for resumes.
 Do not return anything else except the text you improved. It should not begin with a newline. It should not have any prefix or suffix text.
-Just fix the spelling and grammar of the following paragraph, do not change the meaning and returns in the language of the text:
+Just fix the spelling and grammar of the following paragraph, do not change the meaning and returns in the language of the text:${jobContext}
 
 Text: """${value}"""
 
@@ -2046,13 +2527,31 @@ Revised Text: """`;
       if (!mood) throw new Error("Mood is required for tone action");
       prompt = `You are an AI writing assistant specialized in writing copy for resumes.
 Do not return anything else except the text you improved. It should not begin with a newline. It should not have any prefix or suffix text.
-Change the tone of the following paragraph to be ${mood} and returns in the language of the text:
+Change the tone of the following paragraph to be ${mood} and returns in the language of the text:${jobContext}
+
+Text: """${value}"""
+
+Revised Text: """`;
+    } else if (action === "custom") {
+      if (!customPrompt || !customPrompt.trim()) throw new Error("Custom prompt is required for custom action");
+      prompt = `You are an AI writing assistant specialized in writing copy for resumes.
+Do not return anything else except the text you improved. It should not begin with a newline. It should not have any prefix or suffix text.
+${customPrompt.trim()}${jobContext}
 
 Text: """${value}"""
 
 Revised Text: """`;
     } else {
       throw new Error("Invalid action");
+    }
+    
+    // Add custom prompt if provided (only for non-custom actions)
+    if (action !== "custom" && customPrompt && customPrompt.trim()) {
+      prompt = prompt.replace(
+        "You are an AI writing assistant specialized in writing copy for resumes.",
+        `You are an AI writing assistant specialized in writing copy for resumes.
+CUSTOM INSTRUCTIONS: ${customPrompt.trim()}`
+      );
     }
     
     const messages: ChatMessage[] = [
@@ -2070,5 +2569,133 @@ Revised Text: """`;
     }
     
     return result.data;
+  }
+
+  /**
+   * Edit entire resume using natural language prompt
+   */
+  async editResume(userId: string, prompt: string, resumeData: any, includeJobContext?: boolean): Promise<any> {
+    this.logger.log(`Editing resume for user ${userId} with prompt: ${prompt.substring(0, 100)}...`);
+    
+    try {
+      const provider = await this.getProviderForUser(userId);
+      
+      // Get job context if requested
+      let jobContext = "";
+      if (includeJobContext) {
+        try {
+          // Find the resume that's currently being edited to get the job application
+          const resume = await this.prisma.resume.findFirst({
+            where: { userId },
+            orderBy: { updatedAt: 'desc' },
+            include: {
+              jobApplication: true
+            }
+          });
+          
+          if (resume?.jobApplication) {
+            const job = resume.jobApplication;
+            const requirements = JSON.parse(job.requirements || "[]");
+            jobContext = `
+
+JOB CONTEXT:
+Position: ${job.title}
+Company: ${job.company}
+Description: ${job.description || "Not provided"}
+Requirements: ${requirements.join(", ")}
+
+Please tailor the resume content to be relevant for this specific job position.`;
+          }
+        } catch (error) {
+          this.logger.warn(`Failed to get job context: ${error instanceof Error ? error.message : "Unknown error"}`);
+          // Continue without job context
+        }
+      }
+      
+      const systemPrompt = `You are an expert resume editor and career advisor. Your task is to edit a resume based on natural language instructions while maintaining the exact JSON structure.${jobContext}
+
+CRITICAL REQUIREMENTS:
+1. ALWAYS return the complete resume JSON object with the EXACT same structure as provided
+2. Only modify content based on the user's prompt - never change the schema structure
+3. Preserve all existing data unless specifically asked to modify it
+4. If the prompt refers to a specific section (e.g., "experience", "skills", "summary"), only modify that section
+5. If the prompt is general (e.g., "make it more professional"), apply changes across relevant sections
+6. Maintain proper JSON formatting and data types
+7. Keep all IDs, dates, and structural elements intact unless specifically requested to change them
+
+SECTION MAPPING:
+- "summary" or "about" → basics.summary
+- "experience" or "work" → sections.experience.items
+- "education" or "school" → sections.education.items  
+- "skills" → sections.skills.items
+- "projects" → sections.projects.items
+- "awards" → sections.awards.items
+- "certifications" → sections.certifications.items
+- "languages" → sections.languages.items
+- "interests" or "hobbies" → sections.interests.items
+- "volunteer" → sections.volunteer.items
+- "publications" → sections.publications.items
+- "references" → sections.references.items
+- "contact" or "personal info" → basics (name, email, phone, etc.)
+
+RESPONSE FORMAT:
+Return ONLY the complete JSON resume object. Do not include any explanations, markdown formatting, or additional text.`;
+
+      const userPrompt = `Edit this resume based on the following instruction: "${prompt}"
+
+Current Resume Data:
+${JSON.stringify(resumeData, null, 2)}
+
+Return the edited resume as a complete JSON object:`;
+
+      const result = await provider.chat([
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt }
+      ], {
+        temperature: 0.3, // Low temperature for consistent structure
+        maxTokens: 8000,  // Increased for complete resume data
+      });
+      
+      if (!result.success || !result.data) {
+        throw new Error(result.error || "Failed to edit resume");
+      }
+      
+      // Parse and validate the response
+      let editedResumeData;
+      try {
+        // Clean the response in case there's any markdown formatting
+        let cleanedResponse = result.data.trim();
+        if (cleanedResponse.startsWith("```json")) {
+          cleanedResponse = cleanedResponse.replace(/```json\s*/, "").replace(/```\s*$/, "");
+        } else if (cleanedResponse.startsWith("```")) {
+          cleanedResponse = cleanedResponse.replace(/```\s*/, "").replace(/```\s*$/, "");
+        }
+        
+        editedResumeData = JSON.parse(cleanedResponse);
+      } catch (parseError) {
+        this.logger.error("Failed to parse edited resume JSON:", parseError);
+        throw new Error("The edited resume could not be parsed. Please try a different prompt or try again.");
+      }
+      
+      // Basic validation to ensure key structure is maintained
+      if (!editedResumeData.basics || !editedResumeData.sections || !editedResumeData.metadata) {
+        throw new Error("The edited resume is missing required sections. Please try again.");
+      }
+      
+      this.logger.log(`Successfully edited resume for user ${userId}`);
+      
+      return {
+        success: true,
+        data: editedResumeData,
+        usage: result.usage,
+      };
+      
+    } catch (error) {
+      this.logger.error("Resume editing error:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Failed to edit resume",
+      };
+    }
   }
 }
