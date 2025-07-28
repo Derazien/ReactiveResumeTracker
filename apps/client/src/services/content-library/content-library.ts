@@ -50,6 +50,52 @@ export const useAvailableTags = () => {
   });
 };
 
+export const useCreateContentLibraryItem = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: {
+      title: string;
+      description?: string;
+      data: string;
+      sectionId: string;
+      tagIds: string[];
+    }) => {
+      const response = await axios.post("/content-library", data);
+      return response.data;
+    },
+    onSuccess: () => {
+      // Invalidate and refetch content library queries
+      void queryClient.invalidateQueries({ queryKey: [CONTENT_LIBRARY_KEY] });
+      void queryClient.invalidateQueries({ queryKey: [CONTENT_LIBRARY_KEY, "section"] });
+    },
+  });
+};
+
+export const useUpdateContentLibraryItem = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, data }: {
+      id: string;
+      data: {
+        title: string;
+        description?: string;
+        data: string;
+        tagIds: string[];
+      };
+    }) => {
+      const response = await axios.patch(`/content-library/${id}`, data);
+      return response.data;
+    },
+    onSuccess: () => {
+      // Invalidate and refetch content library queries
+      void queryClient.invalidateQueries({ queryKey: [CONTENT_LIBRARY_KEY] });
+      void queryClient.invalidateQueries({ queryKey: [CONTENT_LIBRARY_KEY, "section"] });
+    },
+  });
+};
+
 export const useDeleteContentLibraryItem = () => {
   const queryClient = useQueryClient();
 
@@ -60,8 +106,8 @@ export const useDeleteContentLibraryItem = () => {
     },
     onSuccess: () => {
       // Invalidate and refetch content library queries
-      queryClient.invalidateQueries({ queryKey: [CONTENT_LIBRARY_KEY] });
-      queryClient.invalidateQueries({ queryKey: [CONTENT_LIBRARY_KEY, "section"] });
+      void queryClient.invalidateQueries({ queryKey: [CONTENT_LIBRARY_KEY] });
+      void queryClient.invalidateQueries({ queryKey: [CONTENT_LIBRARY_KEY, "section"] });
     },
   });
 };

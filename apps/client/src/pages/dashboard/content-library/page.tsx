@@ -29,9 +29,12 @@ import {
 import { ContentEditDialog } from "./_components/content-edit-dialog";
 import { CVUploadDialog } from "./_components/cv-upload-dialog";
 
+// Define the section key type to match ContentEditDialog
+type SectionKey = "languages" | "summary" | "experience" | "education" | "volunteer" | "profiles" | "skills" | "projects" | "awards" | "basics" | "contact" | "certification" | "interest" | "publication" | "reference";
+
 const ContentLibraryPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
+  const [selectedSectionId, setSelectedSectionId] = useState<SectionKey | null>(null);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingContent, setEditingContent] = useState<any>(null);
@@ -45,7 +48,7 @@ const ContentLibraryPage = () => {
   // Get the first active section as default if none selected
   const defaultSection = sections?.find((section: any) => section.isActive) || sections?.[0];
   if (!selectedSectionId && defaultSection) {
-    setSelectedSectionId(defaultSection.id);
+    setSelectedSectionId(defaultSection.id as SectionKey);
   }
 
   // Filter content based on search
@@ -150,7 +153,7 @@ const ContentLibraryPage = () => {
                       isSelected && "bg-accent border-l-4 border-primary",
                     )}
                     onClick={() => {
-                      setSelectedSectionId(section.id);
+                      setSelectedSectionId(section.id as SectionKey);
                     }}
                   >
                     <div className="flex items-center justify-between">

@@ -176,10 +176,6 @@ export class ContentLibraryController {
     }),
   )
   async extractCV(@UploadedFile() file: Express.Multer.File, @User("id") userId: string) {
-    if (!file) {
-      throw new Error("No file uploaded");
-    }
-
     try {
       // Processing file
 
@@ -213,7 +209,7 @@ export class ContentLibraryController {
         // If similarity detection fails, still return extracted content but without similarity info
         return {
           success: true,
-          data: (extractionResult.data ?? []).map((item: any) => ({
+          data: (extractionResult.data ?? []).map((item: Record<string, unknown>) => ({
             ...item,
             isDuplicate: false,
             similarity: 0,
@@ -272,20 +268,65 @@ export class ContentLibraryController {
             }
           };
 
+          // Prepare section-specific data based on the content type
+          let sectionData: any = {};
+          
+          // Map old fields to new data structure based on section type
+          if (item.sectionId) {
+            // For experience items
+            if (item.company || item.position) {
+              sectionData = {
+                company: item.company || "",
+                position: item.position || "",
+                date: (item.startDate && item.endDate 
+                  ? `${convertDateToISO(item.startDate)} - ${convertDateToISO(item.endDate)}`
+                  : (item.startDate 
+                    ? convertDateToISO(item.startDate)
+                    : "")),
+                location: item.location || "",
+                summary: item.description || "",
+                url: item.url || "",
+                contacts: []
+              };
+            }
+            // For education items
+            else if (item.institution || item.studyType) {
+              sectionData = {
+                institution: item.institution || "",
+                studyType: item.studyType || "",
+                area: item.area || "",
+                score: item.score || "",
+                date: (item.startDate && item.endDate 
+                  ? `${convertDateToISO(item.startDate)} - ${convertDateToISO(item.endDate)}`
+                  : (item.startDate 
+                    ? convertDateToISO(item.startDate)
+                    : "")),
+                summary: item.description || "",
+                url: item.url || ""
+              };
+            }
+            // For skills items
+            else if (item.skills && item.skills.length > 0) {
+              sectionData = {
+                name: item.title || "",
+                description: item.description || "",
+                level: item.proficiencyLevel || 50,
+                keywords: item.skills || [],
+                showDescription: true,
+                showKeywords: true
+              };
+            }
+            // For other items, use the content field as fallback
+            else {
+              sectionData = item.content || {};
+            }
+          }
+
           const createDto: CreateContentLibraryDto = {
             title: item.title,
             description: item.description,
-            content: item.content,
+            data: JSON.stringify(sectionData),
             sectionId: item.sectionId,
-            company: item.company,
-            position: item.position,
-            startDate: convertDateToISO(item.startDate),
-            endDate: convertDateToISO(item.endDate),
-            location: item.location,
-            skills: item.skills || [],
-            achievements: item.achievements || [],
-            courses: item.courses || [],
-            keywords: item.keywords || [],
             tagIds: [],
           };
 

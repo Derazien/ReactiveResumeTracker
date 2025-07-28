@@ -8,17 +8,12 @@ export class ContentLibraryService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(userId: string, createContentLibraryDto: CreateContentLibraryDto): Promise<Content> {
-    const { tagIds, content, skills, achievements, courses, keywords, sectionId, ...contentData } =
-      createContentLibraryDto;
+    const { tagIds, data, sectionId, ...contentData } = createContentLibraryDto;
 
     const contentItem = await this.prisma.content.create({
       data: {
         ...contentData,
-        content: JSON.stringify(content),
-        skills: JSON.stringify(skills),
-        achievements: JSON.stringify(achievements),
-        courses: JSON.stringify(courses || []),
-        keywords: JSON.stringify(keywords || []),
+        data: data || "{}",
         sectionId,
         userId,
         tags:
@@ -108,17 +103,12 @@ export class ContentLibraryService {
     userId: string,
     updateContentLibraryDto: UpdateContentLibraryDto,
   ): Promise<Content> {
-    const { tagIds, content, skills, achievements, courses, keywords, ...updateData } =
-      updateContentLibraryDto;
+    const { tagIds, data, ...updateData } = updateContentLibraryDto;
 
-    // Convert arrays and objects to JSON strings
+    // Prepare update data
     const processedUpdateData = {
       ...updateData,
-      ...(content !== undefined && { content: JSON.stringify(content) }),
-      ...(skills !== undefined && { skills: JSON.stringify(skills) }),
-      ...(achievements !== undefined && { achievements: JSON.stringify(achievements) }),
-      ...(courses !== undefined && { courses: JSON.stringify(courses) }),
-      ...(keywords !== undefined && { keywords: JSON.stringify(keywords) }),
+      ...(data !== undefined && { data }),
     };
 
     // If tagIds are provided, update the tag associations

@@ -1,9 +1,7 @@
-import { defaultSections } from "@reactive-resume/schema";
-import { RichInput } from "@reactive-resume/ui";
-import { cn } from "@reactive-resume/utils";
-
-import { AiActions } from "@/client/components/ai-actions";
 import { useResumeStore } from "@/client/stores/resume";
+import { defaultSections } from "@reactive-resume/schema";
+import { SummarySectionForm } from "@reactive-resume/ui";
+import { AiActions } from "@/client/components/ai-actions";
 
 import { SectionIcon } from "./shared/section-icon";
 import { SectionOptions } from "./shared/section-options";
@@ -11,9 +9,12 @@ import { SectionOptions } from "./shared/section-options";
 export const SummarySection = () => {
   const setValue = useResumeStore((state) => state.setValue);
   const section = useResumeStore(
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     (state) => state.resume.data.sections.summary ?? defaultSections.summary,
   );
+
+  const handleChange = (field: string, value: unknown) => {
+    setValue(`sections.summary.${field}`, value);
+  };
 
   return (
     <section id="summary" className="grid gap-y-6">
@@ -28,23 +29,19 @@ export const SummarySection = () => {
         </div>
       </header>
 
-      <main className={cn(!section.visible && "opacity-50")}>
-        <RichInput
-          content={section.content}
-          footer={(editor) => (
-            <AiActions
-              value={editor.getText()}
-              onChange={(value) => {
-                editor.commands.setContent(value, true);
-                setValue("sections.summary.content", value);
-              }}
-            />
-          )}
-          onChange={(value) => {
-            setValue("sections.summary.content", value);
-          }}
-        />
-      </main>
+      <SummarySectionForm
+        values={{ content: section.content }}
+        footer={(editor) => (
+          <AiActions
+            value={editor.getText()}
+            onChange={(value) => {
+              editor.commands.setContent(value, true);
+              setValue("sections.summary.content", value);
+            }}
+          />
+        )}
+        onChange={handleChange}
+      />
     </section>
   );
 };
