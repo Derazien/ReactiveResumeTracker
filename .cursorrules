@@ -1,0 +1,179 @@
+# ReactiveResumeTracker - Cursor Rules
+
+## 🎯 Project Overview
+This is an Nx workspace using Nx 19.8.14 and pnpm as the package manager. The project is a resume builder application with AI-powered content matching and tailoring capabilities.
+
+## 📁 Project Structure
+- **apps/client**: React frontend with Vite, Zustand state management, Framer Motion animations
+- **apps/server**: NestJS backend with Prisma ORM, LLM integration
+- **apps/artboard**: Microfrontend for resume template rendering (iframe)
+- **libs/**: Shared libraries (schema, ui, utils, dto, parser, hooks)
+
+## 🔧 Key Technologies
+- **Frontend**: React, TypeScript, Vite, Zustand, Framer Motion, Radix UI
+- **Backend**: NestJS, Prisma, SQLite, OpenAI/Anthropic/Ollama LLM providers
+- **Build**: Nx, pnpm, Tailwind CSS
+
+## 📋 Core Features & Architecture
+
+### Content Library System
+- **Content Library**: Repository of user's professional content
+- **Content Matching**: Multi-layer approach (keyword pre-filtering, LLM scoring, vector similarity, tag matching)
+- **Content ID Tracking**: Every resume item tracks relationship to content library:
+  - `contentId`: Direct reference to content library (unmodified)
+  - `sourceContentId`: Original content reference (modified from library)
+  - `null/null`: Manually created content
+
+### Resume Tailoring System
+- **LLM Service**: Handles AI-powered tasks (content extraction, matching, tailoring)
+- **Job Applications**: Manages job applications and tailored resume generation
+- **Experience Scoring**: Prioritizes current jobs with recency bonuses
+
+### Resume Editor
+- **Builder**: Main resume editing interface
+- **Artboard**: Template rendering in iframe
+- **Inter-frame Communication**: `window.postMessage` between client and artboard
+
+## 🚫 Implementation Rules
+
+### 1. Service Architecture
+- **DO NOT** create duplicate services when existing ones can be extended
+- **ALWAYS** check existing services first (ContentMatchingService, JobApplicationService, etc.)
+- **USE** dependency injection and proper NestJS patterns
+
+### 2. Content Management
+- **ALWAYS** maintain contentId/sourceContentId tracking
+- **PRIORITIZE** current job positions in experience matching
+- **TRACK** content modifications and relationships
+
+### 3. Frontend Patterns
+- **USE** existing UI components from `@reactive-resume/ui`
+- **FOLLOW** existing state management patterns (Zustand)
+- **MAINTAIN** mobile responsiveness
+- **USE** Framer Motion for animations
+
+### 4. Database Schema
+- **FOLLOW** existing Prisma patterns
+- **USE** SQLite-compatible syntax
+- **MAINTAIN** proper relationships and constraints
+
+## 📖 Required Documentation Context
+
+### Before Making Changes:
+1. **ALWAYS** read existing service files to understand current implementation
+2. **CHECK** for existing similar functionality before creating new services
+3. **REVIEW** the following documentation files:
+   - `docs/COMPREHENSIVE_PROJECT_DOCUMENTATION.md` - Complete project overview and architecture
+   - `docs/PROJECT_CONTEXT.md` - Current implementation status and key patterns
+   - `docs/FUTURE_RESUME_TAILORING_ENHANCEMENTS.md` - Future roadmap and features
+   - `docs/EXPERIENCE_MATCHING_IMPROVEMENTS.md` - Current job priority implementation
+   - `docs/RAG_SYSTEM_DOCUMENTATION.md` - Content matching and retrieval system
+   - `docs/RAG_SYSTEM_SUMMARY.md` - RAG system overview
+   - `docs/FORM_FIELD_EDITING_FIX.md` - Form synchronization solution
+   - `docs/LLM_SETUP.md` - LLM configuration and setup
+   - `docs/RESUME_SECTIONS_DATA_STRUCTURE_REFERENCE.md` - Resume data structure reference
+   - `docs/TEMPLATE_CREATION_GUIDE.md` - Template creation guidelines
+
+### Key Implementation Files to Review:
+- `apps/server/src/content-matching/content-matching.service.ts`
+- `apps/server/src/job-application/job-application.service.ts`
+- `apps/server/src/llm/llm.service.ts`
+- `apps/client/src/pages/builder/page.tsx`
+- `apps/client/src/pages/builder/_components/toolbar.tsx`
+- `apps/client/src/pages/builder/_components/content-selection-dialog.tsx`
+- `libs/ui/src/components/resume-sections/experience-section-form.tsx`
+- `libs/ui/src/components/resume-sections/education-section-form.tsx`
+- `apps/client/src/pages/builder/sidebars/left/dialogs/experience.tsx`
+- `apps/client/src/pages/builder/sidebars/left/dialogs/education.tsx`
+- `apps/client/src/pages/builder/sidebars/left/dialogs/projects.tsx`
+- `apps/client/src/pages/builder/sidebars/left/dialogs/awards.tsx`
+- `apps/client/src/pages/builder/sidebars/left/dialogs/skills.tsx`
+- `apps/client/src/pages/builder/sidebars/left/dialogs/volunteer.tsx`
+- `apps/client/src/pages/builder/sidebars/left/dialogs/references.tsx`
+- `apps/client/src/pages/builder/sidebars/left/dialogs/publications.tsx`
+- `apps/client/src/pages/builder/sidebars/left/dialogs/profiles.tsx`
+- `apps/client/src/pages/builder/sidebars/left/dialogs/languages.tsx`
+- `apps/client/src/pages/builder/sidebars/left/dialogs/interests.tsx`
+- `apps/client/src/pages/builder/sidebars/left/dialogs/certifications.tsx`
+
+## 🎯 Current Implementation Status
+
+### ✅ Completed Features:
+- Experience matching with current job priority
+- Content ID tracking system
+- LLM-powered resume editing
+- Content library structure
+- **Content Selection Integration** - Direct content selection in resume editor
+- **Form Field Editing Fix** - Proper form synchronization for section dialogs
+
+### 🔄 In Progress:
+- Resume tailoring enhancements
+- Job application content selection integration
+
+### 📋 Planned Features:
+- Interactive content selection (job applications)
+- Custom instructions system
+- Asynchronous tailoring
+- Real-time streaming updates
+
+## 🚨 Critical Rules
+
+1. **NO DUPLICATE SERVICES**: Always extend existing services instead of creating new ones
+2. **MAINTAIN DATA LINEAGE**: Always track contentId/sourceContentId relationships
+3. **PRIORITIZE CURRENT JOBS**: Experience matching must prioritize current positions
+4. **FOLLOW EXISTING PATTERNS**: Use established UI, state management, and API patterns
+5. **CHECK DOCUMENTATION**: Review all relevant docs before implementation
+
+## 🔍 Before Any Code Changes
+
+1. **SEARCH** for existing similar functionality
+2. **READ** relevant service files
+3. **REVIEW** documentation files
+4. **PLAN** integration with existing systems
+5. **CONSIDER** impact on content tracking
+6. **TEST** mobile responsiveness
+7. **VERIFY** TypeScript types and interfaces
+8. **PLAN** documentation updates for major changes
+
+## 📝 Code Quality Standards
+
+- **TypeScript**: Strict typing, proper interfaces
+- **Error Handling**: Comprehensive error handling and user feedback
+- **Performance**: Optimize for large content libraries
+- **Accessibility**: Follow WCAG guidelines
+- **Testing**: Maintain test coverage
+- **Documentation**: Update docs for new features
+
+## 📚 Documentation Requirements
+
+### **MANDATORY**: Document All Major Changes
+- **NEW FEATURES**: Create comprehensive documentation for any new feature
+- **ARCHITECTURE CHANGES**: Document significant architectural modifications
+- **USER FLOW CHANGES**: Document changes that affect user experience
+- **API CHANGES**: Document new endpoints or modified interfaces
+
+### **Documentation Standards**
+1. **Create new docs** for major features in `docs/` directory
+2. **Update existing docs** when modifying existing features
+3. **Include code examples** and implementation details
+4. **Add to project context** when adding new capabilities
+5. **Update cursor rules** when adding new patterns or requirements
+
+### **Documentation Structure**
+- **Overview**: What the feature does and why it exists
+- **Architecture**: Technical implementation details
+- **User Experience**: How users interact with the feature
+- **Integration**: How it connects to existing systems
+- **Testing**: How to verify the feature works correctly
+- **Future Enhancements**: Planned improvements and extensions
+
+## 🛠 Development Workflow
+
+1. **Understand Requirements** - Read documentation and existing code
+2. **Check Existing Services** - Look for similar functionality
+3. **Plan Integration** - How does this fit with current architecture?
+4. **Plan Documentation** - What docs need to be created/updated?
+5. **Implement** - Follow established patterns
+6. **Document** - Create/update comprehensive documentation
+7. **Update Context** - Add to project context and cursor rules if needed
+8. **User Builds** - User handles all building/testing themselves 
