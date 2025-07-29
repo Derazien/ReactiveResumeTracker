@@ -16,11 +16,11 @@ export const LanguagesDialog = () => {
   return (
     <SectionDialog<FormValues> id="languages" form={form} defaultValues={defaultLanguage}>
       <LanguagesSectionForm
-        values={form.getValues()}
+        values={form.watch()}
         onChange={(field, value) => {
           form.setValue(field, value);
-                    }}
-                  />
+        }}
+      />
     </SectionDialog>
   );
 };

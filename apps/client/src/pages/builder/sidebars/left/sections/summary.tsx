@@ -2,11 +2,14 @@ import { useResumeStore } from "@/client/stores/resume";
 import { defaultSections } from "@reactive-resume/schema";
 import { SummarySectionForm } from "@reactive-resume/ui";
 import { AiActions } from "@/client/components/ai-actions";
+import { useState } from "react";
 
 import { SectionIcon } from "./shared/section-icon";
 import { SectionOptions } from "./shared/section-options";
+import { ContentSelectionDialog } from "@/client/pages/builder/_components/content-selection-dialog";
 
 export const SummarySection = () => {
+  const [contentSelectionOpen, setContentSelectionOpen] = useState(false);
   const setValue = useResumeStore((state) => state.setValue);
   const section = useResumeStore(
     (state) => state.resume.data.sections.summary ?? defaultSections.summary,
@@ -14,6 +17,10 @@ export const SummarySection = () => {
 
   const handleChange = (field: string, value: unknown) => {
     setValue(`sections.summary.${field}`, value);
+  };
+
+  const handleSelectContent = () => {
+    setContentSelectionOpen(true);
   };
 
   return (
@@ -25,7 +32,7 @@ export const SummarySection = () => {
         </div>
 
         <div className="flex items-center gap-x-2">
-          <SectionOptions id="summary" />
+          <SectionOptions id="summary" onSelectContent={handleSelectContent} />
         </div>
       </header>
 
@@ -41,6 +48,14 @@ export const SummarySection = () => {
           />
         )}
         onChange={handleChange}
+      />
+
+      {/* Content Selection Dialog */}
+      <ContentSelectionDialog
+        open={contentSelectionOpen}
+        onOpenChange={setContentSelectionOpen}
+        sectionId="summary"
+        sectionName={section.name}
       />
     </section>
   );

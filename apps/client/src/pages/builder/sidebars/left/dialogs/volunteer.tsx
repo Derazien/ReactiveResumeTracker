@@ -17,7 +17,7 @@ export const VolunteerDialog = () => {
   return (
     <SectionDialog<FormValues> id="volunteer" form={form} defaultValues={defaultVolunteer}>
       <VolunteeringSectionForm
-        values={form.getValues()}
+        values={form.watch()}
         onChange={(field, value) => {
           form.setValue(field, value);
         }}

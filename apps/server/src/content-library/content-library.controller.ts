@@ -101,6 +101,11 @@ export class ContentLibraryController {
     return this.contentLibraryService.getContentBySection(userId, sectionId);
   }
 
+  @Get("section-key/:sectionKey")
+  getContentBySectionKey(@Param("sectionKey") sectionKey: string, @User("id") userId: string) {
+    return this.contentLibraryService.getContentBySectionKey(userId, sectionKey);
+  }
+
   /**
    * Parse different file types and extract text content
    */

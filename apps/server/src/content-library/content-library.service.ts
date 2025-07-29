@@ -188,6 +188,32 @@ export class ContentLibraryService {
     });
   }
 
+  async getContentBySectionKey(userId: string, sectionKey: string): Promise<Content[]> {
+    const content = await this.prisma.content.findMany({
+      where: { 
+        userId,
+        section: {
+          key: sectionKey
+        }
+      },
+      include: {
+        section: true,
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    // Transform the data to match the DTO structure
+    return content.map(item => ({
+      ...item,
+      content: JSON.parse(item.data!),
+    }));
+  }
+
   // New method to get available sections
   async getAvailableSections() {
     return await this.prisma.section.findMany({

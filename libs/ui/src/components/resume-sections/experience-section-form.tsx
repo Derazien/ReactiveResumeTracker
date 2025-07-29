@@ -13,6 +13,7 @@ import { useForm } from "react-hook-form";
 import { Plus, Trash } from "@phosphor-icons/react";
 import type { z } from "zod";
 import type { Editor } from "@tiptap/react";
+import { useEffect } from "react";
 
 import { URLInput } from "../url-input";
 
@@ -38,6 +39,11 @@ export const ExperienceSectionForm: React.FC<ExperienceSectionFormProps> = ({
     defaultValues: values,
     resolver: zodResolver(formSchema),
   });
+
+  // Critical: Sync form values when props change
+  useEffect(() => {
+    form.reset(values);
+  }, [values, form]);
 
   // Watch contacts for dynamic updates
   const contacts = form.watch("contacts");
@@ -97,7 +103,6 @@ export const ExperienceSectionForm: React.FC<ExperienceSectionFormProps> = ({
                 <Input 
                   {...field} 
                   placeholder="March 2023 - Present"
-                  value={values.date}
                   onChange={(e) => {
                     field.onChange(e);
                     onChange("date", e.target.value);
@@ -118,7 +123,6 @@ export const ExperienceSectionForm: React.FC<ExperienceSectionFormProps> = ({
               <FormControl>
                 <Input 
                   {...field} 
-                  value={values.location}
                   onChange={(e) => {
                     field.onChange(e);
                     onChange("location", e.target.value);
@@ -139,7 +143,6 @@ export const ExperienceSectionForm: React.FC<ExperienceSectionFormProps> = ({
               <FormControl>
                 <URLInput 
                   {...field} 
-                  value={values.url ?? { label: "", href: "" }}
                   onChange={(value) => {
                     field.onChange(value);
                     onChange("url", value);
@@ -160,7 +163,7 @@ export const ExperienceSectionForm: React.FC<ExperienceSectionFormProps> = ({
               <FormControl>
                 <RichInput
                   {...field}
-                  content={values.summary}
+                  content={field.value}
                   footer={footer}
                   onChange={(value) => {
                     field.onChange(value);

@@ -1,15 +1,32 @@
-import type { Project } from "@reactive-resume/schema";
-import { URLInput, RichInput, BadgeInput, Checkbox, Badge } from "@reactive-resume/ui";
-import { Input } from "@reactive-resume/ui";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { projectSchema } from "@reactive-resume/schema";
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  URLInput, 
+  RichInput, 
+  BadgeInput, 
+  Checkbox, 
+  Badge,
+  Input
+} from "@reactive-resume/ui";
+import { useForm } from "react-hook-form";
 import { X } from "@phosphor-icons/react";
 import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import type { z } from "zod";
 import type { Editor } from "@tiptap/react";
 
+const formSchema = projectSchema;
+type FormValues = z.infer<typeof formSchema>;
+
 export interface ProjectsSectionFormProps {
-  values: Project;
+  values: FormValues;
   errors?: Record<string, string>;
-  onChange: (field: keyof Project, value: Project[keyof Project]) => void;
+  onChange: (field: keyof FormValues, value: FormValues[keyof FormValues]) => void;
   className?: string;
   footer?: (editor: Editor) => React.ReactNode;
 }
@@ -21,6 +38,16 @@ export const ProjectsSectionForm = ({
   className = "",
   footer,
 }: ProjectsSectionFormProps) => {
+  const form = useForm<FormValues>({
+    defaultValues: values,
+    resolver: zodResolver(formSchema),
+  });
+
+  // Critical: Sync form values when props change
+  useEffect(() => {
+    form.reset(values);
+  }, [values, form]);
+
   const [pendingKeyword, setPendingKeyword] = useState("");
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 

@@ -1150,6 +1150,54 @@ export class JobApplicationService {
   }
 
   /**
+   * Handle content modification in resume items
+   */
+  handleContentModification(originalItem: any): any {
+    if (originalItem.contentId && !originalItem.sourceContentId) {
+      // Move contentId to sourceContentId to track the original source
+      return {
+        ...originalItem,
+        contentId: null, // Remove direct reference
+        sourceContentId: originalItem.contentId, // Track original source
+      };
+    }
+    return originalItem;
+  }
+
+  /**
+   * Add modified content back to library
+   */
+  async addModifiedContentToLibrary(
+    userId: string,
+    modifiedItem: any,
+    sectionKey: string
+  ): Promise<string> {
+    // Get section
+    const section = await this.prisma.section.findUnique({
+      where: { key: sectionKey },
+    });
+
+    if (!section) {
+      throw new Error(`Section ${sectionKey} not found`);
+    }
+
+    // Create new content item
+    const newContent = await this.prisma.content.create({
+      data: {
+        id: createId(),
+        title: modifiedItem.title || modifiedItem.name || 'Modified Content',
+        description: `Modified from original content`,
+        data: JSON.stringify(modifiedItem),
+        sectionId: section.id,
+        userId,
+        sourceContentId: modifiedItem.sourceContentId, // Link to original
+      },
+    });
+
+    return newContent.id;
+  }
+
+  /**
    * Helper method to mark all content library items in a resume as modified
    */
   private markAllContentLibraryItemsAsModified(resumeData: any): void {

@@ -21,7 +21,7 @@ export const ProjectsDialog = () => {
       defaultValues={defaultProject}
     >
       <ProjectsSectionForm
-        values={form.getValues()}
+        values={form.watch()}
         onChange={(field, value) => {
           form.setValue(field, value);
         }}

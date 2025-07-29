@@ -24,10 +24,12 @@ import get from "lodash.get";
 
 import { useDialog } from "@/client/stores/dialog";
 import { useResumeStore } from "@/client/stores/resume";
+import { useState } from "react";
 
 import { SectionIcon } from "./section-icon";
 import { SectionListItem } from "./section-list-item";
 import { SectionOptions } from "./section-options";
+import { ContentSelectionDialog } from "@/client/pages/builder/_components/content-selection-dialog";
 
 type Props<T extends SectionItem> = {
   id: SectionKey;
@@ -37,6 +39,7 @@ type Props<T extends SectionItem> = {
 
 export const SectionBase = <T extends SectionItem>({ id, title, description }: Props<T>) => {
   const { open } = useDialog(id);
+  const [contentSelectionOpen, setContentSelectionOpen] = useState(false);
 
   const setValue = useResumeStore((state) => state.setValue);
   const section = useResumeStore((state) =>
@@ -92,10 +95,10 @@ export const SectionBase = <T extends SectionItem>({ id, title, description }: P
 
     if (isModifiedFromContentLibrary(item)) {
       return (
-        <Tooltip content="This content was originally from your content library but has been modified by AI optimization">
+        <Tooltip content="This content was originally from your content library but has been modified">
           <Badge variant="warning" outline={true} className="mr-4 flex items-center gap-1">
             <PencilSimple size={10} />
-            <span className="text-xs">AI Modified</span>
+            <span className="text-xs">Modified</span>
           </Badge>
         </Tooltip>
       );
@@ -149,6 +152,10 @@ export const SectionBase = <T extends SectionItem>({ id, title, description }: P
     setValue(`sections.${id}.items[${index}].visible`, !visible);
   };
 
+  const handleSelectContent = () => {
+    setContentSelectionOpen(true);
+  };
+
   return (
     <motion.section
       id={id}
@@ -172,7 +179,7 @@ export const SectionBase = <T extends SectionItem>({ id, title, description }: P
         </div>
 
         <div className="flex items-center gap-x-2">
-          <SectionOptions id={id} />
+          <SectionOptions id={id} onSelectContent={handleSelectContent} />
         </div>
       </header>
 
@@ -246,6 +253,14 @@ export const SectionBase = <T extends SectionItem>({ id, title, description }: P
           </Button>
         </footer>
       )}
+
+      {/* Content Selection Dialog */}
+      <ContentSelectionDialog
+        open={contentSelectionOpen}
+        onOpenChange={setContentSelectionOpen}
+        sectionId={id}
+        sectionName={section.name}
+      />
     </motion.section>
   );
 };

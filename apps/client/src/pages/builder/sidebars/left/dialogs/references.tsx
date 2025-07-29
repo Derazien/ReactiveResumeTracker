@@ -17,7 +17,7 @@ export const ReferencesDialog = () => {
   return (
     <SectionDialog<FormValues> id="references" form={form} defaultValues={defaultReference}>
       <ReferencesSectionForm
-        values={form.getValues()}
+        values={form.watch()}
         onChange={(field, value) => {
           form.setValue(field, value);
         }}

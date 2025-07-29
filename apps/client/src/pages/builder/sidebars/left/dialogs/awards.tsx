@@ -17,7 +17,7 @@ export const AwardsDialog = () => {
   return (
     <SectionDialog<FormValues> id="awards" form={form} defaultValues={defaultAward}>
       <AwardsSectionForm
-        values={form.getValues()}
+        values={form.watch()}
         onChange={(field, value) => {
           form.setValue(field, value);
         }}

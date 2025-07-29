@@ -6,6 +6,7 @@ import { ContentMatchingModule } from "@/server/content-matching/content-matchin
 import { EmbeddingModule } from "@/server/embedding/embedding.module";
 import { LLMModule } from "@/server/llm/llm.module";
 
+
 import { JobApplicationController } from "./job-application.controller";
 import { JobApplicationService } from "./job-application.service";
 

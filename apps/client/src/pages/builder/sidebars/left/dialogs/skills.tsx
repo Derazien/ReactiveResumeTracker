@@ -20,7 +20,7 @@ export const SkillsDialog = () => {
       defaultValues={defaultSkill}
     >
       <SkillsSectionForm
-        values={form.getValues()}
+        values={form.watch()}
         onChange={(field, value) => {
           form.setValue(field, value);
                         }}

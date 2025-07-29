@@ -39,6 +39,19 @@ export const useContentBySection = (sectionId?: string) => {
   });
 };
 
+export const useContentBySectionKey = (sectionKey?: string) => {
+  return useQuery({
+    queryKey: [CONTENT_LIBRARY_KEY, "section-key", sectionKey],
+    queryFn: async (): Promise<ContentLibraryDto[]> => {
+      if (!sectionKey) return [];
+      const response = await axios.get(`/content-library/section-key/${sectionKey}`);
+      return response.data;
+    },
+    enabled: !!sectionKey,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+};
+
 export const useAvailableTags = () => {
   return useQuery({
     queryKey: ["tags"],

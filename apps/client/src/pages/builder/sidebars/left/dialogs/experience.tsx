@@ -18,7 +18,7 @@ export const ExperienceDialog = () => {
   return (
     <SectionDialog<FormValues> id="experience" form={form} defaultValues={defaultExperience}>
       <ExperienceSectionForm
-        values={form.getValues()}
+        values={form.watch()}
         onChange={(field, value) => {
           form.setValue(field, value);
         }}

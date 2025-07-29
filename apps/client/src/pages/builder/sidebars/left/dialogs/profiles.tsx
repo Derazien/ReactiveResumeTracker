@@ -16,7 +16,7 @@ export const ProfilesDialog = () => {
   return (
     <SectionDialog<FormValues> id="profiles" form={form} defaultValues={defaultProfile}>
       <ProfilesSectionForm
-        values={form.getValues()}
+        values={form.watch()}
         onChange={(field, value) => {
           form.setValue(field, value);
         }}

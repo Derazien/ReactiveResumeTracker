@@ -17,7 +17,7 @@ export const PublicationsDialog = () => {
   return (
     <SectionDialog<FormValues> id="publications" form={form} defaultValues={defaultPublication}>
       <PublicationsSectionForm
-        values={form.getValues()}
+        values={form.watch()}
         onChange={(field, value) => {
           form.setValue(field, value);
         }}

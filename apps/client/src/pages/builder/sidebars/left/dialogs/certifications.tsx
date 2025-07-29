@@ -17,7 +17,7 @@ export const CertificationsDialog = () => {
   return (
     <SectionDialog<FormValues> id="certifications" form={form} defaultValues={defaultCertification}>
       <CertificatesSectionForm
-        values={form.getValues()}
+        values={form.watch()}
         onChange={(field, value) => {
           form.setValue(field, value);
         }}

@@ -16,10 +16,10 @@ export const InterestsDialog = () => {
   return (
     <SectionDialog<FormValues> id="interests" form={form} defaultValues={defaultInterest}>
       <InterestsSectionForm
-        values={form.getValues()}
+        values={form.watch()}
         onChange={(field, value) => {
           form.setValue(field, value);
-                        }}
+        }}
       />
     </SectionDialog>
   );

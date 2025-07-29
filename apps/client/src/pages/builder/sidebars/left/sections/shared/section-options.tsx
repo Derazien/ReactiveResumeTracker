@@ -9,6 +9,7 @@ import {
   PencilSimple,
   Plus,
   TrashSimple,
+  Database,
 } from "@phosphor-icons/react";
 import type { SectionKey, SectionWithItem } from "@reactive-resume/schema";
 import { defaultSections } from "@reactive-resume/schema";
@@ -34,9 +35,12 @@ import { useMemo } from "react";
 import { useDialog } from "@/client/stores/dialog";
 import { useResumeStore } from "@/client/stores/resume";
 
-type Props = { id: SectionKey };
+type Props = { 
+  id: SectionKey;
+  onSelectContent?: () => void;
+};
 
-export const SectionOptions = ({ id }: Props) => {
+export const SectionOptions = ({ id, onSelectContent }: Props) => {
   const { open } = useDialog(id);
 
   const setValue = useResumeStore((state) => state.setValue);
@@ -89,6 +93,10 @@ export const SectionOptions = ({ id }: Props) => {
             <DropdownMenuItem onClick={onCreate}>
               <Plus />
               <span className="ml-2">{t`Add a new item`}</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onSelectContent}>
+              <Database />
+              <span className="ml-2">{t`Select from Library`}</span>
             </DropdownMenuItem>
             <DropdownMenuCheckboxItem
               checked={section.separateLinks}

@@ -17,7 +17,7 @@ export const EducationDialog = () => {
   return (
     <SectionDialog<FormValues> id="education" form={form} defaultValues={defaultEducation}>
       <EducationSectionForm
-        values={form.getValues()}
+        values={form.watch()}
         onChange={(field, value) => {
           form.setValue(field, value);
         }}
