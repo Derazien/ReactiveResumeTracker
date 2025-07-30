@@ -31,6 +31,25 @@ import { useEditResume } from "@/client/services/resume/edit-resume";
 import { useBuilderStore } from "@/client/stores/builder";
 import { useResumeStore, useTemporalResumeStore } from "@/client/stores/resume";
 
+// Available sections for editing
+const EDITABLE_SECTIONS = [
+  { value: "all", label: t`All Sections` },
+  { value: "summary", label: t`Summary` },
+  { value: "experience", label: t`Experience` },
+  { value: "education", label: t`Education` },
+  { value: "skills", label: t`Skills` },
+  { value: "projects", label: t`Projects` },
+  { value: "awards", label: t`Awards` },
+  { value: "certifications", label: t`Certifications` },
+  { value: "languages", label: t`Languages` },
+  { value: "interests", label: t`Interests` },
+  { value: "volunteer", label: t`Volunteer` },
+  { value: "publications", label: t`Publications` },
+  { value: "references", label: t`References` },
+  { value: "profiles", label: t`Profiles` },
+  { value: "basics", label: t`Contact Information` },
+];
+
 const SUGGESTIONS = [
   t`Make my experience section more impactful with action verbs`,
   t`Improve the summary to be more compelling and specific`,
@@ -54,6 +73,7 @@ export const BuilderToolbar = () => {
   const [isAiExpanded, setIsAiExpanded] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [includeJobContext, setIncludeJobContext] = useState(false);
+  const [selectedSections, setSelectedSections] = useState<string[]>(["all"]);
 
   const setValue = useResumeStore((state) => state.setValue);
   const undo = useTemporalResumeStore((state) => state.undo);
@@ -110,6 +130,7 @@ export const BuilderToolbar = () => {
         prompt: aiPrompt.trim(),
         resumeData: resume.data,
         includeJobContext,
+        selectedSections: selectedSections.includes("all") ? undefined : selectedSections,
       });
 
       if (result.success && result.data) {
@@ -177,6 +198,10 @@ export const BuilderToolbar = () => {
     setShowSuggestions(false);
   };
 
+  const handleSectionChange = (sections: string[]) => {
+    setSelectedSections(sections);
+  };
+
   return (
     <motion.div className="fixed inset-x-0 bottom-0 mx-auto hidden py-6 text-center md:block">
       {/* AI Prompt Box - Expanded State */}
@@ -213,6 +238,44 @@ export const BuilderToolbar = () => {
 
               {/* Input Area */}
               <div className="space-y-3">
+                {/* Section Selection */}
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium">{t`Select Sections to Edit`}</Label>
+                  <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
+                    {EDITABLE_SECTIONS.map((section) => (
+                      <div key={section.value} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`section-${section.value}`}
+                          checked={selectedSections.includes(section.value)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              if (section.value === "all") {
+                                setSelectedSections(["all"]);
+                              } else {
+                                setSelectedSections(prev => 
+                                  prev.filter(s => s !== "all").concat(section.value)
+                                );
+                              }
+                            } else {
+                              setSelectedSections(prev => 
+                                prev.filter(s => s !== section.value)
+                              );
+                            }
+                          }}
+                        />
+                        <Label htmlFor={`section-${section.value}`} className="text-xs">
+                          {section.label}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                  {selectedSections.length === 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      {t`Please select at least one section to edit.`}
+                    </p>
+                  )}
+                </div>
+
                 <div className="relative">
                   <Input
                     value={aiPrompt}
@@ -229,7 +292,7 @@ export const BuilderToolbar = () => {
                     variant="ghost"
                     className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2"
                     onClick={handleAiSubmit}
-                    disabled={aiLoading || !aiPrompt.trim()}
+                    disabled={aiLoading || !aiPrompt.trim() || selectedSections.length === 0}
                   >
                     <PaperPlaneTilt size={14} />
                   </Button>

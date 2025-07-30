@@ -2574,8 +2574,18 @@ CUSTOM INSTRUCTIONS: ${customPrompt.trim()}`
   /**
    * Edit entire resume using natural language prompt
    */
-  async editResume(userId: string, prompt: string, resumeData: any, includeJobContext?: boolean): Promise<any> {
+  async editResume(userId: string, prompt: string, resumeData: any, includeJobContext?: boolean, selectedSections?: string[]): Promise<any> {
     this.logger.log(`Editing resume for user ${userId} with prompt: ${prompt.substring(0, 100)}...`);
+    this.logger.log(`Selected sections: ${selectedSections ? selectedSections.join(", ") : "all sections"}`);
+    
+    // Generate unique log ID for this edit request
+    const logId = `edit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const timestamp = new Date().toISOString();
+    
+    // Prepare logging data
+    let llmInput: any = null;
+    let llmOutput: any = null;
+    let jobContextData: any = null;
     
     try {
       const provider = await this.getProviderForUser(userId);
@@ -2596,32 +2606,77 @@ CUSTOM INSTRUCTIONS: ${customPrompt.trim()}`
           if (resume?.jobApplication) {
             const job = resume.jobApplication;
             const requirements = JSON.parse(job.requirements || "[]");
+            
+            // Store job context data for logging
+            jobContextData = {
+              jobId: job.id,
+              jobTitle: job.title,
+              company: job.company,
+              description: job.description,
+              requirements: requirements,
+              url: job.url
+            };
+            
+            // Structured job context format (similar to resume tailoring)
             jobContext = `
 
 JOB CONTEXT:
 Position: ${job.title}
 Company: ${job.company}
 Description: ${job.description || "Not provided"}
-Requirements: ${requirements.join(", ")}
+Requirements:
+${requirements.map((req: string, index: number) => `${index + 1}. ${req}`).join("\n")}
 
-Please tailor the resume content to be relevant for this specific job position.`;
+Please tailor the resume content to be relevant for this specific job position. Focus on highlighting skills and experiences that match the job requirements.`;
           }
         } catch (error) {
           this.logger.warn(`Failed to get job context: ${error instanceof Error ? error.message : "Unknown error"}`);
           // Continue without job context
         }
       }
+
+      // Prepare section-specific instructions
+      let sectionInstructions = "";
+      if (selectedSections && selectedSections.length > 0 && !selectedSections.includes("all")) {
+        const sectionNames = selectedSections.map(section => {
+          switch (section) {
+            case "summary": return "summary section";
+            case "experience": return "experience section";
+            case "education": return "education section";
+            case "skills": return "skills section";
+            case "projects": return "projects section";
+            case "awards": return "awards section";
+            case "certifications": return "certifications section";
+            case "languages": return "languages section";
+            case "interests": return "interests section";
+            case "volunteer": return "volunteer section";
+            case "publications": return "publications section";
+            case "references": return "references section";
+            case "profiles": return "profiles section";
+            case "basics": return "contact information (basics)";
+            default: return section;
+          }
+        }).join(", ");
+        
+        sectionInstructions = `
+
+SECTION-SPECIFIC EDITING:
+You are ONLY allowed to modify the following sections: ${sectionNames}
+All other sections must remain EXACTLY as they are in the original resume.
+Do not modify any sections not listed above.`;
+      }
       
-      const systemPrompt = `You are an expert resume editor and career advisor. Your task is to edit a resume based on natural language instructions while maintaining the exact JSON structure.${jobContext}
+      let systemPrompt = `You are an expert resume editor and career advisor. Your task is to edit a resume based on natural language instructions while maintaining the exact JSON structure.${jobContext}${sectionInstructions}
 
 CRITICAL REQUIREMENTS:
 1. ALWAYS return the complete resume JSON object with the EXACT same structure as provided
 2. Only modify content based on the user's prompt - never change the schema structure
 3. Preserve all existing data unless specifically asked to modify it
-4. If the prompt refers to a specific section (e.g., "experience", "skills", "summary"), only modify that section
-5. If the prompt is general (e.g., "make it more professional"), apply changes across relevant sections
-6. Maintain proper JSON formatting and data types
-7. Keep all IDs, dates, and structural elements intact unless specifically requested to change them
+4. If specific sections are selected for editing, ONLY modify those sections and leave all others unchanged
+5. If the prompt refers to a specific section (e.g., "experience", "skills", "summary"), only modify that section
+6. If the prompt is general (e.g., "make it more professional"), apply changes across relevant sections
+7. Maintain proper JSON formatting and data types
+8. Keep all IDs, dates, and structural elements intact unless specifically requested to change them
 
 SECTION MAPPING:
 - "summary" or "about" → basics.summary
@@ -2641,27 +2696,105 @@ SECTION MAPPING:
 RESPONSE FORMAT:
 Return ONLY the complete JSON resume object. Do not include any explanations, markdown formatting, or additional text.`;
 
+      // Prepare data to send to LLM based on selected sections
+      let dataToSend: any;
+      let isSectionSpecific = false;
+      
+      if (selectedSections && selectedSections.length > 0 && !selectedSections.includes("all")) {
+        // Section-specific editing: only send selected sections
+        isSectionSpecific = true;
+        dataToSend = {
+          basics: {},
+          sections: {}
+        };
+        
+        // Add selected sections to the data
+        for (const section of selectedSections) {
+          switch (section) {
+            case "summary":
+              dataToSend.basics.summary = resumeData.basics.summary;
+              break;
+            case "basics":
+              dataToSend.basics = { ...resumeData.basics };
+              break;
+            default:
+              if (resumeData.sections[section]) {
+                dataToSend.sections[section] = { ...resumeData.sections[section] };
+              }
+              break;
+          }
+        }
+        
+        // Update system prompt for section-specific editing
+        systemPrompt = `You are an expert resume editor and career advisor. Your task is to edit specific resume sections based on natural language instructions while maintaining the exact JSON structure.${jobContext}
+
+CRITICAL REQUIREMENTS:
+1. Return ONLY the edited sections in the exact same JSON structure as provided
+2. Only modify content based on the user's prompt - never change the schema structure
+3. Preserve all existing data unless specifically asked to modify it
+4. Maintain proper JSON formatting and data types
+5. Keep all IDs, dates, and structural elements intact unless specifically requested to change them
+
+SECTION MAPPING:
+- "summary" or "about" → basics.summary
+- "experience" or "work" → sections.experience.items
+- "education" or "school" → sections.education.items  
+- "skills" → sections.skills.items
+- "projects" → sections.projects.items
+- "awards" → sections.awards.items
+- "certifications" → sections.certifications.items
+- "languages" → sections.languages.items
+- "interests" or "hobbies" → sections.interests.items
+- "volunteer" → sections.volunteer.items
+- "publications" → sections.publications.items
+- "references" → sections.references.items
+- "contact" or "personal info" → basics (name, email, phone, etc.)
+
+RESPONSE FORMAT:
+Return ONLY the edited sections as a JSON object with the same structure as provided. Do not include any explanations, markdown formatting, or additional text.`;
+      } else {
+        // Full resume editing: send complete resume
+        dataToSend = resumeData;
+      }
+
       const userPrompt = `Edit this resume based on the following instruction: "${prompt}"
 
 Current Resume Data:
-${JSON.stringify(resumeData, null, 2)}
+${JSON.stringify(dataToSend, null, 2)}
 
 Return the edited resume as a complete JSON object:`;
+
+      // Capture LLM input for logging
+      llmInput = {
+        userId,
+        prompt,
+        selectedSections,
+        includeJobContext,
+        jobContext: jobContextData,
+        resumeData: dataToSend, // Log what we actually sent to LLM
+        originalResumeData: resumeData, // Keep original for reference
+        isSectionSpecific,
+        systemPrompt,
+        userPrompt
+      };
 
       const result = await provider.chat([
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt }
       ], {
         temperature: 0.3, // Low temperature for consistent structure
-        maxTokens: 8000,  // Increased for complete resume data
+        maxTokens: isSectionSpecific ? 4000 : 8000, // Reduced tokens for section-specific editing
       });
+      
+      // Capture LLM output for logging
+      llmOutput = result;
       
       if (!result.success || !result.data) {
         throw new Error(result.error || "Failed to edit resume");
       }
       
       // Parse and validate the response
-      let editedResumeData;
+      let editedData;
       try {
         // Clean the response in case there's any markdown formatting
         let cleanedResponse = result.data.trim();
@@ -2671,10 +2804,33 @@ Return the edited resume as a complete JSON object:`;
           cleanedResponse = cleanedResponse.replace(/```\s*/, "").replace(/```\s*$/, "");
         }
         
-        editedResumeData = JSON.parse(cleanedResponse);
+        editedData = JSON.parse(cleanedResponse);
       } catch (parseError) {
         this.logger.error("Failed to parse edited resume JSON:", parseError);
         throw new Error("The edited resume could not be parsed. Please try a different prompt or try again.");
+      }
+      
+      // Merge edited data back into the original resume
+      let editedResumeData;
+      if (isSectionSpecific) {
+        // For section-specific editing, merge the edited sections back into the original resume
+        editedResumeData = JSON.parse(JSON.stringify(resumeData)); // Deep copy original
+        
+        // Merge edited sections back
+        if (editedData.basics) {
+          editedResumeData.basics = { ...editedResumeData.basics, ...editedData.basics };
+        }
+        
+        if (editedData.sections) {
+          for (const [sectionKey, sectionData] of Object.entries(editedData.sections)) {
+            editedResumeData.sections[sectionKey] = sectionData;
+          }
+        }
+        
+        this.logger.log(`Merged edited sections back into original resume: ${selectedSections?.join(", ") || "unknown"}`);
+      } else {
+        // For full resume editing, use the complete edited data
+        editedResumeData = editedData;
       }
       
       // Basic validation to ensure key structure is maintained
@@ -2684,6 +2840,9 @@ Return the edited resume as a complete JSON object:`;
       
       this.logger.log(`Successfully edited resume for user ${userId}`);
       
+      // Generate comprehensive log file
+      await this.generateEditLog(logId, timestamp, userId, llmInput, llmOutput, editedResumeData);
+      
       return {
         success: true,
         data: editedResumeData,
@@ -2692,10 +2851,95 @@ Return the edited resume as a complete JSON object:`;
       
     } catch (error) {
       this.logger.error("Resume editing error:", error);
+      
+      // Generate error log file
+      await this.generateEditLog(logId, timestamp, userId, llmInput, llmOutput, null, error);
+      
       return {
         success: false,
         error: error instanceof Error ? error.message : "Failed to edit resume",
       };
+    }
+  }
+
+  /**
+   * Generate comprehensive log file for edit resume operations
+   */
+  private async generateEditLog(
+    logId: string, 
+    timestamp: string, 
+    userId: string, 
+    llmInput: any, 
+    llmOutput: any, 
+    editedResumeData?: any, 
+    error?: any
+  ): Promise<void> {
+    try {
+      const fs = await import('fs/promises');
+      const path = await import('path');
+      
+      // Create logs directory if it doesn't exist
+      const logsDir = path.join(process.cwd(), 'logs', 'api-calls');
+      await fs.mkdir(logsDir, { recursive: true });
+      
+      // Generate log filename
+      const logFilename = `edit_${logId}_${timestamp.replace(/[:.]/g, '-')}.md`;
+      const logPath = path.join(logsDir, logFilename);
+      
+      // Build log content
+      let logContent = `# API Call: editResume
+- **Timestamp:** ${new Date(timestamp).toLocaleString()}
+- **Log ID:** \`${logId}\`
+- **User ID:** \`${userId}\`
+- **Status:** ${error ? '❌ Failed' : '✅ Success'}
+${error ? `- **Error:** ${error.message || 'Unknown error'}` : ''}
+
+## Request Details
+- **Prompt:** "${llmInput?.prompt || 'N/A'}"
+- **Selected Sections:** ${llmInput?.selectedSections ? JSON.stringify(llmInput.selectedSections) : 'All sections'}
+- **Include Job Context:** ${llmInput?.includeJobContext ? 'Yes' : 'No'}
+
+## Job Context
+${llmInput?.jobContext ? `
+\`\`\`json
+${JSON.stringify(llmInput.jobContext, null, 2)}
+\`\`\`
+` : 'No job context provided'}
+
+## LLM Input
+\`\`\`json
+${JSON.stringify(llmInput, null, 2)}
+\`\`\`
+
+## LLM Output
+\`\`\`json
+${JSON.stringify(llmOutput, null, 2)}
+\`\`\`
+
+## Edited Resume Data
+${editedResumeData ? `
+\`\`\`json
+${JSON.stringify(editedResumeData, null, 2)}
+\`\`\`
+` : 'No edited data available due to error'}
+
+## Usage Information
+${llmOutput?.usage ? `
+\`\`\`json
+${JSON.stringify(llmOutput.usage, null, 2)}
+\`\`\`
+` : 'No usage information available'}
+
+---
+*Generated automatically by ReactiveResumeTracker LLM Service*
+`;
+
+      // Write log file
+      await fs.writeFile(logPath, logContent, 'utf8');
+      this.logger.log(`Edit log generated: ${logPath}`);
+      
+    } catch (logError) {
+      this.logger.error(`Failed to generate edit log: ${logError instanceof Error ? logError.message : 'Unknown error'}`);
     }
   }
 }

@@ -9,6 +9,7 @@ export type EditResumeRequest = {
   prompt: string;
   resumeData: ResumeData;
   includeJobContext?: boolean;
+  selectedSections?: string[];
 };
 
 export type EditResumeResponse = {
@@ -18,7 +19,7 @@ export type EditResumeResponse = {
   usage?: Record<string, unknown>;
 };
 
-export const editResume = async (data: EditResumeRequest): Promise<EditResumeResponse> => {
+export const editResume = async (data: EditResumeRequest) => {
   const response = await axios.post<EditResumeResponse, AxiosResponse<EditResumeResponse>, EditResumeDto>(
     "/llm/edit-resume",
     data,

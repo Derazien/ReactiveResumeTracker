@@ -120,7 +120,7 @@ export class LLMController {
   @Post("edit-resume")
   @ApiOperation({ summary: "Edit resume using natural language prompt" })
   async editResume(@User("id") userId: string, @Body() body: EditResumeDto) {
-    return this.llmService.editResume(userId, body.prompt, body.resumeData, body.includeJobContext);
+    return this.llmService.editResume(userId, body.prompt, body.resumeData, body.includeJobContext, body.selectedSections);
   }
 
   @Post("action")
