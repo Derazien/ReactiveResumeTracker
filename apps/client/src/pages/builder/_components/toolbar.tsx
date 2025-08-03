@@ -11,10 +11,10 @@ import {
   Hash,
   LineSegment,
   LinkSimple,
+  MagicWand,
   MagnifyingGlass,
   MagnifyingGlassMinus,
   MagnifyingGlassPlus,
-  MagicWand,
   PaperPlaneTilt,
   Sparkle,
   X,
@@ -26,8 +26,8 @@ import { useState } from "react";
 
 import { useToast } from "@/client/hooks/use-toast";
 import { usePrintResume } from "@/client/services/resume";
-import { debouncedUpdateResume } from "@/client/services/resume/update";
 import { useEditResume } from "@/client/services/resume/edit-resume";
+import { debouncedUpdateResume } from "@/client/services/resume/update";
 import { useBuilderStore } from "@/client/stores/builder";
 import { useResumeStore, useTemporalResumeStore } from "@/client/stores/resume";
 
@@ -136,21 +136,21 @@ export const BuilderToolbar = () => {
       if (result.success && result.data) {
         // Update the resume with the edited data
         console.log("AI Edit Result:", result.data);
-        
+
         // The result.data is the complete resume data object, not just the data field
         // We need to update the entire resume object
         const updatedResume = {
           ...resume,
-          data: result.data
+          data: result.data,
         };
-        
+
         // Update the store with the complete resume object
         console.log("Updating resume store with:", updatedResume);
         useResumeStore.setState({ resume: updatedResume });
-        
+
         // Trigger save to backend
         void debouncedUpdateResume(JSON.parse(JSON.stringify(updatedResume)));
-        
+
         // Force sync to artboard after a short delay
         setTimeout(() => {
           if (frameRef?.contentWindow) {
@@ -159,10 +159,10 @@ export const BuilderToolbar = () => {
             frameRef.contentWindow.postMessage(message, "*");
           }
         }, 100);
-        
+
         // The useResumeSync hook in the builder page will handle form synchronization
         // No additional force updates needed here
-        
+
         toast({
           variant: "success",
           title: t`Success`,
@@ -217,17 +217,17 @@ export const BuilderToolbar = () => {
           >
             <div className="mx-auto inline-block w-auto rounded-lg border bg-background/95 p-4 shadow-xl backdrop-blur-sm">
               {/* Header */}
-              <div className="flex items-center justify-between mb-3">
+              <div className="mb-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+                  <div className="flex size-8 items-center justify-center rounded-full bg-primary/10">
                     <Sparkle size={16} className="text-primary" />
                   </div>
-                  <h3 className="font-semibold text-sm">{t`AI Resume Editor`}</h3>
+                  <h3 className="text-sm font-semibold">{t`AI Resume Editor`}</h3>
                 </div>
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="h-6 w-6"
+                  className="size-6"
                   onClick={() => {
                     setIsAiExpanded(false);
                   }}
@@ -241,7 +241,7 @@ export const BuilderToolbar = () => {
                 {/* Section Selection */}
                 <div className="space-y-2">
                   <Label className="text-xs font-medium">{t`Select Sections to Edit`}</Label>
-                  <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
+                  <div className="grid max-h-32 grid-cols-2 gap-2 overflow-y-auto">
                     {EDITABLE_SECTIONS.map((section) => (
                       <div key={section.value} className="flex items-center space-x-2">
                         <Checkbox
@@ -252,13 +252,13 @@ export const BuilderToolbar = () => {
                               if (section.value === "all") {
                                 setSelectedSections(["all"]);
                               } else {
-                                setSelectedSections(prev => 
-                                  prev.filter(s => s !== "all").concat(section.value)
+                                setSelectedSections((prev) =>
+                                  prev.filter((s) => s !== "all").concat(section.value),
                                 );
                               }
                             } else {
-                              setSelectedSections(prev => 
-                                prev.filter(s => s !== section.value)
+                              setSelectedSections((prev) =>
+                                prev.filter((s) => s !== section.value),
                               );
                             }
                           }}
@@ -270,7 +270,7 @@ export const BuilderToolbar = () => {
                     ))}
                   </div>
                   {selectedSections.length === 0 && (
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-muted-foreground text-xs">
                       {t`Please select at least one section to edit.`}
                     </p>
                   )}
@@ -279,20 +279,20 @@ export const BuilderToolbar = () => {
                 <div className="relative">
                   <Input
                     value={aiPrompt}
+                    placeholder={t`Describe how you want to improve your resume...`}
+                    className="pr-10"
+                    disabled={aiLoading}
                     onChange={(e) => {
                       setAiPrompt(e.target.value);
                     }}
                     onKeyDown={handleAiKeyDown}
-                    placeholder={t`Describe how you want to improve your resume...`}
-                    className="pr-10"
-                    disabled={aiLoading}
                   />
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2"
-                    onClick={handleAiSubmit}
+                    className="absolute right-1 top-1/2 size-8 -translate-y-1/2"
                     disabled={aiLoading || !aiPrompt.trim() || selectedSections.length === 0}
+                    onClick={handleAiSubmit}
                   >
                     <PaperPlaneTilt size={14} />
                   </Button>
@@ -303,21 +303,18 @@ export const BuilderToolbar = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
+                    className="text-muted-foreground h-auto p-0 text-xs hover:text-foreground"
                     onClick={() => {
                       setShowSuggestions(!showSuggestions);
                     }}
                   >
-                    <CaretDown 
-                      size={12} 
-                      className={cn(
-                        "mr-1 transition-transform", 
-                        showSuggestions && "rotate-180"
-                      )} 
+                    <CaretDown
+                      size={12}
+                      className={cn("mr-1 transition-transform", showSuggestions && "rotate-180")}
                     />
                     {t`Show Examples`}
                   </Button>
-                  
+
                   <AnimatePresence>
                     {showSuggestions && (
                       <motion.div
@@ -330,10 +327,10 @@ export const BuilderToolbar = () => {
                         {SUGGESTIONS.map((suggestion, index) => (
                           <button
                             key={index}
+                            className="text-muted-foreground block w-full rounded p-2 text-left text-xs transition-colors hover:bg-secondary/50 hover:text-foreground"
                             onClick={() => {
                               handleSuggestionClick(suggestion);
                             }}
-                            className="block w-full text-left text-xs text-muted-foreground hover:text-foreground p-2 rounded hover:bg-secondary/50 transition-colors"
                           >
                             {suggestion}
                           </button>
@@ -345,11 +342,13 @@ export const BuilderToolbar = () => {
 
                 {/* Job Context Checkbox */}
                 {hasJobContext && (
-                  <div className="flex items-center space-x-2 pt-2 border-t">
+                  <div className="flex items-center space-x-2 border-t pt-2">
                     <Checkbox
                       id="toolbar-job-context"
                       checked={includeJobContext}
-                      onCheckedChange={(checked) => setIncludeJobContext(checked as boolean)}
+                      onCheckedChange={(checked) => {
+                        setIncludeJobContext(checked as boolean);
+                      }}
                     />
                     <Label htmlFor="toolbar-job-context" className="text-xs">
                       {t`Include job context for better tailoring`}
@@ -358,13 +357,11 @@ export const BuilderToolbar = () => {
                 )}
 
                 {/* Footer */}
-                <div className="flex items-center justify-between pt-2 border-t">
-                  <p className="text-xs text-muted-foreground">
+                <div className="flex items-center justify-between border-t pt-2">
+                  <p className="text-muted-foreground text-xs">
                     {t`AI will preserve your resume structure while making improvements.`}
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    {t`Press Enter to submit`}
-                  </p>
+                  <p className="text-muted-foreground text-xs">{t`Press Enter to submit`}</p>
                 </div>
               </div>
             </div>

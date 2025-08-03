@@ -223,9 +223,11 @@ const Section = <T,>({
                       />
                     )}
 
-                    {keywords !== undefined && keywords.length > 0 && (item as any).showKeywords !== false && (
-                      <p className="text-sm">{keywords.join(", ")}</p>
-                    )}
+                    {keywords !== undefined &&
+                      keywords.length > 0 &&
+                      (item as any).showKeywords !== false && (
+                        <p className="text-sm">{keywords.join(", ")}</p>
+                      )}
                   </div>
                 </Fragment>
               );
@@ -254,16 +256,20 @@ const Section = <T,>({
 
                     {url !== undefined && section.separateLinks && <Link url={url} />}
 
-                    {summary !== undefined && !isEmptyString(summary) && (item as any).showDescription !== false && (
-                      <div
-                        dangerouslySetInnerHTML={{ __html: sanitize(summary) }}
-                        className="wysiwyg"
-                      />
-                    )}
+                    {summary !== undefined &&
+                      !isEmptyString(summary) &&
+                      (item as any).showDescription !== false && (
+                        <div
+                          dangerouslySetInnerHTML={{ __html: sanitize(summary) }}
+                          className="wysiwyg"
+                        />
+                      )}
 
-                    {keywords !== undefined && keywords.length > 0 && (item as any).showKeywords !== false && (
-                      <p className="text-sm">{keywords.join(", ")}</p>
-                    )}
+                    {keywords !== undefined &&
+                      keywords.length > 0 &&
+                      (item as any).showKeywords !== false && (
+                        <p className="text-sm">{keywords.join(", ")}</p>
+                      )}
                   </div>
                 );
               })}
@@ -374,7 +380,7 @@ const Skills = () => {
       {(item) => (
         <div>
           <div className="font-bold">{item.name}</div>
-          {item.description && item.showDescription !== false && <div>{item.description}</div>}
+          {item.description && item.showDescription && <div>{item.description}</div>}
         </div>
       )}
     </Section>
@@ -440,7 +446,7 @@ const Languages = () => {
       {(item) => (
         <div>
           <div className="font-bold">{item.name}</div>
-          {item.description && item.showDescription !== false && <div>{item.description}</div>}
+          {item.description && item.showDescription && <div>{item.description}</div>}
         </div>
       )}
     </Section>
@@ -466,7 +472,7 @@ const Projects = () => {
             separateLinks={section.separateLinks}
             className="font-bold"
           />
-          {item.description && item.showDescription !== false && <div>{item.description}</div>}
+          {item.description && item.showDescription && <div>{item.description}</div>}
         </div>
       )}
     </Section>
@@ -486,7 +492,7 @@ const References = () => {
             separateLinks={section.separateLinks}
             className="font-bold"
           />
-          {item.description && item.showDescription !== false && <div>{item.description}</div>}
+          {item.description && item.showDescription && <div>{item.description}</div>}
         </div>
       )}
     </Section>
@@ -512,7 +518,7 @@ const Custom = ({ id }: { id: string }) => {
             separateLinks={section.separateLinks}
             className="font-bold"
           />
-          {item.description && item.showDescription !== false && <div>{item.description}</div>}
+          {item.description && item.showDescription && <div>{item.description}</div>}
           <div>{item.location}</div>
         </div>
       )}

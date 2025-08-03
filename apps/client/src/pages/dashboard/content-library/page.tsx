@@ -30,7 +30,22 @@ import { ContentEditDialog } from "./_components/content-edit-dialog";
 import { CVUploadDialog } from "./_components/cv-upload-dialog";
 
 // Define the section key type to match ContentEditDialog
-type SectionKey = "languages" | "summary" | "experience" | "education" | "volunteer" | "profiles" | "skills" | "projects" | "awards" | "basics" | "contact" | "certification" | "interest" | "publication" | "reference";
+type SectionKey =
+  | "languages"
+  | "summary"
+  | "experience"
+  | "education"
+  | "volunteer"
+  | "profiles"
+  | "skills"
+  | "projects"
+  | "awards"
+  | "basics"
+  | "contact"
+  | "certification"
+  | "interest"
+  | "publication"
+  | "reference";
 
 const ContentLibraryPage = () => {
   const [searchQuery, setSearchQuery] = useState("");

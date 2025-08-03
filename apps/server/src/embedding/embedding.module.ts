@@ -8,4 +8,4 @@ import { EmbeddingService } from "./embedding.service";
   providers: [EmbeddingService],
   exports: [EmbeddingService],
 })
-export class EmbeddingModule {} 
+export class EmbeddingModule {}

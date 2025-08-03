@@ -11,4 +11,4 @@ export const editResumeSchema = z.object({
 
 export class EditResumeDto extends createZodDto(editResumeSchema) {}
 
-export type EditResume = z.infer<typeof editResumeSchema>; 
+export type EditResume = z.infer<typeof editResumeSchema>;

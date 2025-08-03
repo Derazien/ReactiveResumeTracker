@@ -74,10 +74,7 @@ export class JobApplicationController {
   @ApiOperation({
     summary: "Generate tailored resume for job application - includes content matching",
   })
-  async generateTailoredResume(
-    @User("id") userId: string,
-    @Param("id") id: string,
-  ) {
+  async generateTailoredResume(@User("id") userId: string, @Param("id") id: string) {
     return this.jobApplicationService.generateTailoredResume(id, userId);
   }
 

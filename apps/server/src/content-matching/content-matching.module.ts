@@ -8,15 +8,8 @@ import { TagExtractionService } from "@/server/llm/tag-extraction.service";
 import { ContentMatchingService } from "./content-matching.service";
 
 @Module({
-  imports: [
-    PrismaModule,
-    forwardRef(() => ContentLibraryModule),
-    EmbeddingModule,
-  ],
-  providers: [
-    ContentMatchingService,
-    TagExtractionService,
-  ],
+  imports: [PrismaModule, forwardRef(() => ContentLibraryModule), EmbeddingModule],
+  providers: [ContentMatchingService, TagExtractionService],
   exports: [ContentMatchingService],
 })
-export class ContentMatchingModule {} 
+export class ContentMatchingModule {}

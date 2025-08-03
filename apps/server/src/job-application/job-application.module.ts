@@ -11,7 +11,13 @@ import { JobApplicationController } from "./job-application.controller";
 import { JobApplicationService } from "./job-application.service";
 
 @Module({
-  imports: [AuthModule, forwardRef(() => ContentLibraryModule), forwardRef(() => ContentMatchingModule), EmbeddingModule, forwardRef(() => LLMModule)],
+  imports: [
+    AuthModule,
+    forwardRef(() => ContentLibraryModule),
+    forwardRef(() => ContentMatchingModule),
+    EmbeddingModule,
+    forwardRef(() => LLMModule),
+  ],
   controllers: [JobApplicationController],
   providers: [JobApplicationService],
   exports: [JobApplicationService],

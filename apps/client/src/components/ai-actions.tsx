@@ -43,18 +43,18 @@ const llmAction = async (
   mood?: Mood,
   customPrompt?: string,
   includeJobContext?: boolean,
-  resumeId?: string
+  resumeId?: string,
 ): Promise<string> => {
   const res = await fetch("/api/llm/action", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ 
-      action, 
-      value, 
-      mood, 
-      customPrompt, 
+    body: JSON.stringify({
+      action,
+      value,
+      mood,
+      customPrompt,
       includeJobContext,
-      resumeId
+      resumeId,
     }),
   });
   const data = await res.json();
@@ -68,12 +68,10 @@ export const AiActions = ({ value, onChange, className }: Props) => {
   const [customPrompt, setCustomPrompt] = useState("");
   const [includeJobContext, setIncludeJobContext] = useState(false);
   const aiEnabled = useLLMStore((state) => state.isConfigured());
-  
+
   // Get resume data to check if it's linked to a job application
   const resume = useResumeStore((state) => state.resume);
   const hasJobContext = !!resume.jobApplicationId;
-
-
 
   if (!aiEnabled) return null;
 
@@ -82,15 +80,15 @@ export const AiActions = ({ value, onChange, className }: Props) => {
       setLoading(action);
 
       const result = await llmAction(
-        action, 
-        value, 
-        mood, 
+        action,
+        value,
+        mood,
         showPromptInput ? customPrompt : undefined,
         includeJobContext,
-        resume.id
+        resume.id,
       );
       onChange(result);
-      
+
       // Reset prompt input after successful action
       if (showPromptInput) {
         setShowPromptInput(false);
@@ -149,8 +147,10 @@ export const AiActions = ({ value, onChange, className }: Props) => {
           <Input
             placeholder={t`Enter your custom instructions for the AI...`}
             value={customPrompt}
-            onChange={(e) => setCustomPrompt(e.target.value)}
             className="text-xs"
+            onChange={(e) => {
+              setCustomPrompt(e.target.value);
+            }}
           />
           <div className="flex justify-end">
             <Button
@@ -167,7 +167,7 @@ export const AiActions = ({ value, onChange, className }: Props) => {
             >
               {loading === "custom" ? (
                 <>
-                  <CircleNotch className="animate-spin mr-2" size={14} />
+                  <CircleNotch className="mr-2 animate-spin" size={14} />
                   {t`Processing...`}
                 </>
               ) : (
@@ -187,7 +187,9 @@ export const AiActions = ({ value, onChange, className }: Props) => {
           <Checkbox
             id="include-job-context"
             checked={includeJobContext}
-            onCheckedChange={(checked) => setIncludeJobContext(checked as boolean)}
+            onCheckedChange={(checked) => {
+              setIncludeJobContext(checked as boolean);
+            }}
           />
           <Label htmlFor="include-job-context" className="text-xs">
             {t`Include job context for better tailoring`}
@@ -197,30 +199,44 @@ export const AiActions = ({ value, onChange, className }: Props) => {
 
       {/* Action Buttons */}
       <div className="flex flex-wrap items-center justify-center gap-2">
-        <Button type="button" size="sm" variant="outline" disabled={!!loading} onClick={(e) => {
-          e.stopPropagation();
-          onClick("improve");
-        }}>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          disabled={!!loading}
+          onClick={(e) => {
+            e.stopPropagation();
+            onClick("improve");
+          }}
+        >
           {loading === "improve" ? <CircleNotch className="animate-spin" /> : <PenNib />}
           <span className="ml-2 text-xs">{t`Improve Writing`}</span>
         </Button>
 
-        <Button type="button" size="sm" variant="outline" disabled={!!loading} onClick={(e) => {
-          e.stopPropagation();
-          onClick("fix");
-        }}>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          disabled={!!loading}
+          onClick={(e) => {
+            e.stopPropagation();
+            onClick("fix");
+          }}
+        >
           {loading === "fix" ? <CircleNotch className="animate-spin" /> : <Exam />}
           <span className="ml-2 text-xs">{t`Fix Spelling & Grammar`}</span>
         </Button>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button 
+            <Button
               type="button"
-              size="sm" 
-              variant="outline" 
+              size="sm"
+              variant="outline"
               disabled={!!loading}
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
             >
               {loading === "tone" ? <CircleNotch className="animate-spin" /> : <ChatTeardropText />}
               <span className="mx-2 text-xs">{t`Change Tone`}</span>
@@ -228,37 +244,45 @@ export const AiActions = ({ value, onChange, className }: Props) => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuItem onClick={(e) => {
-              e.stopPropagation();
-              onClick("tone", "casual");
-            }}>
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                onClick("tone", "casual");
+              }}
+            >
               <span role="img" aria-label={t`Casual`}>
                 🙂
               </span>
               <span className="ml-2">{t`Casual`}</span>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={(e) => {
-              e.stopPropagation();
-              onClick("tone", "professional");
-            }}>
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                onClick("tone", "professional");
+              }}
+            >
               <span role="img" aria-label={t`Professional`}>
                 💼
               </span>
               <span className="ml-2">{t`Professional`}</span>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={(e) => {
-              e.stopPropagation();
-              onClick("tone", "confident");
-            }}>
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                onClick("tone", "confident");
+              }}
+            >
               <span role="img" aria-label={t`Confident`}>
                 😎
               </span>
               <span className="ml-2">{t`Confident`}</span>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={(e) => {
-              e.stopPropagation();
-              onClick("tone", "friendly");
-            }}>
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                onClick("tone", "friendly");
+              }}
+            >
               <span role="img" aria-label={t`Friendly`}>
                 😊
               </span>

@@ -3,13 +3,13 @@ import {
   ArrowCounterClockwise,
   Broom,
   Columns,
+  Database,
   Eye,
   EyeSlash,
   List,
   PencilSimple,
   Plus,
   TrashSimple,
-  Database,
 } from "@phosphor-icons/react";
 import type { SectionKey, SectionWithItem } from "@reactive-resume/schema";
 import { defaultSections } from "@reactive-resume/schema";
@@ -35,7 +35,7 @@ import { useMemo } from "react";
 import { useDialog } from "@/client/stores/dialog";
 import { useResumeStore } from "@/client/stores/resume";
 
-type Props = { 
+type Props = {
   id: SectionKey;
   onSelectContent?: () => void;
 };

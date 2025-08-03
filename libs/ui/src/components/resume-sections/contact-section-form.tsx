@@ -1,11 +1,11 @@
+import { Plus } from "@phosphor-icons/react";
 import { type CustomField as ICustomField } from "@reactive-resume/schema";
 import { Input, Label } from "@reactive-resume/ui";
 import { URLInput } from "@reactive-resume/ui";
 import { CustomField } from "@reactive-resume/ui";
 import { Button } from "@reactive-resume/ui";
-import { Plus } from "@phosphor-icons/react";
-import { AnimatePresence, Reorder } from "framer-motion";
 import { cn } from "@reactive-resume/utils";
+import { AnimatePresence, Reorder } from "framer-motion";
 import React from "react";
 
 export type ContactSectionFormProps = {
@@ -137,4 +137,4 @@ export const ContactSectionForm: React.FC<ContactSectionFormProps> = ({
       </main>
     </section>
   );
-}; 
+};

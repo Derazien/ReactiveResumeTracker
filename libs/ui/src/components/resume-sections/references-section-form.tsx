@@ -1,15 +1,16 @@
 import type { Reference } from "@reactive-resume/schema";
-import { URLInput } from "../url-input";
-import { Input, RichInput, Checkbox } from "@reactive-resume/ui";
+import { Checkbox, Input, RichInput } from "@reactive-resume/ui";
 import type { Editor } from "@tiptap/react";
 
-export interface ReferencesSectionFormProps {
+import { URLInput } from "../url-input";
+
+export type ReferencesSectionFormProps = {
   values: Reference;
   errors?: Record<string, string>;
   onChange: (field: keyof Reference, value: Reference[keyof Reference]) => void;
   className?: string;
   footer?: (editor: Editor) => React.ReactNode;
-}
+};
 
 export const ReferencesSectionForm = ({
   values,
@@ -21,50 +22,64 @@ export const ReferencesSectionForm = ({
   return (
     <div className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${className}`}>
       <div>
-        <label className="block text-sm font-medium mb-1">Name</label>
+        <label className="mb-1 block text-sm font-medium">Name</label>
         <Input
           value={values.name}
-          onChange={(e) => onChange("name", e.target.value)}
           hasError={!!errors.name}
+          onChange={(e) => {
+            onChange("name", e.target.value);
+          }}
         />
-        {errors.name && <div className="text-xs text-red-500 mt-1">{errors.name}</div>}
+        {errors.name && <div className="mt-1 text-xs text-red-500">{errors.name}</div>}
       </div>
       <div>
-        <label className="block text-sm font-medium mb-1">Description</label>
+        <label className="mb-1 block text-sm font-medium">Description</label>
         <Input
           value={values.description}
-          onChange={(e) => onChange("description", e.target.value)}
           hasError={!!errors.description}
+          onChange={(e) => {
+            onChange("description", e.target.value);
+          }}
         />
-        {errors.description && <div className="text-xs text-red-500 mt-1">{errors.description}</div>}
+        {errors.description && (
+          <div className="mt-1 text-xs text-red-500">{errors.description}</div>
+        )}
       </div>
       <div>
         <div className="flex items-center gap-2">
           <Checkbox
             checked={values.showDescription}
-            onCheckedChange={(checked) => onChange("showDescription", checked as boolean)}
+            onCheckedChange={(checked) => {
+              onChange("showDescription", checked as boolean);
+            }}
           />
           <span className="text-sm">Show Description</span>
         </div>
-        {errors.showDescription && <div className="text-xs text-red-500 mt-1">{errors.showDescription}</div>}
+        {errors.showDescription && (
+          <div className="mt-1 text-xs text-red-500">{errors.showDescription}</div>
+        )}
       </div>
       <div className="sm:col-span-2">
-        <label className="block text-sm font-medium mb-1">Website</label>
+        <label className="mb-1 block text-sm font-medium">Website</label>
         <URLInput
           value={values.url ?? { label: "", href: "" }}
-          onChange={(value) => onChange("url", value)}
+          onChange={(value) => {
+            onChange("url", value);
+          }}
         />
-        {errors.url && <div className="text-xs text-red-500 mt-1">{errors.url}</div>}
+        {errors.url && <div className="mt-1 text-xs text-red-500">{errors.url}</div>}
       </div>
       <div className="sm:col-span-2">
-        <label className="block text-sm font-medium mb-1">Summary</label>
+        <label className="mb-1 block text-sm font-medium">Summary</label>
         <RichInput
           content={values.summary}
-          onChange={(value) => onChange("summary", value)}
           footer={footer}
+          onChange={(value) => {
+            onChange("summary", value);
+          }}
         />
-        {errors.summary && <div className="text-xs text-red-500 mt-1">{errors.summary}</div>}
+        {errors.summary && <div className="mt-1 text-xs text-red-500">{errors.summary}</div>}
       </div>
     </div>
   );
-}; 
+};

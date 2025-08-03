@@ -1,15 +1,15 @@
 import { X } from "@phosphor-icons/react";
-import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
 import type { Interest } from "@reactive-resume/schema";
 import { Badge, BadgeInput, Checkbox, Input } from "@reactive-resume/ui";
+import { AnimatePresence, motion } from "framer-motion";
+import { useState } from "react";
 
-export interface InterestsSectionFormProps {
+export type InterestsSectionFormProps = {
   values: Interest;
   errors?: Record<string, string>;
   onChange: (field: keyof Interest, value: Interest[keyof Interest]) => void;
   className?: string;
-}
+};
 
 export const InterestsSectionForm = ({
   values,
@@ -22,33 +22,39 @@ export const InterestsSectionForm = ({
   return (
     <div className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${className}`}>
       <div className="col-span-2">
-        <label className="block text-sm font-medium mb-1">Name</label>
+        <label className="mb-1 block text-sm font-medium">Name</label>
         <Input
           value={values.name}
-          onChange={(e) => onChange("name", e.target.value)}
           hasError={!!errors.name}
+          onChange={(e) => {
+            onChange("name", e.target.value);
+          }}
         />
-        {errors.name && <div className="text-xs text-red-500 mt-1">{errors.name}</div>}
+        {errors.name && <div className="mt-1 text-xs text-red-500">{errors.name}</div>}
       </div>
 
       <div className="col-span-2 space-y-3">
         <div>
-          <label className="block text-sm font-medium mb-1">Keywords</label>
+          <label className="mb-1 block text-sm font-medium">Keywords</label>
           <BadgeInput
             value={values.keywords}
-            onChange={(value) => onChange("keywords", value)}
             setPendingKeyword={setPendingKeyword}
+            onChange={(value) => {
+              onChange("keywords", value);
+            }}
           />
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-muted-foreground mt-1 text-xs">
             You can add multiple keywords by separating them with a comma or pressing enter.
           </p>
-          {errors.keywords && <div className="text-xs text-red-500 mt-1">{errors.keywords}</div>}
+          {errors.keywords && <div className="mt-1 text-xs text-red-500">{errors.keywords}</div>}
         </div>
 
         <div className="flex items-center gap-2">
           <Checkbox
             checked={values.showKeywords}
-            onCheckedChange={(checked) => onChange("showKeywords", checked as boolean)}
+            onCheckedChange={(checked) => {
+              onChange("showKeywords", checked as boolean);
+            }}
           />
           <span className="text-sm">Show Keywords</span>
         </div>
@@ -66,7 +72,10 @@ export const InterestsSectionForm = ({
                 <Badge
                   className="cursor-pointer"
                   onClick={() => {
-                    onChange("keywords", values.keywords.filter((v) => item !== v));
+                    onChange(
+                      "keywords",
+                      values.keywords.filter((v) => item !== v),
+                    );
                   }}
                 >
                   <span className="mr-1">{item}</span>
@@ -79,4 +88,4 @@ export const InterestsSectionForm = ({
       </div>
     </div>
   );
-}; 
+};

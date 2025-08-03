@@ -1,35 +1,23 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { projectSchema } from "@reactive-resume/schema";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-  URLInput, 
-  RichInput, 
-  BadgeInput, 
-  Checkbox, 
-  Badge,
-  Input
-} from "@reactive-resume/ui";
-import { useForm } from "react-hook-form";
 import { X } from "@phosphor-icons/react";
-import { AnimatePresence, motion } from "framer-motion";
-import { useState, useEffect } from "react";
-import type { z } from "zod";
+import { projectSchema } from "@reactive-resume/schema";
+import { Badge, BadgeInput, Checkbox, Input, RichInput, URLInput } from "@reactive-resume/ui";
 import type { Editor } from "@tiptap/react";
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import type { z } from "zod";
 
 const formSchema = projectSchema;
 type FormValues = z.infer<typeof formSchema>;
 
-export interface ProjectsSectionFormProps {
+export type ProjectsSectionFormProps = {
   values: FormValues;
   errors?: Record<string, string>;
   onChange: (field: keyof FormValues, value: FormValues[keyof FormValues]) => void;
   className?: string;
   footer?: (editor: Editor) => React.ReactNode;
-}
+};
 
 export const ProjectsSectionForm = ({
   values,
@@ -55,10 +43,7 @@ export const ProjectsSectionForm = ({
     e.preventDefault();
   };
 
-  const handleDrop = (
-    e: React.DragEvent,
-    dropIndex: number,
-  ) => {
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
     e.preventDefault();
     if (draggedIndex === null) return;
 
@@ -73,83 +58,105 @@ export const ProjectsSectionForm = ({
   return (
     <div className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${className}`}>
       <div>
-        <label className="block text-sm font-medium mb-1">Name</label>
+        <label className="mb-1 block text-sm font-medium">Name</label>
         <Input
           value={values.name}
-          onChange={(e) => onChange("name", e.target.value)}
           hasError={!!errors.name}
+          onChange={(e) => {
+            onChange("name", e.target.value);
+          }}
         />
-        {errors.name && <div className="text-xs text-red-500 mt-1">{errors.name}</div>}
+        {errors.name && <div className="mt-1 text-xs text-red-500">{errors.name}</div>}
       </div>
       <div>
-        <label className="block text-sm font-medium mb-1">Description</label>
+        <label className="mb-1 block text-sm font-medium">Description</label>
         <Input
           value={values.description}
-          onChange={(e) => onChange("description", e.target.value)}
           hasError={!!errors.description}
+          onChange={(e) => {
+            onChange("description", e.target.value);
+          }}
         />
-        {errors.description && <div className="text-xs text-red-500 mt-1">{errors.description}</div>}
+        {errors.description && (
+          <div className="mt-1 text-xs text-red-500">{errors.description}</div>
+        )}
       </div>
       <div>
         <div className="flex items-center gap-2">
           <Checkbox
             checked={values.showDescription}
-            onCheckedChange={(checked) => onChange("showDescription", checked as boolean)}
+            onCheckedChange={(checked) => {
+              onChange("showDescription", checked as boolean);
+            }}
           />
           <span className="text-sm">Show Description</span>
         </div>
-        {errors.showDescription && <div className="text-xs text-red-500 mt-1">{errors.showDescription}</div>}
+        {errors.showDescription && (
+          <div className="mt-1 text-xs text-red-500">{errors.showDescription}</div>
+        )}
       </div>
       <div>
-        <label className="block text-sm font-medium mb-1">Date or Date Range</label>
+        <label className="mb-1 block text-sm font-medium">Date or Date Range</label>
         <Input
           value={values.date}
-          onChange={(e) => onChange("date", e.target.value)}
           hasError={!!errors.date}
           placeholder="March 2023 - Present"
+          onChange={(e) => {
+            onChange("date", e.target.value);
+          }}
         />
-        {errors.date && <div className="text-xs text-red-500 mt-1">{errors.date}</div>}
+        {errors.date && <div className="mt-1 text-xs text-red-500">{errors.date}</div>}
       </div>
       <div>
-        <label className="block text-sm font-medium mb-1">Website</label>
+        <label className="mb-1 block text-sm font-medium">Website</label>
         <URLInput
           value={values.url ?? { label: "", href: "" }}
-          onChange={(value) => onChange("url", value)}
           placeholder="https://rxresu.me"
+          onChange={(value) => {
+            onChange("url", value);
+          }}
         />
-        {errors.url && <div className="text-xs text-red-500 mt-1">{errors.url}</div>}
+        {errors.url && <div className="mt-1 text-xs text-red-500">{errors.url}</div>}
       </div>
       <div className="sm:col-span-2">
-        <label className="block text-sm font-medium mb-1">Summary</label>
+        <label className="mb-1 block text-sm font-medium">Summary</label>
         <RichInput
           content={values.summary}
-          onChange={(value) => onChange("summary", value)}
           footer={footer}
+          onChange={(value) => {
+            onChange("summary", value);
+          }}
         />
-        {errors.summary && <div className="text-xs text-red-500 mt-1">{errors.summary}</div>}
+        {errors.summary && <div className="mt-1 text-xs text-red-500">{errors.summary}</div>}
       </div>
       <div className="space-y-3 sm:col-span-2">
         <div>
-          <label className="block text-sm font-medium mb-1">Keywords</label>
+          <label className="mb-1 block text-sm font-medium">Keywords</label>
           <BadgeInput
             value={values.keywords}
-            onChange={(value) => onChange("keywords", value)}
             setPendingKeyword={setPendingKeyword}
             hasError={!!errors.keywords}
+            onChange={(value) => {
+              onChange("keywords", value);
+            }}
           />
-          <div className="text-xs text-muted-foreground mt-1">
+          <div className="text-muted-foreground mt-1 text-xs">
             You can add multiple keywords by separating them with a comma or pressing enter.
           </div>
-          {errors.keywords && <div className="text-xs text-red-500 mt-1">{errors.keywords}</div>}
+          {errors.keywords && <div className="mt-1 text-xs text-red-500">{errors.keywords}</div>}
         </div>
         <div className="flex items-center gap-2">
           <Checkbox
             checked={values.showKeywords}
-            onCheckedChange={(checked) => onChange("showKeywords", checked as boolean)}
+            onCheckedChange={(checked) => {
+              onChange("showKeywords", checked as boolean);
+            }}
           />
           <span className="text-sm">Show Keywords</span>
         </div>
-        {errors.showKeywords && <div className="text-xs text-red-500 mt-1">{errors.showKeywords}</div>}
+        {errors.showKeywords && (
+          <div className="mt-1 text-xs text-red-500">{errors.showKeywords}</div>
+        )}
         <div className="flex flex-wrap items-center gap-x-2 gap-y-3">
           <AnimatePresence>
             {values.keywords.map((item, index) => (
@@ -175,7 +182,10 @@ export const ProjectsSectionForm = ({
                     size={12}
                     weight="bold"
                     onClick={() => {
-                      onChange("keywords", values.keywords.filter((v) => item !== v));
+                      onChange(
+                        "keywords",
+                        values.keywords.filter((v) => item !== v),
+                      );
                     }}
                   />
                 </Badge>
@@ -186,4 +196,4 @@ export const ProjectsSectionForm = ({
       </div>
     </div>
   );
-}; 
+};

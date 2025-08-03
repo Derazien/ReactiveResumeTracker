@@ -224,9 +224,11 @@ const Section = <T,>({
 
                 {level !== undefined && level > 0 && <Rating level={level} />}
 
-                {keywords !== undefined && keywords.length > 0 && (item as any).showKeywords !== false && (
-                  <p className="text-sm">{keywords.join(", ")}</p>
-                )}
+                {keywords !== undefined &&
+                  keywords.length > 0 &&
+                  (item as any).showKeywords !== false && (
+                    <p className="text-sm">{keywords.join(", ")}</p>
+                  )}
 
                 {url !== undefined && section.separateLinks && <Link url={url} />}
               </div>

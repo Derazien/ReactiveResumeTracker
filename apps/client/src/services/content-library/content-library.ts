@@ -89,7 +89,10 @@ export const useUpdateContentLibraryItem = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, data }: {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
       id: string;
       data: {
         title: string;

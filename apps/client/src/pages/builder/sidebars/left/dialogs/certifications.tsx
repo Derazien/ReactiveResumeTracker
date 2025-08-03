@@ -1,9 +1,10 @@
-import { defaultCertification, certificationSchema } from "@reactive-resume/schema";
+import type { certificationSchema } from "@reactive-resume/schema";
+import { defaultCertification } from "@reactive-resume/schema";
+import { CertificatesSectionForm } from "@reactive-resume/ui";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 
 import { AiActions } from "@/client/components/ai-actions";
-import { CertificatesSectionForm } from "@reactive-resume/ui";
 
 import { SectionDialog } from "../sections/shared/section-dialog";
 
@@ -18,9 +19,6 @@ export const CertificationsDialog = () => {
     <SectionDialog<FormValues> id="certifications" form={form} defaultValues={defaultCertification}>
       <CertificatesSectionForm
         values={form.watch()}
-        onChange={(field, value) => {
-          form.setValue(field, value);
-        }}
         footer={(editor) => (
           <AiActions
             value={editor.getText()}
@@ -30,6 +28,9 @@ export const CertificationsDialog = () => {
             }}
           />
         )}
+        onChange={(field, value) => {
+          form.setValue(field, value);
+        }}
       />
     </SectionDialog>
   );

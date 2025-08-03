@@ -20,10 +20,11 @@ export type EditResumeResponse = {
 };
 
 export const editResume = async (data: EditResumeRequest) => {
-  const response = await axios.post<EditResumeResponse, AxiosResponse<EditResumeResponse>, EditResumeDto>(
-    "/llm/edit-resume",
-    data,
-  );
+  const response = await axios.post<
+    EditResumeResponse,
+    AxiosResponse<EditResumeResponse>,
+    EditResumeDto
+  >("/llm/edit-resume", data);
 
   return response.data;
 };
@@ -43,4 +44,4 @@ export const useEditResume = () => {
   });
 
   return { editResume: editResumeFn, loading, error };
-}; 
+};

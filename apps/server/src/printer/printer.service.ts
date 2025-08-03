@@ -160,7 +160,14 @@ export class PrinterService {
           }, css.value);
         }
 
-        const uint8array = await page.pdf({ width, height, printBackground: true });
+        const uint8array = await page.pdf({
+          width,
+          height,
+          printBackground: true,
+          preferCSSPageSize: true,
+          margin: { top: 0, right: 0, bottom: 0, left: 0 },
+          displayHeaderFooter: false,
+        });
         const buffer = Buffer.from(uint8array);
         pagesBuffer.push(buffer);
 
@@ -185,7 +192,13 @@ export class PrinterService {
 
       // Save the PDF to storage and return the URL to download the resume
       // Store the URL in cache for future requests, under the previously generated hash digest
-      const buffer = Buffer.from(await pdf.save());
+      const buffer = Buffer.from(
+        await pdf.save({
+          useObjectStreams: true,
+          addDefaultPage: false,
+          objectsPerTick: 20,
+        }),
+      );
 
       // This step will also save the resume URL in cache
       const resumeUrl = await this.storageService.uploadObject(

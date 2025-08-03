@@ -1,8 +1,8 @@
-import { defaultLanguage, languageSchema } from "@reactive-resume/schema";
+import type { languageSchema } from "@reactive-resume/schema";
+import { defaultLanguage } from "@reactive-resume/schema";
+import { LanguagesSectionForm } from "@reactive-resume/ui";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
-
-import { LanguagesSectionForm } from "@reactive-resume/ui";
 
 import { SectionDialog } from "../sections/shared/section-dialog";
 

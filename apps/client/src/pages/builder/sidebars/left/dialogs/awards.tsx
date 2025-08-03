@@ -1,9 +1,10 @@
-import { defaultAward, awardSchema } from "@reactive-resume/schema";
+import type { awardSchema } from "@reactive-resume/schema";
+import { defaultAward } from "@reactive-resume/schema";
+import { AwardsSectionForm } from "@reactive-resume/ui";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 
 import { AiActions } from "@/client/components/ai-actions";
-import { AwardsSectionForm } from "@reactive-resume/ui";
 
 import { SectionDialog } from "../sections/shared/section-dialog";
 
@@ -18,9 +19,6 @@ export const AwardsDialog = () => {
     <SectionDialog<FormValues> id="awards" form={form} defaultValues={defaultAward}>
       <AwardsSectionForm
         values={form.watch()}
-        onChange={(field, value) => {
-          form.setValue(field, value);
-        }}
         footer={(editor) => (
           <AiActions
             value={editor.getText()}
@@ -30,6 +28,9 @@ export const AwardsDialog = () => {
             }}
           />
         )}
+        onChange={(field, value) => {
+          form.setValue(field, value);
+        }}
       />
     </SectionDialog>
   );

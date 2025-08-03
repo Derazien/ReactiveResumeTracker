@@ -1,9 +1,10 @@
-import { defaultEducation, educationSchema } from "@reactive-resume/schema";
+import type { educationSchema } from "@reactive-resume/schema";
+import { defaultEducation } from "@reactive-resume/schema";
+import { EducationSectionForm } from "@reactive-resume/ui";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 
 import { AiActions } from "@/client/components/ai-actions";
-import { EducationSectionForm } from "@reactive-resume/ui";
 
 import { SectionDialog } from "../sections/shared/section-dialog";
 
@@ -18,9 +19,6 @@ export const EducationDialog = () => {
     <SectionDialog<FormValues> id="education" form={form} defaultValues={defaultEducation}>
       <EducationSectionForm
         values={form.watch()}
-        onChange={(field, value) => {
-          form.setValue(field, value);
-        }}
         footer={(editor) => (
           <AiActions
             value={editor.getText()}
@@ -30,6 +28,9 @@ export const EducationDialog = () => {
             }}
           />
         )}
+        onChange={(field, value) => {
+          form.setValue(field, value);
+        }}
       />
     </SectionDialog>
   );

@@ -138,20 +138,30 @@ export class JobApplicationService {
 
         // Check if we need to regenerate embedding
         const newHash = this.embeddingService.generateHash(jobEmbeddingText);
-        
+
         if (!currentJob.embeddingHash || currentJob.embeddingHash !== newHash) {
-          this.logger.log(`Job data changed, regenerating embedding for job: ${newTitle} at ${newCompany}`);
-          
+          this.logger.log(
+            `Job data changed, regenerating embedding for job: ${newTitle} at ${newCompany}`,
+          );
+
           const embeddingResult = await this.embeddingService.generateEmbedding(jobEmbeddingText);
-          updateData.embedding = this.embeddingService.serializeEmbedding(embeddingResult.embedding);
+          updateData.embedding = this.embeddingService.serializeEmbedding(
+            embeddingResult.embedding,
+          );
           updateData.embeddingHash = embeddingResult.hash;
 
-          this.logger.log(`Updated embedding for job (hash: ${embeddingResult.hash.substring(0, 8)}...)`);
+          this.logger.log(
+            `Updated embedding for job (hash: ${embeddingResult.hash.slice(0, 8)}...)`,
+          );
         } else {
-          this.logger.log(`Job data unchanged, keeping existing embedding (hash: ${newHash.substring(0, 8)}...)`);
+          this.logger.log(
+            `Job data unchanged, keeping existing embedding (hash: ${newHash.slice(0, 8)}...)`,
+          );
         }
       } catch (error) {
-        this.logger.warn(`Failed to update embedding for job application: ${error instanceof Error ? error.message : "Unknown error"}`);
+        this.logger.warn(
+          `Failed to update embedding for job application: ${error instanceof Error ? error.message : "Unknown error"}`,
+        );
         // Continue without updating embedding
       }
     }
@@ -211,7 +221,7 @@ export class JobApplicationService {
         analysisData.company,
         analysisData.description,
         analysisData.requirements ?? [],
-        analysisData.extractedTags ?? []
+        analysisData.extractedTags ?? [],
       );
 
       // Check if we need to generate embedding (always generate for new jobs)
@@ -219,9 +229,13 @@ export class JobApplicationService {
       embedding = this.embeddingService.serializeEmbedding(embeddingResult.embedding);
       embeddingHash = embeddingResult.hash;
 
-      this.logger.log(`Generated embedding for job: ${analysisData.title} at ${analysisData.company} (hash: ${embeddingHash.substring(0, 8)}...)`);
+      this.logger.log(
+        `Generated embedding for job: ${analysisData.title} at ${analysisData.company} (hash: ${embeddingHash.slice(0, 8)}...)`,
+      );
     } catch (error) {
-      this.logger.warn(`Failed to generate embedding for job application: ${error instanceof Error ? error.message : "Unknown error"}`);
+      this.logger.warn(
+        `Failed to generate embedding for job application: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
       // Continue without embedding - the system should still work
     }
 
@@ -277,7 +291,7 @@ export class JobApplicationService {
         jobData.company,
         jobData.description,
         jobData.requirements,
-        jobData.extractedTags
+        jobData.extractedTags,
       );
 
       const embeddingResult = await this.embeddingService.generateEmbedding(jobEmbeddingText);

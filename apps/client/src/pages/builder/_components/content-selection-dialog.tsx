@@ -1,6 +1,7 @@
 import { t } from "@lingui/macro";
-import { MagnifyingGlass, Plus, Check, Database } from "@phosphor-icons/react";
-import { Card, CardContent, CardHeader, CardTitle } from "@reactive-resume/ui";
+import { createId } from "@paralleldrive/cuid2";
+import { Check, Database, MagnifyingGlass, Plus } from "@phosphor-icons/react";
+import { Card, CardHeader, CardTitle } from "@reactive-resume/ui";
 import { Button } from "@reactive-resume/ui";
 import { Input } from "@reactive-resume/ui";
 import { Badge } from "@reactive-resume/ui";
@@ -14,19 +15,18 @@ import {
   DialogTitle,
 } from "@reactive-resume/ui";
 import { cn } from "@reactive-resume/utils";
-import { createId } from "@paralleldrive/cuid2";
-import { useState, useMemo, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { useToast } from "@/client/hooks/use-toast";
 import { useContentBySectionKey } from "@/client/services/content-library/content-library";
 import { useResumeStore } from "@/client/stores/resume";
 
-interface ContentSelectionDialogProps {
+type ContentSelectionDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   sectionId: string; // This is the section key (e.g., "experience", "education")
   sectionName: string;
-}
+};
 
 export const ContentSelectionDialog = ({
   open,
@@ -40,10 +40,10 @@ export const ContentSelectionDialog = ({
 
   // Get content for the section key directly
   const { data: contentItems, isLoading: isLoadingContent } = useContentBySectionKey(sectionId);
-  
+
   const setValue = useResumeStore((state) => state.setValue);
-  const section = useResumeStore((state) => 
-    state.resume.data.sections[sectionId as keyof typeof state.resume.data.sections]
+  const section = useResumeStore(
+    (state) => state.resume.data.sections[sectionId as keyof typeof state.resume.data.sections],
   );
 
   // Reset state when dialog closes
@@ -56,29 +56,29 @@ export const ContentSelectionDialog = ({
 
   // Check which content items are already in the resume
   const getContentStatus = (contentId: string) => {
-    if (!section || !('items' in section)) return null;
-    
+    if (!section || !("items" in section)) return null;
+
     const items = Array.isArray(section.items) ? section.items : [];
-    
+
     // Check if this content is directly added (contentId matches)
-    const directMatch = items.find(item => item.contentId === contentId);
+    const directMatch = items.find((item) => item.contentId === contentId);
     if (directMatch) {
-      return { type: 'added-from-library', item: directMatch };
+      return { type: "added-from-library", item: directMatch };
     }
-    
+
     // Check if this content is a variant (sourceContentId matches)
-    const variantMatch = items.find(item => item.sourceContentId === contentId);
+    const variantMatch = items.find((item) => item.sourceContentId === contentId);
     if (variantMatch) {
-      return { type: 'variant-from-library', item: variantMatch };
+      return { type: "variant-from-library", item: variantMatch };
     }
-    
+
     return null;
   };
 
   // Filter content based on search
   const filteredContent = useMemo(() => {
     if (!contentItems) return [];
-    
+
     return contentItems.filter((item) => {
       const matchesSearch =
         item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -92,11 +92,7 @@ export const ContentSelectionDialog = ({
   const handleToggleSelection = (contentId: string) => {
     setSelectedContentIds((prev) => {
       const isSelected = prev.includes(contentId);
-      if (isSelected) {
-        return prev.filter((id) => id !== contentId);
-      } else {
-        return [...prev, contentId];
-      }
+      return isSelected ? prev.filter((id) => id !== contentId) : [...prev, contentId];
     });
   };
 
@@ -120,9 +116,7 @@ export const ContentSelectionDialog = ({
 
     try {
       // Get selected content items
-      const selectedItems = filteredContent.filter((item) => 
-        selectedContentIds.includes(item.id)
-      );
+      const selectedItems = filteredContent.filter((item) => selectedContentIds.includes(item.id));
 
       // Filter out items that are already in the resume
       const newItems = selectedItems.filter((content) => {
@@ -140,9 +134,12 @@ export const ContentSelectionDialog = ({
       }
 
       // Add each selected content item to the resume
-      newItems.forEach((content) => {
+      for (const content of newItems) {
         // The content field is already parsed by the backend
-        const parsedData = content.content || { title: content.title, description: content.description };
+        const parsedData = content.content || {
+          title: content.title,
+          description: content.description,
+        };
 
         // Create new item with contentId tracking
         const newItem = {
@@ -154,16 +151,17 @@ export const ContentSelectionDialog = ({
         };
 
         // Add to the section using setValue
-        if (section && 'items' in section) {
+        if (section && "items" in section) {
           const currentItems = Array.isArray(section.items) ? section.items : [];
           setValue(`sections.${sectionId}.items`, [...currentItems, newItem]);
         }
-      });
+      }
 
       const skippedCount = selectedItems.length - newItems.length;
-      const message = skippedCount > 0 
-        ? t`Added ${newItems.length} item(s) to your ${sectionName} section. ${skippedCount} item(s) were already in your resume.`
-        : t`Added ${newItems.length} item(s) to your ${sectionName} section`;
+      const message =
+        skippedCount > 0
+          ? t`Added ${newItems.length} item(s) to your ${sectionName} section. ${skippedCount} item(s) were already in your resume.`
+          : t`Added ${newItems.length} item(s) to your ${sectionName} section`;
 
       toast({
         variant: "success",
@@ -179,7 +177,8 @@ export const ContentSelectionDialog = ({
       toast({
         variant: "error",
         title: t`Failed to Add Content`,
-        description: error instanceof Error ? error.message : t`An error occurred while adding content`,
+        description:
+          error instanceof Error ? error.message : t`An error occurred while adding content`,
       });
     }
   };
@@ -212,24 +211,26 @@ export const ContentSelectionDialog = ({
                 placeholder={t`Search content...`}
                 value={searchQuery}
                 className="pl-10"
-                onChange={(e) => setSearchQuery(e.target.value)}
                 disabled={isLoading}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                }}
               />
             </div>
             <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleSelectAll}
+              <Button
+                variant="outline"
+                size="sm"
                 disabled={isLoading || filteredContent.length === 0}
+                onClick={handleSelectAll}
               >
                 {t`Select All`}
               </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleDeselectAll}
+              <Button
+                variant="outline"
+                size="sm"
                 disabled={isLoading || selectedContentIds.length === 0}
+                onClick={handleDeselectAll}
               >
                 {t`Clear`}
               </Button>
@@ -241,9 +242,7 @@ export const ContentSelectionDialog = ({
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="size-6 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-                <span className="ml-2 text-muted-foreground">
-                  {t`Loading content...`}
-                </span>
+                <span className="text-muted-foreground ml-2">{t`Loading content...`}</span>
               </div>
             ) : filteredContent.length > 0 ? (
               <div className="space-y-3">
@@ -255,24 +254,27 @@ export const ContentSelectionDialog = ({
                   // Get status configuration
                   const getStatusConfig = () => {
                     if (!contentStatus) return null;
-                    
+
                     switch (contentStatus.type) {
-                      case 'added-from-library':
+                      case "added-from-library": {
                         return {
                           icon: Database,
-                          color: 'text-green-600',
-                          bgColor: 'bg-green-100',
+                          color: "text-green-600",
+                          bgColor: "bg-green-100",
                           label: t`Added from Library`,
                         };
-                      case 'variant-from-library':
+                      }
+                      case "variant-from-library": {
                         return {
                           icon: Database,
-                          color: 'text-blue-600',
-                          bgColor: 'bg-blue-100',
+                          color: "text-blue-600",
+                          bgColor: "bg-blue-100",
                           label: t`Variant from Library`,
                         };
-                      default:
+                      }
+                      default: {
                         return null;
+                      }
                     }
                   };
 
@@ -284,24 +286,32 @@ export const ContentSelectionDialog = ({
                       key={content.id}
                       className={cn(
                         "cursor-pointer transition-all hover:shadow-md",
-                        isSelected && "ring-2 ring-primary/20 border-primary",
-                        isAlreadyInResume && "opacity-75"
+                        isSelected && "border-primary ring-2 ring-primary/20",
+                        isAlreadyInResume && "opacity-75",
                       )}
-                      onClick={() => handleToggleSelection(content.id)}
+                      onClick={() => {
+                        handleToggleSelection(content.id);
+                      }}
                     >
                       <CardHeader className="pb-3">
                         <div className="flex items-start justify-between">
-                          <div className="flex items-start gap-3 flex-1">
-                            <div className={cn(
-                              "mt-1 size-4 rounded border-2 flex items-center justify-center",
-                              isSelected
-                                ? "bg-primary border-primary"
-                                : isAlreadyInResume
-                                ? "bg-muted border-muted"
-                                : "border-muted-foreground/30"
-                            )}>
-                              {isSelected && <Check size={12} className="text-primary-foreground" />}
-                              {isAlreadyInResume && !isSelected && <Check size={12} className="text-muted-foreground" />}
+                          <div className="flex flex-1 items-start gap-3">
+                            <div
+                              className={cn(
+                                "mt-1 flex size-4 items-center justify-center rounded border-2",
+                                isSelected
+                                  ? "border-primary bg-primary"
+                                  : (isAlreadyInResume
+                                    ? "bg-muted border-muted"
+                                    : "border-muted-foreground/30"),
+                              )}
+                            >
+                              {isSelected && (
+                                <Check size={12} className="text-primary-foreground" />
+                              )}
+                              {isAlreadyInResume && !isSelected && (
+                                <Check size={12} className="text-muted-foreground" />
+                              )}
                             </div>
                             <div className="flex-1">
                               <div className="flex items-center gap-2">
@@ -309,15 +319,19 @@ export const ContentSelectionDialog = ({
                                 {statusConfig && (
                                   <Badge
                                     variant="secondary"
-                                    className={cn("text-xs", statusConfig.color, statusConfig.bgColor)}
+                                    className={cn(
+                                      "text-xs",
+                                      statusConfig.color,
+                                      statusConfig.bgColor,
+                                    )}
                                   >
-                                    {StatusIcon && <StatusIcon className="h-3 w-3 mr-1" />}
+                                    {StatusIcon && <StatusIcon className="mr-1 size-3" />}
                                     {statusConfig.label}
                                   </Badge>
                                 )}
                               </div>
                               {content.description && (
-                                <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
+                                <p className="text-muted-foreground mt-1 line-clamp-2 text-sm">
                                   {content.description}
                                 </p>
                               )}
@@ -330,7 +344,7 @@ export const ContentSelectionDialog = ({
                                       className="text-xs"
                                       style={{
                                         backgroundColor: (tag.tag.color || "#3B82F6") + "20",
-                                        color: tag.tag.color || "#3B82F6"
+                                        color: tag.tag.color || "#3B82F6",
                                       }}
                                     >
                                       {tag.tag.name}
@@ -360,8 +374,7 @@ export const ContentSelectionDialog = ({
                   <p className="text-sm">
                     {searchQuery
                       ? t`Try adjusting your search terms`
-                      : t`Add some content to your library first`
-                    }
+                      : t`Add some content to your library first`}
                   </p>
                 </div>
               </div>
@@ -370,8 +383,8 @@ export const ContentSelectionDialog = ({
         </div>
 
         <DialogFooter>
-          <div className="flex items-center justify-between w-full">
-            <div className="text-sm text-muted-foreground">
+          <div className="flex w-full items-center justify-between">
+            <div className="text-muted-foreground text-sm">
               {selectedContentIds.length > 0 && (
                 <span>{t`${selectedContentIds.length} item(s) selected`}</span>
               )}
@@ -381,8 +394,8 @@ export const ContentSelectionDialog = ({
                 {t`Cancel`}
               </Button>
               <Button
-                onClick={handleAddToResume}
                 disabled={selectedContentIds.length === 0 || isLoading}
+                onClick={handleAddToResume}
               >
                 <Plus className="mr-2 size-4" />
                 {t`Add to Resume`}
@@ -393,4 +406,4 @@ export const ContentSelectionDialog = ({
       </DialogContent>
     </Dialog>
   );
-}; 
+};

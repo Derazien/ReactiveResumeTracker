@@ -190,11 +190,11 @@ export class ContentLibraryService {
 
   async getContentBySectionKey(userId: string, sectionKey: string): Promise<Content[]> {
     const content = await this.prisma.content.findMany({
-      where: { 
+      where: {
         userId,
         section: {
-          key: sectionKey
-        }
+          key: sectionKey,
+        },
       },
       include: {
         section: true,
@@ -208,9 +208,9 @@ export class ContentLibraryService {
     });
 
     // Transform the data to match the DTO structure
-    return content.map(item => ({
+    return content.map((item) => ({
       ...item,
-      content: JSON.parse(item.data!),
+      content: JSON.parse(item.data),
     }));
   }
 
@@ -238,13 +238,9 @@ export class ContentLibraryService {
       minSimilarity?: number;
       maxResults?: number;
       sectionIds?: string[];
-    }
+    },
   ): Promise<(Content & { similarity?: number })[]> {
-    const {
-      minSimilarity = 0.1,
-      maxResults = 50,
-      sectionIds
-    } = options ?? {};
+    const { minSimilarity = 0.1, maxResults = 50, sectionIds } = options ?? {};
 
     // Get content with embeddings
     const where: Prisma.ContentWhereInput = {
@@ -275,11 +271,11 @@ export class ContentLibraryService {
 
     // Calculate similarities (this would be more efficient with a vector database)
     const contentWithSimilarity = contentWithEmbeddings
-      .map(content => {
+      .map((content) => {
         try {
-          const contentEmbedding = JSON.parse(content.embedding as string);
+          const contentEmbedding = JSON.parse(content.embedding!);
           const similarity = this.calculateCosineSimilarity(queryEmbedding, contentEmbedding);
-          
+
           return {
             ...content,
             similarity,
@@ -289,8 +285,9 @@ export class ContentLibraryService {
           return null;
         }
       })
-      .filter((content): content is NonNullable<typeof content> => 
-        content !== null && content.similarity >= minSimilarity
+      .filter(
+        (content): content is NonNullable<typeof content> =>
+          content !== null && content.similarity >= minSimilarity,
       )
       .sort((a, b) => b.similarity - a.similarity)
       .slice(0, maxResults);

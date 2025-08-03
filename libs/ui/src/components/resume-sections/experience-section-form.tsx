@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { defaultExperience, experienceSchema } from "@reactive-resume/schema";
+import { Plus, Trash } from "@phosphor-icons/react";
+import { experienceSchema } from "@reactive-resume/schema";
 import {
   FormControl,
   FormField,
@@ -9,24 +10,23 @@ import {
   Input,
   RichInput,
 } from "@reactive-resume/ui";
-import { useForm } from "react-hook-form";
-import { Plus, Trash } from "@phosphor-icons/react";
-import type { z } from "zod";
 import type { Editor } from "@tiptap/react";
 import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import type { z } from "zod";
 
 import { URLInput } from "../url-input";
 
 const formSchema = experienceSchema;
 type FormValues = z.infer<typeof formSchema>;
 
-export interface ExperienceSectionFormProps {
+export type ExperienceSectionFormProps = {
   values: FormValues;
   errors?: Record<string, string>;
   onChange: (field: keyof FormValues, value: FormValues[keyof FormValues]) => void;
   className?: string;
   footer?: (editor: Editor) => React.ReactNode;
-}
+};
 
 export const ExperienceSectionForm: React.FC<ExperienceSectionFormProps> = ({
   values,
@@ -58,8 +58,8 @@ export const ExperienceSectionForm: React.FC<ExperienceSectionFormProps> = ({
             <FormItem>
               <FormLabel>Company</FormLabel>
               <FormControl>
-                <Input 
-                  {...field} 
+                <Input
+                  {...field}
                   value={values.company}
                   onChange={(e) => {
                     field.onChange(e);
@@ -79,8 +79,8 @@ export const ExperienceSectionForm: React.FC<ExperienceSectionFormProps> = ({
             <FormItem>
               <FormLabel>Position</FormLabel>
               <FormControl>
-                <Input 
-                  {...field} 
+                <Input
+                  {...field}
                   value={values.position}
                   onChange={(e) => {
                     field.onChange(e);
@@ -100,8 +100,8 @@ export const ExperienceSectionForm: React.FC<ExperienceSectionFormProps> = ({
             <FormItem>
               <FormLabel>Date or Date Range</FormLabel>
               <FormControl>
-                <Input 
-                  {...field} 
+                <Input
+                  {...field}
                   placeholder="March 2023 - Present"
                   onChange={(e) => {
                     field.onChange(e);
@@ -121,8 +121,8 @@ export const ExperienceSectionForm: React.FC<ExperienceSectionFormProps> = ({
             <FormItem>
               <FormLabel>Location</FormLabel>
               <FormControl>
-                <Input 
-                  {...field} 
+                <Input
+                  {...field}
                   onChange={(e) => {
                     field.onChange(e);
                     onChange("location", e.target.value);
@@ -141,8 +141,8 @@ export const ExperienceSectionForm: React.FC<ExperienceSectionFormProps> = ({
             <FormItem className="sm:col-span-2">
               <FormLabel>Website</FormLabel>
               <FormControl>
-                <URLInput 
-                  {...field} 
+                <URLInput
+                  {...field}
                   onChange={(value) => {
                     field.onChange(value);
                     onChange("url", value);
@@ -182,11 +182,11 @@ export const ExperienceSectionForm: React.FC<ExperienceSectionFormProps> = ({
           <div className="space-y-2">
             {contacts?.length > 0 ? (
               contacts.map((contact, idx) => (
-                <div key={idx} className="flex gap-2 items-center">
+                <div key={idx} className="flex items-center gap-2">
                   <Input
                     placeholder="Name"
                     value={contact.name}
-                    onChange={e => {
+                    onChange={(e) => {
                       const updated = [...contacts];
                       updated[idx] = { ...updated[idx], name: e.target.value };
                       form.setValue("contacts", updated, { shouldDirty: true });
@@ -196,7 +196,7 @@ export const ExperienceSectionForm: React.FC<ExperienceSectionFormProps> = ({
                   <Input
                     placeholder="Email"
                     value={contact.email}
-                    onChange={e => {
+                    onChange={(e) => {
                       const updated = [...contacts];
                       updated[idx] = { ...updated[idx], email: e.target.value };
                       form.setValue("contacts", updated, { shouldDirty: true });
@@ -205,13 +205,13 @@ export const ExperienceSectionForm: React.FC<ExperienceSectionFormProps> = ({
                   />
                   <button
                     type="button"
+                    className="text-red-500 hover:text-red-700"
+                    aria-label="Remove Contact"
                     onClick={() => {
                       const updated = contacts.filter((_, i) => i !== idx);
                       form.setValue("contacts", updated, { shouldDirty: true });
                       onChange("contacts", updated);
                     }}
-                    className="text-red-500 hover:text-red-700"
-                    aria-label="Remove Contact"
                   >
                     <Trash size={18} />
                   </button>
@@ -222,12 +222,12 @@ export const ExperienceSectionForm: React.FC<ExperienceSectionFormProps> = ({
             )}
             <button
               type="button"
+              className="mt-2 flex items-center gap-1 text-primary hover:underline"
               onClick={() => {
                 const updated = [...(contacts || []), { name: "", email: "" }];
                 form.setValue("contacts", updated, { shouldDirty: true });
                 onChange("contacts", updated);
               }}
-              className="flex items-center gap-1 text-primary hover:underline mt-2"
             >
               <Plus size={18} /> Add Contact
             </button>
@@ -236,4 +236,4 @@ export const ExperienceSectionForm: React.FC<ExperienceSectionFormProps> = ({
       </div>
     </section>
   );
-}; 
+};

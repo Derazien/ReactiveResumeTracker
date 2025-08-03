@@ -1,9 +1,10 @@
-import { defaultPublication, publicationSchema } from "@reactive-resume/schema";
+import type { publicationSchema } from "@reactive-resume/schema";
+import { defaultPublication } from "@reactive-resume/schema";
+import { PublicationsSectionForm } from "@reactive-resume/ui";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 
 import { AiActions } from "@/client/components/ai-actions";
-import { PublicationsSectionForm } from "@reactive-resume/ui";
 
 import { SectionDialog } from "../sections/shared/section-dialog";
 
@@ -18,9 +19,6 @@ export const PublicationsDialog = () => {
     <SectionDialog<FormValues> id="publications" form={form} defaultValues={defaultPublication}>
       <PublicationsSectionForm
         values={form.watch()}
-        onChange={(field, value) => {
-          form.setValue(field, value);
-        }}
         footer={(editor) => (
           <AiActions
             value={editor.getText()}
@@ -30,6 +28,9 @@ export const PublicationsDialog = () => {
             }}
           />
         )}
+        onChange={(field, value) => {
+          form.setValue(field, value);
+        }}
       />
     </SectionDialog>
   );

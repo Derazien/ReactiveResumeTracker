@@ -89,7 +89,9 @@ export const CustomSectionDialog = () => {
                 <FormControl>
                   <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                 </FormControl>
-                <span><Trans>Show Description</Trans></span>
+                <span>
+                  <Trans>Show Description</Trans>
+                </span>
               </div>
               <FormMessage />
             </FormItem>
@@ -192,7 +194,9 @@ export const CustomSectionDialog = () => {
                       <FormControl>
                         <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                       </FormControl>
-                      <span><Trans>Show Keywords</Trans></span>
+                      <span>
+                        <Trans>Show Keywords</Trans>
+                      </span>
                     </div>
                     <FormMessage />
                   </FormItem>

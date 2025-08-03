@@ -1,20 +1,13 @@
-import { t, Trans } from "@lingui/macro";
+import { t } from "@lingui/macro";
 import { createId } from "@paralleldrive/cuid2";
-import { DotsSixVertical, Envelope, Plus, X } from "@phosphor-icons/react";
+import { Plus } from "@phosphor-icons/react";
 import type { CustomField as ICustomField } from "@reactive-resume/schema";
-import {
-  Button,
-  Input,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-  Tooltip,
-} from "@reactive-resume/ui";
+import { Button } from "@reactive-resume/ui";
+import { CustomField } from "@reactive-resume/ui";
 import { cn } from "@reactive-resume/utils";
-import { AnimatePresence, Reorder, useDragControls } from "framer-motion";
+import { AnimatePresence, Reorder } from "framer-motion";
 
 import { useResumeStore } from "@/client/stores/resume";
-import { CustomField } from "@reactive-resume/ui";
 
 type Props = {
   className?: string;

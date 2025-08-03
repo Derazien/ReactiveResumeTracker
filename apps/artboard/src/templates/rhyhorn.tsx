@@ -203,18 +203,22 @@ const Section = <T,>({
                   {url !== undefined && section.separateLinks && <Link url={url} />}
                 </div>
 
-                {summary !== undefined && !isEmptyString(summary) && (item as any).showDescription !== false && (
-                  <div
-                    dangerouslySetInnerHTML={{ __html: sanitize(summary) }}
-                    className="wysiwyg"
-                  />
-                )}
+                {summary !== undefined &&
+                  !isEmptyString(summary) &&
+                  (item as any).showDescription !== false && (
+                    <div
+                      dangerouslySetInnerHTML={{ __html: sanitize(summary) }}
+                      className="wysiwyg"
+                    />
+                  )}
 
                 {level !== undefined && level > 0 && <Rating level={level} />}
 
-                {keywords !== undefined && keywords.length > 0 && (item as any).showKeywords !== false && (
-                  <p className="text-sm">{keywords.join(", ")}</p>
-                )}
+                {keywords !== undefined &&
+                  keywords.length > 0 &&
+                  (item as any).showKeywords !== false && (
+                    <p className="text-sm">{keywords.join(", ")}</p>
+                  )}
               </div>
             );
           })}
@@ -351,7 +355,7 @@ const Skills = () => {
       {(item) => (
         <div>
           <div className="font-bold">{item.name}</div>
-          {item.description && item.showDescription !== false && <div>{item.description}</div>}
+          {item.description && item.showDescription && <div>{item.description}</div>}
         </div>
       )}
     </Section>
@@ -429,7 +433,7 @@ const Languages = () => {
       {(item) => (
         <div className="space-y-0.5">
           <div className="font-bold">{item.name}</div>
-          {item.description && item.showDescription !== false && <div>{item.description}</div>}
+          {item.description && item.showDescription && <div>{item.description}</div>}
         </div>
       )}
     </Section>

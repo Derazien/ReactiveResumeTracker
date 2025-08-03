@@ -33,4 +33,4 @@ export const SummarySectionForm: React.FC<SummarySectionFormProps> = ({
       </main>
     </section>
   );
-}; 
+};

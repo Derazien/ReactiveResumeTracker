@@ -1,9 +1,10 @@
-import { defaultVolunteer, volunteerSchema } from "@reactive-resume/schema";
+import type { volunteerSchema } from "@reactive-resume/schema";
+import { defaultVolunteer } from "@reactive-resume/schema";
+import { VolunteeringSectionForm } from "@reactive-resume/ui";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 
 import { AiActions } from "@/client/components/ai-actions";
-import { VolunteeringSectionForm } from "@reactive-resume/ui";
 
 import { SectionDialog } from "../sections/shared/section-dialog";
 
@@ -18,9 +19,6 @@ export const VolunteerDialog = () => {
     <SectionDialog<FormValues> id="volunteer" form={form} defaultValues={defaultVolunteer}>
       <VolunteeringSectionForm
         values={form.watch()}
-        onChange={(field, value) => {
-          form.setValue(field, value);
-        }}
         footer={(editor) => (
           <AiActions
             value={editor.getText()}
@@ -30,6 +28,9 @@ export const VolunteerDialog = () => {
             }}
           />
         )}
+        onChange={(field, value) => {
+          form.setValue(field, value);
+        }}
       />
     </SectionDialog>
   );

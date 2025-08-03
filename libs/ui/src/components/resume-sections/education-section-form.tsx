@@ -1,15 +1,16 @@
 import type { Education } from "@reactive-resume/schema";
-import { URLInput } from "../url-input";
 import { Input, RichInput } from "@reactive-resume/ui";
 import type { Editor } from "@tiptap/react";
 
-export interface EducationSectionFormProps {
+import { URLInput } from "../url-input";
+
+export type EducationSectionFormProps = {
   values: Education;
   errors?: Record<string, string>;
   onChange: (field: keyof Education, value: Education[keyof Education]) => void;
   className?: string;
   footer?: (editor: Editor) => React.ReactNode;
-}
+};
 
 export const EducationSectionForm = ({
   values,
@@ -21,69 +22,85 @@ export const EducationSectionForm = ({
   return (
     <div className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${className}`}>
       <div>
-        <label className="block text-sm font-medium mb-1">Institution</label>
+        <label className="mb-1 block text-sm font-medium">Institution</label>
         <Input
           value={values.institution}
-          onChange={(e) => onChange("institution", e.target.value)}
           hasError={!!errors.institution}
+          onChange={(e) => {
+            onChange("institution", e.target.value);
+          }}
         />
-        {errors.institution && <div className="text-xs text-red-500 mt-1">{errors.institution}</div>}
+        {errors.institution && (
+          <div className="mt-1 text-xs text-red-500">{errors.institution}</div>
+        )}
       </div>
       <div>
-        <label className="block text-sm font-medium mb-1">Type of Study</label>
+        <label className="mb-1 block text-sm font-medium">Type of Study</label>
         <Input
           value={values.studyType}
-          onChange={(e) => onChange("studyType", e.target.value)}
           hasError={!!errors.studyType}
+          onChange={(e) => {
+            onChange("studyType", e.target.value);
+          }}
         />
-        {errors.studyType && <div className="text-xs text-red-500 mt-1">{errors.studyType}</div>}
+        {errors.studyType && <div className="mt-1 text-xs text-red-500">{errors.studyType}</div>}
       </div>
       <div>
-        <label className="block text-sm font-medium mb-1">Area of Study</label>
+        <label className="mb-1 block text-sm font-medium">Area of Study</label>
         <Input
           value={values.area}
-          onChange={(e) => onChange("area", e.target.value)}
           hasError={!!errors.area}
+          onChange={(e) => {
+            onChange("area", e.target.value);
+          }}
         />
-        {errors.area && <div className="text-xs text-red-500 mt-1">{errors.area}</div>}
+        {errors.area && <div className="mt-1 text-xs text-red-500">{errors.area}</div>}
       </div>
       <div>
-        <label className="block text-sm font-medium mb-1">Score</label>
+        <label className="mb-1 block text-sm font-medium">Score</label>
         <Input
           value={values.score}
-          onChange={(e) => onChange("score", e.target.value)}
           hasError={!!errors.score}
           placeholder="9.2 GPA"
+          onChange={(e) => {
+            onChange("score", e.target.value);
+          }}
         />
-        {errors.score && <div className="text-xs text-red-500 mt-1">{errors.score}</div>}
+        {errors.score && <div className="mt-1 text-xs text-red-500">{errors.score}</div>}
       </div>
       <div className="sm:col-span-2">
-        <label className="block text-sm font-medium mb-1">Date or Date Range</label>
+        <label className="mb-1 block text-sm font-medium">Date or Date Range</label>
         <Input
           value={values.date}
-          onChange={(e) => onChange("date", e.target.value)}
           hasError={!!errors.date}
           placeholder="March 2023 - Present"
+          onChange={(e) => {
+            onChange("date", e.target.value);
+          }}
         />
-        {errors.date && <div className="text-xs text-red-500 mt-1">{errors.date}</div>}
+        {errors.date && <div className="mt-1 text-xs text-red-500">{errors.date}</div>}
       </div>
       <div className="sm:col-span-2">
-        <label className="block text-sm font-medium mb-1">Website</label>
+        <label className="mb-1 block text-sm font-medium">Website</label>
         <URLInput
           value={values.url ?? { label: "", href: "" }}
-          onChange={(value) => onChange("url", value)}
+          onChange={(value) => {
+            onChange("url", value);
+          }}
         />
-        {errors.url && <div className="text-xs text-red-500 mt-1">{errors.url}</div>}
+        {errors.url && <div className="mt-1 text-xs text-red-500">{errors.url}</div>}
       </div>
       <div className="sm:col-span-2">
-        <label className="block text-sm font-medium mb-1">Summary</label>
+        <label className="mb-1 block text-sm font-medium">Summary</label>
         <RichInput
           content={values.summary}
-          onChange={(value) => onChange("summary", value)}
           footer={footer}
+          onChange={(value) => {
+            onChange("summary", value);
+          }}
         />
-        {errors.summary && <div className="text-xs text-red-500 mt-1">{errors.summary}</div>}
+        {errors.summary && <div className="mt-1 text-xs text-red-500">{errors.summary}</div>}
       </div>
     </div>
   );
-}; 
+};

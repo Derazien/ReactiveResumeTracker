@@ -1,8 +1,8 @@
-import { defaultInterest, interestSchema } from "@reactive-resume/schema";
+import type { interestSchema } from "@reactive-resume/schema";
+import { defaultInterest } from "@reactive-resume/schema";
+import { InterestsSectionForm } from "@reactive-resume/ui";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
-
-import { InterestsSectionForm } from "@reactive-resume/ui";
 
 import { SectionDialog } from "../sections/shared/section-dialog";
 

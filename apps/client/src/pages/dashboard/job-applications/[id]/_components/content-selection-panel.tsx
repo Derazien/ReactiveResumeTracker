@@ -1,19 +1,23 @@
-import { t } from '@lingui/macro';
-import { Check, Clock, Star, X } from '@phosphor-icons/react';
-import { Button, Card, Checkbox, Tooltip } from '@reactive-resume/ui';
-import { cn } from '@reactive-resume/utils';
-import { AnimatePresence, motion } from 'framer-motion';
-import { useState } from 'react';
+import { t } from "@lingui/macro";
+import { Check, Clock, Star, X } from "@phosphor-icons/react";
+import { Button, Card, Checkbox, Tooltip } from "@reactive-resume/ui";
+import { cn } from "@reactive-resume/utils";
+import { AnimatePresence, motion } from "framer-motion";
+import { useState } from "react";
 
-import { useGetMatchedContent, useUpdateContentSelection, type ContentSelectionItem } from '@/client/services/content-selection';
-import { useToast } from '@/client/hooks/use-toast';
+import { useToast } from "@/client/hooks/use-toast";
+import {
+  type ContentSelectionItem,
+  useGetMatchedContent,
+  useUpdateContentSelection,
+} from "@/client/services/content-selection";
 
-interface ContentSelectionPanelProps {
+type ContentSelectionPanelProps = {
   jobApplicationId: string;
   isOpen: boolean;
   onClose: () => void;
   onContentSelectionChange: (selectedContent: ContentSelectionItem[]) => void;
-}
+};
 
 export const ContentSelectionPanel = ({
   jobApplicationId,
@@ -40,24 +44,24 @@ export const ContentSelectionPanel = ({
   const handleSaveSelection = async () => {
     if (!matchedContent?.data) return;
 
-    const selectedContent = matchedContent.data.map(item => ({
+    const selectedContent = matchedContent.data.map((item) => ({
       ...item,
       isSelected: selectedItems.has(item.contentId),
     }));
 
     try {
       await updateSelection({ jobApplicationId, selectedContent });
-      onContentSelectionChange(selectedContent.filter(item => item.isSelected));
+      onContentSelectionChange(selectedContent.filter((item) => item.isSelected));
       onClose();
-      
+
       toast({
-        variant: 'success',
+        variant: "success",
         title: t`Success`,
         description: t`Content selection updated successfully!`,
       });
-    } catch (error) {
+    } catch {
       toast({
-        variant: 'error',
+        variant: "error",
         title: t`Error`,
         description: t`Failed to update content selection. Please try again.`,
       });
@@ -65,26 +69,32 @@ export const ContentSelectionPanel = ({
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-green-600 bg-green-100';
-    if (score >= 60) return 'text-yellow-600 bg-yellow-100';
-    if (score >= 40) return 'text-orange-600 bg-orange-100';
-    return 'text-red-600 bg-red-100';
+    if (score >= 80) return "text-green-600 bg-green-100";
+    if (score >= 60) return "text-yellow-600 bg-yellow-100";
+    if (score >= 40) return "text-orange-600 bg-orange-100";
+    return "text-red-600 bg-red-100";
   };
 
   const getSectionIcon = (sectionKey: string) => {
     switch (sectionKey) {
-      case 'experience':
-        return '💼';
-      case 'education':
-        return '🎓';
-      case 'skills':
-        return '⚡';
-      case 'projects':
-        return '🚀';
-      case 'certifications':
-        return '🏆';
-      default:
-        return '📄';
+      case "experience": {
+        return "💼";
+      }
+      case "education": {
+        return "🎓";
+      }
+      case "skills": {
+        return "⚡";
+      }
+      case "projects": {
+        return "🚀";
+      }
+      case "certifications": {
+        return "🏆";
+      }
+      default: {
+        return "📄";
+      }
     }
   };
 
@@ -110,17 +120,19 @@ export const ContentSelectionPanel = ({
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
-            className="w-full max-w-4xl max-h-[80vh] overflow-hidden rounded-lg bg-background shadow-xl"
-            onClick={(e) => e.stopPropagation()}
+            className="max-h-[80vh] w-full max-w-4xl overflow-hidden rounded-lg bg-background shadow-xl"
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
           >
             {/* Header */}
             <div className="flex items-center justify-between border-b p-4">
               <div className="flex items-center gap-2">
-                <Star className="h-5 w-5 text-primary" />
+                <Star className="size-5 text-primary" />
                 <h2 className="text-lg font-semibold">{t`Select Content for Resume`}</h2>
               </div>
               <Button size="icon" variant="ghost" onClick={onClose}>
-                <X className="h-4 w-4" />
+                <X className="size-4" />
               </Button>
             </div>
 
@@ -128,7 +140,7 @@ export const ContentSelectionPanel = ({
             <div className="flex-1 overflow-y-auto p-4">
               {isLoading ? (
                 <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  <div className="size-8 animate-spin rounded-full border-b-2 border-primary"></div>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -137,9 +149,9 @@ export const ContentSelectionPanel = ({
                       key={item.contentId}
                       item={item}
                       isSelected={selectedItems.has(item.contentId)}
-                      onToggle={handleItemToggle}
                       getScoreColor={getScoreColor}
                       getSectionIcon={getSectionIcon}
+                      onToggle={handleItemToggle}
                     />
                   ))}
                 </div>
@@ -148,18 +160,18 @@ export const ContentSelectionPanel = ({
 
             {/* Footer */}
             <div className="flex items-center justify-between border-t p-4">
-              <div className="text-sm text-muted-foreground">
+              <div className="text-muted-foreground text-sm">
                 {t`Selected ${selectedItems.size} items`}
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" onClick={onClose}>
                   {t`Cancel`}
                 </Button>
-                <Button onClick={handleSaveSelection} disabled={isPending}>
+                <Button disabled={isPending} onClick={handleSaveSelection}>
                   {isPending ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <div className="size-4 animate-spin rounded-full border-b-2 border-white"></div>
                   ) : (
-                    <Check className="h-4 w-4" />
+                    <Check className="size-4" />
                   )}
                   {t`Save Selection`}
                 </Button>
@@ -172,13 +184,13 @@ export const ContentSelectionPanel = ({
   );
 };
 
-interface ContentMatchCardProps {
+type ContentMatchCardProps = {
   item: ContentSelectionItem;
   isSelected: boolean;
   onToggle: (contentId: string, isSelected: boolean) => void;
   getScoreColor: (score: number) => string;
   getSectionIcon: (sectionKey: string) => string;
-}
+};
 
 const ContentMatchCard = ({
   item,
@@ -190,36 +202,40 @@ const ContentMatchCard = ({
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <Card className="p-4 hover:shadow-md transition-shadow">
+    <Card className="p-4 transition-shadow hover:shadow-md">
       <div className="flex items-start gap-3">
         <Checkbox
           checked={isSelected}
-          onCheckedChange={(checked) => onToggle(item.contentId, checked as boolean)}
           className="mt-1"
+          onCheckedChange={(checked) => {
+            onToggle(item.contentId, checked as boolean);
+          }}
         />
-        
-        <div className="flex-1 min-w-0">
+
+        <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
+            <div className="min-w-0 flex-1">
+              <div className="mb-1 flex items-center gap-2">
                 <span className="text-lg">{getSectionIcon(item.sectionKey)}</span>
-                <h3 className="font-medium truncate">{item.title}</h3>
+                <h3 className="truncate font-medium">{item.title}</h3>
                 {item.isCurrentJob && (
                   <Tooltip content={t`Current Position`}>
-                    <Clock className="h-4 w-4 text-green-600" />
+                    <Clock className="size-4 text-green-600" />
                   </Tooltip>
                 )}
               </div>
-              
-              <div className="flex items-center gap-2 mb-2">
-                <span className={cn(
-                  'px-2 py-1 rounded-full text-xs font-medium',
-                  getScoreColor(item.matchScore)
-                )}>
+
+              <div className="mb-2 flex items-center gap-2">
+                <span
+                  className={cn(
+                    "rounded-full px-2 py-1 text-xs font-medium",
+                    getScoreColor(item.matchScore),
+                  )}
+                >
                   {item.matchScore}% Match
                 </span>
-                <span className="text-xs text-muted-foreground capitalize">
-                  {item.sectionKey.replace('_', ' ')}
+                <span className="text-muted-foreground text-xs capitalize">
+                  {item.sectionKey.replace("_", " ")}
                 </span>
               </div>
             </div>
@@ -228,8 +244,8 @@ const ContentMatchCard = ({
           {/* Match Reasons */}
           {item.matchReasons.length > 0 && (
             <div className="mb-2">
-              <p className="text-sm text-muted-foreground">
-                {item.matchReasons.slice(0, 2).join(' • ')}
+              <p className="text-muted-foreground text-sm">
+                {item.matchReasons.slice(0, 2).join(" • ")}
               </p>
             </div>
           )}
@@ -239,8 +255,10 @@ const ContentMatchCard = ({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground h-auto p-0 text-xs hover:text-foreground"
+              onClick={() => {
+                setIsExpanded(!isExpanded);
+              }}
             >
               {isExpanded ? t`Show less` : t`Show details`}
             </Button>
@@ -249,16 +267,16 @@ const ContentMatchCard = ({
               {isExpanded && (
                 <motion.div
                   initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
+                  animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
                   className="overflow-hidden"
                 >
-                  <div className="space-y-2 pt-2 border-t">
+                  <div className="space-y-2 border-t pt-2">
                     {/* All Match Reasons */}
                     {item.matchReasons.length > 0 && (
                       <div>
-                        <h4 className="text-xs font-medium mb-1">{t`Why this matches:`}</h4>
-                        <ul className="text-xs text-muted-foreground space-y-1">
+                        <h4 className="mb-1 text-xs font-medium">{t`Why this matches:`}</h4>
+                        <ul className="text-muted-foreground space-y-1 text-xs">
                           {item.matchReasons.map((reason, index) => (
                             <li key={index} className="flex items-start gap-1">
                               <span className="text-primary">•</span>
@@ -272,8 +290,8 @@ const ContentMatchCard = ({
                     {/* Suggestions */}
                     {item.matchSuggestions.length > 0 && (
                       <div>
-                        <h4 className="text-xs font-medium mb-1">{t`Suggestions:`}</h4>
-                        <ul className="text-xs text-muted-foreground space-y-1">
+                        <h4 className="mb-1 text-xs font-medium">{t`Suggestions:`}</h4>
+                        <ul className="text-muted-foreground space-y-1 text-xs">
                           {item.matchSuggestions.map((suggestion, index) => (
                             <li key={index} className="flex items-start gap-1">
                               <span className="text-blue-500">💡</span>
@@ -292,4 +310,4 @@ const ContentMatchCard = ({
       </div>
     </Card>
   );
-}; 
+};

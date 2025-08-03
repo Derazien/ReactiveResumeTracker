@@ -1,9 +1,8 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
-import type { AxiosResponse } from 'axios';
+import { useMutation, useQuery } from "@tanstack/react-query";
 
-import { axios } from '@/client/libs/axios';
+import { axios } from "@/client/libs/axios";
 
-export interface ContentSelectionItem {
+export type ContentSelectionItem = {
   contentId: string;
   sectionKey: string;
   title: string;
@@ -12,25 +11,27 @@ export interface ContentSelectionItem {
   isCurrentJob?: boolean;
   matchReasons: string[];
   matchSuggestions: string[];
-  relationshipStatus: 'direct' | 'modified' | 'manual' | 'none';
-}
+  relationshipStatus: "direct" | "modified" | "manual" | "none";
+};
 
-export interface GetMatchedContentResponse {
+export type GetMatchedContentResponse = {
   success: boolean;
   data?: ContentSelectionItem[];
   error?: string;
-}
+};
 
-export interface UpdateContentSelectionRequest {
+export type UpdateContentSelectionRequest = {
   selectedContent: ContentSelectionItem[];
-}
+};
 
-export interface UpdateContentSelectionResponse {
+export type UpdateContentSelectionResponse = {
   success: boolean;
   error?: string;
-}
+};
 
-export const getMatchedContent = async (jobApplicationId: string): Promise<GetMatchedContentResponse> => {
+export const getMatchedContent = async (
+  jobApplicationId: string,
+): Promise<GetMatchedContentResponse> => {
   const response = await axios.get<GetMatchedContentResponse>(
     `/job-applications/${jobApplicationId}/content-selection`,
   );
@@ -50,7 +51,7 @@ export const updateContentSelection = async (
 
 export const useGetMatchedContent = (jobApplicationId: string) => {
   return useQuery({
-    queryKey: ['content-selection', jobApplicationId],
+    queryKey: ["content-selection", jobApplicationId],
     queryFn: () => getMatchedContent(jobApplicationId),
     enabled: !!jobApplicationId,
   });
@@ -58,7 +59,12 @@ export const useGetMatchedContent = (jobApplicationId: string) => {
 
 export const useUpdateContentSelection = () => {
   return useMutation({
-    mutationFn: ({ jobApplicationId, selectedContent }: { jobApplicationId: string; selectedContent: ContentSelectionItem[] }) =>
-      updateContentSelection(jobApplicationId, selectedContent),
+    mutationFn: ({
+      jobApplicationId,
+      selectedContent,
+    }: {
+      jobApplicationId: string;
+      selectedContent: ContentSelectionItem[];
+    }) => updateContentSelection(jobApplicationId, selectedContent),
   });
-}; 
+};

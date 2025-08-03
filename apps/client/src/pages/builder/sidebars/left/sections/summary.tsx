@@ -1,12 +1,13 @@
-import { useResumeStore } from "@/client/stores/resume";
 import { defaultSections } from "@reactive-resume/schema";
 import { SummarySectionForm } from "@reactive-resume/ui";
-import { AiActions } from "@/client/components/ai-actions";
 import { useState } from "react";
+
+import { AiActions } from "@/client/components/ai-actions";
+import { ContentSelectionDialog } from "@/client/pages/builder/_components/content-selection-dialog";
+import { useResumeStore } from "@/client/stores/resume";
 
 import { SectionIcon } from "./shared/section-icon";
 import { SectionOptions } from "./shared/section-options";
-import { ContentSelectionDialog } from "@/client/pages/builder/_components/content-selection-dialog";
 
 export const SummarySection = () => {
   const [contentSelectionOpen, setContentSelectionOpen] = useState(false);
@@ -53,9 +54,9 @@ export const SummarySection = () => {
       {/* Content Selection Dialog */}
       <ContentSelectionDialog
         open={contentSelectionOpen}
-        onOpenChange={setContentSelectionOpen}
         sectionId="summary"
         sectionName={section.name}
+        onOpenChange={setContentSelectionOpen}
       />
     </section>
   );

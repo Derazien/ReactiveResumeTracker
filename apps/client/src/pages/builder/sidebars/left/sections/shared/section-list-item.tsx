@@ -57,7 +57,10 @@ export const SectionListItem = ({
       initial={{ opacity: 0, y: -50 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: -50 }}
-      className={cn("border-x border-t bg-secondary/10 first-of-type:rounded-t last-of-type:rounded-b last-of-type:border-b rounded-lg", className)}
+      className={cn(
+        "rounded-lg border-x border-t bg-secondary/10 first-of-type:rounded-t last-of-type:rounded-b last-of-type:border-b",
+        className,
+      )}
     >
       <div style={style} className="flex transition-opacity">
         {/* Drag Handle */}

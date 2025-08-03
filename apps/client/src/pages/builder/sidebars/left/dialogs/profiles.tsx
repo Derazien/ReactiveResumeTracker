@@ -1,8 +1,8 @@
-import { defaultProfile, profileSchema } from "@reactive-resume/schema";
+import type { profileSchema } from "@reactive-resume/schema";
+import { defaultProfile } from "@reactive-resume/schema";
+import { ProfilesSectionForm } from "@reactive-resume/ui";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
-
-import { ProfilesSectionForm } from "@reactive-resume/ui";
 
 import { SectionDialog } from "../sections/shared/section-dialog";
 

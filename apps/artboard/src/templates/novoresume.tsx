@@ -13,7 +13,7 @@ import type {
   URL,
 } from "@reactive-resume/schema";
 import { Education, Experience, Volunteer } from "@reactive-resume/schema";
-import { cn, isEmptyString, isUrl, sanitize, hexToRgb } from "@reactive-resume/utils";
+import { cn, hexToRgb, isEmptyString, isUrl, sanitize } from "@reactive-resume/utils";
 import get from "lodash.get";
 import React from "react";
 
@@ -21,7 +21,6 @@ import { BrandIcon } from "../components/brand-icon";
 import { Picture } from "../components/picture";
 import { useArtboardStore } from "../store/artboard";
 import type { TemplateProps } from "../types/template";
-
 
 const Header = () => {
   const resume = useArtboardStore((s) => s.resume);
@@ -33,10 +32,12 @@ const Header = () => {
   const secondaryColor = useArtboardStore((state) => state.resume.metadata.theme.secondary);
   const backgroundColor = useArtboardStore((state) => state.resume.metadata.theme.background);
   const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
-  const underlineLinks = useArtboardStore((state) => state.resume.metadata.typography.underlineLinks);
-  
+  const underlineLinks = useArtboardStore(
+    (state) => state.resume.metadata.typography.underlineLinks,
+  );
+
   // Helper function to create muted text color
-  const getMutedTextColor = (opacity: number = 0.6) => hexToRgb(textColor, opacity);
+  const getMutedTextColor = (opacity = 0.6) => hexToRgb(textColor, opacity);
 
   /* ---------- PHOTO PRESENCE (same predicate the Picture cmp uses) ------------ */
   const pic = basics.picture;
@@ -51,40 +52,45 @@ const Header = () => {
     typeof u === "string"
       ? u
       : typeof u === "object" && u !== null
-      ? (u as any).label ?? (u as any).href
-      : undefined;
+        ? ((u as any).label ?? (u as any).href)
+        : undefined;
 
-  const websiteHref  = extractHref(basics.url);
+  const websiteHref = extractHref(basics.url);
   const websiteLabel = extractLabel(basics.url);
 
   return (
-    <div className="relative rounded-lg margin-header" style={{ backgroundColor: hexToRgb(primaryColor, 0.08) }}>
-
-      
-      <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundColor }}>
+    <div
+      className="margin-header relative rounded-lg"
+      style={{ backgroundColor: hexToRgb(primaryColor, 0.08) }}
+    >
+      <div className="pointer-events-none absolute inset-0 opacity-5" style={{ backgroundColor }}>
         <div className="size-full bg-[radial-gradient(circle_at_1px_1px,_rgb(0_0_0)_1px,_transparent_0)] bg-[length:20px_20px]" />
       </div>
 
       <div className="relative grid gap-6" style={{ gridTemplateColumns: gridCols }}>
-       
-
         {/* LEFT block */}
         <div className="space-y-2">
           {/* Name and headline container with accent block */}
           <div className="relative">
             {/* Accent block aligned to name and headline only */}
-            <div 
-              className="absolute left-0 pointer-events-none" 
-              style={{ 
+            <div
+              className="pointer-events-none absolute left-0"
+              style={{
                 backgroundColor: primaryColor,
-                width: '1rem',
+                width: "1rem",
                 top: 0,
                 bottom: 0,
-                transform: 'translateX(calc(-1 * var(--margin) * 2))'
-              }} 
+                transform: "translateX(calc(-1 * var(--margin) * 2))",
+              }}
             />
-            <h1 className="text-h1" style={{ color: primaryColor }}>{basics.name}</h1>
-            {basics.headline && <h2 className="text-title" style={{ color: secondaryColor }}>{basics.headline}</h2>}
+            <h1 className="text-h1" style={{ color: primaryColor }}>
+              {basics.name}
+            </h1>
+            {basics.headline && (
+              <h2 className="text-title" style={{ color: secondaryColor }}>
+                {basics.headline}
+              </h2>
+            )}
           </div>
           {summary.visible && summary.content?.trim() && (
             <div
@@ -96,20 +102,26 @@ const Header = () => {
         </div>
 
         {/* MIDDLE – photo (same behaviour as Leafish) */}
-        {photoPresent && (<Picture className="place-self-center rounded-full object-cover" />)}
-        
+        {photoPresent && <Picture className="place-self-center rounded-full object-cover" />}
+
         {/* RIGHT block */}
-        <div className="space-y-2 text-sm justify-self-end self-center text-right" style={{ color: textColor }}>
+        <div
+          className="space-y-2 self-center justify-self-end text-right text-sm"
+          style={{ color: textColor }}
+        >
           {basics.location && (
-            <div className="flex items-center gap-2 justify-end">
+            <div className="flex items-center justify-end gap-2">
               <span>{basics.location}</span>
               <i className="ph ph-map-pin" style={{ color: primaryColor }} />
             </div>
           )}
 
           {basics.phone && (
-            <div className="flex items-center gap-2 justify-end">
-              <a href={`tel:${basics.phone}`} style={{ color: textColor, textDecoration: underlineLinks ? 'underline' : 'none' }}>
+            <div className="flex items-center justify-end gap-2">
+              <a
+                href={`tel:${basics.phone}`}
+                style={{ color: textColor, textDecoration: underlineLinks ? "underline" : "none" }}
+              >
                 {basics.phone}
               </a>
               <i className="ph ph-phone" style={{ color: primaryColor }} />
@@ -117,8 +129,11 @@ const Header = () => {
           )}
 
           {basics.email && (
-            <div className="flex items-center gap-2 justify-end">
-              <a href={`mailto:${basics.email}`} style={{ color: textColor, textDecoration: underlineLinks ? 'underline' : 'none' }}>
+            <div className="flex items-center justify-end gap-2">
+              <a
+                href={`mailto:${basics.email}`}
+                style={{ color: textColor, textDecoration: underlineLinks ? "underline" : "none" }}
+              >
                 {basics.email}
               </a>
               <i className="ph ph-at" style={{ color: primaryColor }} />
@@ -127,8 +142,13 @@ const Header = () => {
 
           {/* personal website (string **or** {label,href}) */}
           {websiteHref && (
-            <div className="flex items-center gap-2 justify-end">
-              <a href={websiteHref} style={{ color: textColor, textDecoration: underlineLinks ? 'underline' : 'none' }} target="_blank" rel="noreferrer">
+            <div className="flex items-center justify-end gap-2">
+              <a
+                href={websiteHref}
+                style={{ color: textColor, textDecoration: underlineLinks ? "underline" : "none" }}
+                target="_blank"
+                rel="noreferrer"
+              >
                 {websiteLabel}
               </a>
               <i className="ph ph-globe" style={{ color: primaryColor }} />
@@ -140,29 +160,51 @@ const Header = () => {
             let renderedValue;
             if (isUrl(f.value)) {
               renderedValue = (
-                <a href={f.value} style={{ color: textColor, textDecoration: underlineLinks ? 'underline' : 'none' }} target="_blank" rel="noreferrer">
+                <a
+                  href={f.value}
+                  style={{
+                    color: textColor,
+                    textDecoration: underlineLinks ? "underline" : "none",
+                  }}
+                  target="_blank"
+                  rel="noreferrer"
+                >
                   {f.value}
                 </a>
               );
-            } else if (/^\+?[0-9\s-]+$/.test(f.value)) {
+            } else if (/^\+?[\d\s-]+$/.test(f.value)) {
               renderedValue = (
-                <a href={`tel:${f.value.replace(/\s+/g, '')}`} style={{ color: textColor, textDecoration: underlineLinks ? 'underline' : 'none' }}>
+                <a
+                  href={`tel:${f.value.replace(/\s+/g, "")}`}
+                  style={{
+                    color: textColor,
+                    textDecoration: underlineLinks ? "underline" : "none",
+                  }}
+                >
                   {f.value}
                 </a>
               );
-            } else if (/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.value)) {
+            } else if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.value)) {
               renderedValue = (
-                <a href={`mailto:${f.value}`} style={{ color: textColor, textDecoration: underlineLinks ? 'underline' : 'none' }}>
+                <a
+                  href={`mailto:${f.value}`}
+                  style={{
+                    color: textColor,
+                    textDecoration: underlineLinks ? "underline" : "none",
+                  }}
+                >
                   {f.value}
                 </a>
               );
             } else {
               renderedValue = (
-                <span style={{ textDecoration: underlineLinks ? 'underline' : 'none' }}>{f.value}</span>
+                <span style={{ textDecoration: underlineLinks ? "underline" : "none" }}>
+                  {f.value}
+                </span>
               );
             }
             return (
-              <div key={f.id} className="flex items-center gap-2 justify-end">
+              <div key={f.id} className="flex items-center justify-end gap-2">
                 {renderedValue}
                 <i className={`ph ph-${f.icon || "info"}`} style={{ color: primaryColor }} />
               </div>
@@ -176,26 +218,45 @@ const Header = () => {
               const href = extractHref(item.url);
               if (!href) return null;
               return (
-                <div key={item.id} className="flex items-center gap-2 justify-end">
+                <div key={item.id} className="flex items-center justify-end gap-2">
                   {isUrl(item.url.href) ? (
-                    <Link url={item.url} label={item.username} icon={<BrandIcon slug={item.icon} />} underlineLinks={underlineLinks} />
+                    <Link
+                      url={item.url}
+                      label={item.username}
+                      icon={<BrandIcon slug={item.icon} />}
+                      underlineLinks={underlineLinks}
+                    />
                   ) : (
                     <p style={{ color: getMutedTextColor(0.7) }}>{item.username}</p>
                   )}
-                  {!item.icon && <p className="text-sm" style={{ color: getMutedTextColor(0.6) }}>{item.network}</p>}
+                  {!item.icon && (
+                    <p className="text-sm" style={{ color: getMutedTextColor(0.6) }}>
+                      {item.network}
+                    </p>
+                  )}
                 </div>
               );
             })}
         </div>
       </div>
-      <div style={{ width: '100%', height: '0.2px', background: primaryColor, marginTop: '1rem', position: 'absolute', left: 0, bottom: 0 }} />
+      <div
+        style={{
+          width: "100%",
+          height: "0.2px",
+          background: primaryColor,
+          marginTop: "1rem",
+          position: "absolute",
+          left: 0,
+          bottom: 0,
+        }}
+      />
     </div>
   );
 };
 
 type RatingProps = { level: number; size?: string };
 
-const Rating = ({ level, size = '1em' }: RatingProps) => {
+const Rating = ({ level, size = "1em" }: RatingProps) => {
   const color = useArtboardStore((state) => state.resume.metadata.theme.secondary);
   return (
     <div className="flex items-center gap-x-1" style={{ minWidth: 0 }}>
@@ -205,7 +266,7 @@ const Rating = ({ level, size = '1em' }: RatingProps) => {
           style={{
             border: `1.5px solid ${color}`,
             backgroundColor: level > index ? color : undefined,
-            borderRadius: '50%',
+            borderRadius: "50%",
             width: size,
             height: size,
             flexShrink: 0,
@@ -224,24 +285,33 @@ type LinkProps = {
   className?: string;
 };
 
-const Link = ({ url, icon, iconOnRight, label, className, underlineLinks = true }: LinkProps & { underlineLinks?: boolean }) => {
+const Link = ({
+  url,
+  icon,
+  iconOnRight,
+  label,
+  className,
+  underlineLinks = true,
+}: LinkProps & { underlineLinks?: boolean }) => {
   const primaryColor = useArtboardStore((state) => state.resume.metadata.theme.primary);
   const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
   if (!isUrl(url.href)) return null;
 
   return (
     <div className="flex items-center gap-x-2">
-      {!iconOnRight && (icon ?? <i className="ph ph-bold ph-link" style={{ color: primaryColor }} />)}
+      {!iconOnRight &&
+        (icon ?? <i className="ph ph-bold ph-link" style={{ color: primaryColor }} />)}
       <a
         href={url.href}
         target="_blank"
         rel="noreferrer noopener nofollow"
         className={cn(className)}
-        style={{ color: textColor, textDecoration: underlineLinks ? 'underline' : 'none' }}
+        style={{ color: textColor, textDecoration: underlineLinks ? "underline" : "none" }}
       >
         {label ?? (url.label || url.href)}
       </a>
-      {iconOnRight && (icon ?? <i className="ph ph-bold ph-link" style={{ color: primaryColor }} />)}
+      {iconOnRight &&
+        (icon ?? <i className="ph ph-bold ph-link" style={{ color: primaryColor }} />)}
     </div>
   );
 };
@@ -254,7 +324,14 @@ type LinkedEntityProps = {
   style?: React.CSSProperties;
 };
 
-const LinkedEntity = ({ name, url, separateLinks, className, style, underlineLinks = true }: LinkedEntityProps & { underlineLinks?: boolean }) => {
+const LinkedEntity = ({
+  name,
+  url,
+  separateLinks,
+  className,
+  style,
+  underlineLinks = true,
+}: LinkedEntityProps & { underlineLinks?: boolean }) => {
   const primaryColor = useArtboardStore((state) => state.resume.metadata.theme.primary);
   const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
   return !separateLinks && isUrl(url.href) ? (
@@ -303,8 +380,8 @@ const Section = <T,>({
   return (
     <section id={section.id} className="grid">
       <h4
-        className="mb-2 text-section font-bold"
-        style={{ color: primaryColor, textTransform: 'uppercase' }}
+        className="text-section mb-2 font-bold"
+        style={{ color: primaryColor, textTransform: "uppercase" }}
       >
         {section.name}
       </h4>
@@ -321,36 +398,42 @@ const Section = <T,>({
             const keywords = (keywordsKey && get(item, keywordsKey, [])) as string[] | undefined;
 
             return (
-              <div key={item.id} className={cn("space-y-1", className)} style={{ color: textColor }}>
+              <div
+                key={item.id}
+                className={cn("space-y-1", className)}
+                style={{ color: textColor }}
+              >
                 <div style={{ flex: 1 }}>
                   {children?.(item as T)}
                   {url !== undefined && section.separateLinks && <Link url={url} />}
                   {summary !== undefined && !isEmptyString(summary) && (
                     <div
                       dangerouslySetInnerHTML={{ __html: sanitize(summary) }}
-                      className="wysiwyg text-body leading-relaxed custom-bullets"
+                      className="wysiwyg text-body custom-bullets leading-relaxed"
                       style={{ color: textColor }}
                     />
                   )}
                   {renderAfterSummary?.(item as T)}
-                  {keywords !== undefined && keywords.length > 0 && (item as any).showKeywords !== false && (
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {keywords.map((keyword, index) => (
-                        <span
-                          key={index}
-                          className="text-chip"
-                          style={{
-                            backgroundColor: hexToRgb(primaryColor, 0.5),
-                            color: backgroundColor,
-                            borderRadius: 9999,
-                            padding: '2px 8px',
-                          }}
-                        >
-                          {keyword}
-                        </span>
-                      ))}
-                    </div>
-                  )}
+                  {keywords !== undefined &&
+                    keywords.length > 0 &&
+                    (item as any).showKeywords !== false && (
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {keywords.map((keyword, index) => (
+                          <span
+                            key={index}
+                            className="text-chip"
+                            style={{
+                              backgroundColor: hexToRgb(primaryColor, 0.5),
+                              color: backgroundColor,
+                              borderRadius: 9999,
+                              padding: "2px 8px",
+                            }}
+                          >
+                            {keyword}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                 </div>
               </div>
             );
@@ -360,12 +443,13 @@ const Section = <T,>({
   );
 };
 
-
 const Experience = () => {
   const section = useArtboardStore((state) => state.resume.sections.experience);
   const secondaryColor = useArtboardStore((state) => state.resume.metadata.theme.secondary);
   const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
-  const underlineLinks = useArtboardStore((state) => state.resume.metadata.typography.underlineLinks);
+  const underlineLinks = useArtboardStore(
+    (state) => state.resume.metadata.typography.underlineLinks,
+  );
   const getMutedTextColor = (opacity = 0.6) => hexToRgb(textColor, opacity);
 
   return (
@@ -373,9 +457,12 @@ const Experience = () => {
       section={section}
       summaryKey="summary"
       renderAfterSummary={(item) =>
-        item.contacts && item.contacts.length > 0 && (
-          <div className="flex items-start gap-2 mt-1">
-            <span className="text-meta italic" style={{ color: secondaryColor }}>Contact:</span>
+        item.contacts &&
+        item.contacts.length > 0 && (
+          <div className="mt-1 flex items-start gap-2">
+            <span className="text-meta italic" style={{ color: secondaryColor }}>
+              Contact:
+            </span>
             <div className="flex flex-col gap-1">
               {item.contacts.map((contact, idx) => (
                 <span key={idx} className="text-meta italic" style={{ color: textColor }}>
@@ -383,7 +470,15 @@ const Experience = () => {
                   {contact.email && (
                     <>
                       {" - "}
-                      <a href={`mailto:${contact.email}`} style={{ color: textColor, textDecoration: underlineLinks ? 'underline' : 'none' }}>{contact.email}</a>
+                      <a
+                        href={`mailto:${contact.email}`}
+                        style={{
+                          color: textColor,
+                          textDecoration: underlineLinks ? "underline" : "none",
+                        }}
+                      >
+                        {contact.email}
+                      </a>
                     </>
                   )}
                 </span>
@@ -397,9 +492,9 @@ const Experience = () => {
         <div className="relative flex items-start">
           {/* Block accent - positioned outside left margin, centered and aligned to content height */}
           <div
-            className="absolute pointer-events-none"
+            className="pointer-events-none absolute"
             style={{
-              left: 'calc(-1 * var(--margin) * 2 + 0.25rem)',
+              left: "calc(-1 * var(--margin) * 2 + 0.25rem)",
               top: 0,
               bottom: 0,
               width: 8,
@@ -419,7 +514,9 @@ const Experience = () => {
             />
             <div className="flex items-start justify-between">
               <div className="text-left">
-                <div className="text-meta italic" style={{ color: secondaryColor }}>{item.date}</div>
+                <div className="text-meta italic" style={{ color: secondaryColor }}>
+                  {item.date}
+                </div>
               </div>
               <div className="text-right">
                 {item.location && (
@@ -448,9 +545,9 @@ const Education = () => {
         <div className="relative">
           {/* Left border - positioned outside left margin, centered */}
           <div
-            className="absolute pointer-events-none"
+            className="pointer-events-none absolute"
             style={{
-              left: 'calc(-1 * var(--margin) * 2 + 0.375rem)', // Center the 4px border in 1rem space
+              left: "calc(-1 * var(--margin) * 2 + 0.375rem)", // Center the 4px border in 1rem space
               top: 0,
               bottom: 0,
               width: 4,
@@ -469,14 +566,20 @@ const Education = () => {
               />
               {item.studyType && (
                 <>
-                  <span className="text-sm" style={{ color: getMutedTextColor(0.6) }}>-</span>
-                  <span className="text-sm" style={{ color: getMutedTextColor(0.6) }}>{item.studyType}</span>
+                  <span className="text-sm" style={{ color: getMutedTextColor(0.6) }}>
+                    -
+                  </span>
+                  <span className="text-sm" style={{ color: getMutedTextColor(0.6) }}>
+                    {item.studyType}
+                  </span>
                 </>
               )}
             </div>
             <div className="flex items-start justify-between">
               <div className="text-left">
-                <div className="text-meta italic" style={{ color: secondaryColor }}>{item.date}</div>
+                <div className="text-meta italic" style={{ color: secondaryColor }}>
+                  {item.date}
+                </div>
               </div>
               <div className="text-right">
                 {item.score && (
@@ -504,7 +607,9 @@ const Awards = () => {
       {(item) => (
         <div className="flex items-start justify-between group-[.sidebar]:flex-col group-[.sidebar]:items-start">
           <div className="text-left">
-            <div className="font-bold" style={{ color: textColor }}>{item.title}</div>
+            <div className="font-bold" style={{ color: textColor }}>
+              {item.title}
+            </div>
             <LinkedEntity
               name={item.awarder}
               url={item.url}
@@ -514,7 +619,9 @@ const Awards = () => {
           </div>
 
           <div className="shrink-0 text-right group-[.sidebar]:text-left">
-            <div className="text-meta italic" style={{ color: secondaryColor }}>{item.date}</div>
+            <div className="text-meta italic" style={{ color: secondaryColor }}>
+              {item.date}
+            </div>
           </div>
         </div>
       )}
@@ -533,7 +640,9 @@ const Certifications = () => {
       {(item) => (
         <div className="flex items-start justify-between group-[.sidebar]:flex-col group-[.sidebar]:items-start">
           <div className="text-left">
-            <div className="font-bold" style={{ color: textColor }}>{item.name}</div>
+            <div className="font-bold" style={{ color: textColor }}>
+              {item.name}
+            </div>
             <LinkedEntity
               name={item.issuer}
               url={item.url}
@@ -543,7 +652,9 @@ const Certifications = () => {
           </div>
 
           <div className="shrink-0 text-right group-[.sidebar]:text-left">
-            <div className="text-meta italic" style={{ color: secondaryColor }}>{item.date}</div>
+            <div className="text-meta italic" style={{ color: secondaryColor }}>
+              {item.date}
+            </div>
           </div>
         </div>
       )}
@@ -562,10 +673,12 @@ const Skills = () => {
       {(item) => (
         <div>
           <div className="flex items-center justify-between">
-            <div className="font-bold text-body" style={{ color: textColor }}>{item.name}</div>
+            <div className="text-body font-bold" style={{ color: textColor }}>
+              {item.name}
+            </div>
             {item.level && item.level > 0 && <Rating level={item.level} />}
           </div>
-          {item.description && item.showDescription !== false && <div>{item.description}</div>}
+          {item.description && item.showDescription && <div>{item.description}</div>}
         </div>
       )}
     </Section>
@@ -583,8 +696,8 @@ const Interests = () => {
   return (
     <section id={section.id} className="grid">
       <h4
-        className="mb-2 text-section font-bold"
-        style={{ color: primaryColor, textTransform: 'uppercase' }}
+        className="text-section mb-2 font-bold"
+        style={{ color: primaryColor, textTransform: "uppercase" }}
       >
         {section.name}
       </h4>
@@ -600,7 +713,7 @@ const Interests = () => {
                 color: secondaryColor,
                 border: `0.5px solid ${secondaryColor}`,
                 borderRadius: 10,
-                padding: '2px 8px',
+                padding: "2px 8px",
               }}
             >
               {item.name}
@@ -632,7 +745,9 @@ const Publications = () => {
           </div>
 
           <div className="shrink-0 text-right group-[.sidebar]:text-left">
-            <div className="text-meta italic" style={{ color: secondaryColor }}>{item.date}</div>
+            <div className="text-meta italic" style={{ color: secondaryColor }}>
+              {item.date}
+            </div>
           </div>
         </div>
       )}
@@ -661,8 +776,12 @@ const Volunteer = () => {
           </div>
 
           <div className="shrink-0 text-right group-[.sidebar]:text-left">
-            <div className="text-meta italic" style={{ color: secondaryColor }}>{item.date}</div>
-            <div className="text-meta italic" style={{ color: getMutedTextColor(0.6) }}>{item.location}</div>
+            <div className="text-meta italic" style={{ color: secondaryColor }}>
+              {item.date}
+            </div>
+            <div className="text-meta italic" style={{ color: getMutedTextColor(0.6) }}>
+              {item.location}
+            </div>
           </div>
         </div>
       )}
@@ -680,10 +799,12 @@ const Languages = () => {
       {(item) => (
         <div>
           <div className="flex items-center justify-between">
-            <div className="font-bold text-body" style={{ color: textColor }}>{item.name}</div>
+            <div className="text-body font-bold" style={{ color: textColor }}>
+              {item.name}
+            </div>
             {item.level && item.level > 0 && <Rating level={item.level} />}
           </div>
-          {item.description && item.showDescription !== false && <div>{item.description}</div>}
+          {item.description && item.showDescription && <div>{item.description}</div>}
         </div>
       )}
     </Section>
@@ -699,19 +820,26 @@ const Projects = () => {
   return (
     <Section<Project> section={section} urlKey="url" summaryKey="summary" keywordsKey="keywords">
       {(item) => (
-        <div className="flex items-start justify-between group-[.sidebar]:flex-col group-[.sidebar]:items-start">
-          <div className="text-left">
-            <LinkedEntity
-              name={item.name}
-              url={item.url}
-              separateLinks={section.separateLinks}
-              className="font-bold"
-            />
-            <div className="text-sm" style={{ color: getMutedTextColor(0.6) }}>{item.description}</div>
+        <div>
+          <div className="flex items-start justify-between group-[.sidebar]:flex-col group-[.sidebar]:items-start">
+            <div className="text-left">
+              <LinkedEntity
+                name={item.name}
+                url={item.url}
+                separateLinks={section.separateLinks}
+                className="font-bold"
+              />
+            </div>
+
+            <div className="shrink-0 text-right group-[.sidebar]:text-left">
+              <div className="text-meta italic" style={{ color: secondaryColor }}>
+                {item.date}
+              </div>
+            </div>
           </div>
 
-          <div className="shrink-0 text-right group-[.sidebar]:text-left">
-            <div className="text-meta italic" style={{ color: secondaryColor }}>{item.date}</div>
+          <div className="mt-1 text-sm" style={{ color: getMutedTextColor(0.6) }}>
+            {item.description}
           </div>
         </div>
       )}
@@ -734,7 +862,9 @@ const References = () => {
             separateLinks={section.separateLinks}
             className="font-bold"
           />
-          <div className="text-sm" style={{ color: getMutedTextColor(0.6) }}>{item.description}</div>
+          <div className="text-sm" style={{ color: getMutedTextColor(0.6) }}>
+            {item.description}
+          </div>
         </div>
       )}
     </Section>
@@ -763,11 +893,15 @@ const Custom = ({ id }: { id: string }) => {
               separateLinks={section.separateLinks}
               className="font-bold"
             />
-            <div className="text-sm" style={{ color: getMutedTextColor(0.6) }}>{item.description}</div>
+            <div className="text-sm" style={{ color: getMutedTextColor(0.6) }}>
+              {item.description}
+            </div>
           </div>
 
-          <div className="shrink-0 text-right group-[.sidebar]:text-left">   
-            <div className="text-meta italic" style={{ color: secondaryColor }}>{item.date}</div>
+          <div className="shrink-0 text-right group-[.sidebar]:text-left">
+            <div className="text-meta italic" style={{ color: secondaryColor }}>
+              {item.date}
+            </div>
           </div>
         </div>
       )}
@@ -777,7 +911,7 @@ const Custom = ({ id }: { id: string }) => {
 
 const mapSectionToComponent = (section: SectionKey) => {
   let component = null;
-  
+
   switch (section) {
     case "experience": {
       component = <Experience />;
@@ -833,11 +967,7 @@ const mapSectionToComponent = (section: SectionKey) => {
   // Only render the wrapper if the component exists and is visible
   if (!component) return null;
 
-  return (
-    <div className="margin-section space-y-4">
-      {component}
-    </div>
-  );
+  return <div className="margin-section space-y-4">{component}</div>;
 };
 
 export const NovoResume = ({ columns, isFirstPage = false }: TemplateProps) => {
@@ -849,76 +979,37 @@ export const NovoResume = ({ columns, isFirstPage = false }: TemplateProps) => {
   const [leftColumn, rightColumn] = columns;
 
   // Convert percentage to columns (30-70% range mapped to 20-column grid)
-  const leftColumns = Math.round(columnSplit / 5);   // 30% = 6, 50% = 10, 70% = 14
-  const rightColumns = 20 - leftColumns;             // Remaining columns
+  const leftColumns = Math.round(columnSplit / 5); // 30% = 6, 50% = 10, 70% = 14
+  const rightColumns = 20 - leftColumns; // Remaining columns
 
   return (
     <div style={{ backgroundColor }}>
       <Header />
-      <div className="grid min-h-[inherit] grid-cols-20 gap-x-4">
-        <div 
-          className="sidebar group flex flex-col"
-          style={{ gridColumn: `span ${leftColumns}` }}
-        >
+      <div className="grid-cols-20 grid min-h-[inherit] gap-x-4">
+        <div className="sidebar group flex flex-col" style={{ gridColumn: `span ${leftColumns}` }}>
           {leftColumn.map((section) => (
-            <div key={section}>
-              {mapSectionToComponent(section)}
-            </div>
+            <div key={section}>{mapSectionToComponent(section)}</div>
           ))}
         </div>
 
-        <div 
-          className="main group"
-          style={{ gridColumn: `span ${rightColumns}` }}
-        >
+        <div className="main group" style={{ gridColumn: `span ${rightColumns}` }}>
           {rightColumn.map((section) => (
-            <div key={section}>
-              {mapSectionToComponent(section)}
-            </div>
+            <div key={section}>{mapSectionToComponent(section)}</div>
           ))}
         </div>
       </div>
-      {/* Custom bullet color style and margin utilities */}
+      {/* Optimized CSS for PDF generation */}
       <style>{`
-        .custom-bullets ul {
-          padding-left: 1.2em;
-        }
-        .custom-bullets ul li::marker {
-          color: ${secondaryColor};
-          font-weight: bold;
-        }
-        .margin-section {
-          padding-left: calc(var(--margin) * 2);
-          padding-right: calc(var(--margin) * 2);
-          padding-top: var(--margin);
-          margin-bottom: 0;
-        }
-        .margin-section + .margin-section {
-          padding-top: 0;
-        }
-        .sidebar .margin-section {
-          padding-right: var(--margin);
-        }
-        .main .margin-section {
-          padding-left: var(--margin);
-        }
-        /* Adjust unbound decorative elements for sidebar positioning */
-        .sidebar [style*="left: calc(-1 * var(--margin) * 2 + 0.25rem)"] {
-          left: calc(-1 * var(--margin) + 0.25rem) !important;
-        }
-        .sidebar [style*="left: calc(-1 * var(--margin) * 2 + 0.375rem)"] {
-          left: calc(-1 * var(--margin) + 0.375rem) !important;
-        }
-        .sidebar [style*="transform: translateX(calc(-1 * var(--margin) * 2))"] {
-          transform: translateX(calc(-1 * var(--margin))) !important;
-        }
-        .margin-header {
-          padding-left: calc(var(--margin) * 2);
-          padding-right: calc(var(--margin) * 2);
-          padding-top: var(--margin);
-          padding-bottom: var(--margin);
-          margin-bottom: 0;
-        }
+        .custom-bullets ul{padding-left:1.2em}
+        .custom-bullets ul li::marker{color:${secondaryColor};font-weight:bold}
+        .margin-section{padding-left:calc(var(--margin)*2);padding-right:calc(var(--margin)*2);padding-top:var(--margin);margin-bottom:0}
+        .margin-section+.margin-section{padding-top:0}
+        .sidebar .margin-section{padding-right:var(--margin)}
+        .main .margin-section{padding-left:var(--margin)}
+        .sidebar [style*="left: calc(-1 * var(--margin) * 2 + 0.25rem)"]{left:calc(-1 * var(--margin) + 0.25rem)!important}
+        .sidebar [style*="left: calc(-1 * var(--margin) * 2 + 0.375rem)"]{left:calc(-1 * var(--margin) + 0.375rem)!important}
+        .sidebar [style*="transform: translateX(calc(-1 * var(--margin) * 2))"]{transform:translateX(calc(-1 * var(--margin)))!important}
+        .margin-header{padding-left:calc(var(--margin)*2);padding-right:calc(var(--margin)*2);padding-top:var(--margin);padding-bottom:var(--margin);margin-bottom:0}
       `}</style>
     </div>
   );

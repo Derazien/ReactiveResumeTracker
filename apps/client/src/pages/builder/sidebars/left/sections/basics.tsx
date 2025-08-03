@@ -1,5 +1,4 @@
 import { t } from "@lingui/macro";
-import { basicsSchema } from "@reactive-resume/schema";
 import { ContactSectionForm } from "@reactive-resume/ui";
 
 import { useResumeStore } from "@/client/stores/resume";

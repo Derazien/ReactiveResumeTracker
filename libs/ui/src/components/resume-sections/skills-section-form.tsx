@@ -1,16 +1,16 @@
-import type { Skill } from "@reactive-resume/schema";
-import { BadgeInput, Slider, Checkbox, Badge } from "@reactive-resume/ui";
-import { Input } from "@reactive-resume/ui";
 import { X } from "@phosphor-icons/react";
+import type { Skill } from "@reactive-resume/schema";
+import { Badge, BadgeInput, Checkbox, Slider } from "@reactive-resume/ui";
+import { Input } from "@reactive-resume/ui";
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 
-export interface SkillsSectionFormProps {
+export type SkillsSectionFormProps = {
   values: Skill;
   errors?: Record<string, string>;
   onChange: (field: keyof Skill, value: Skill[keyof Skill]) => void;
   className?: string;
-}
+};
 
 export const SkillsSectionForm = ({
   values,
@@ -23,35 +23,45 @@ export const SkillsSectionForm = ({
   return (
     <div className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${className}`}>
       <div>
-        <label className="block text-sm font-medium mb-1">Name</label>
+        <label className="mb-1 block text-sm font-medium">Name</label>
         <Input
           value={values.name}
-          onChange={(e) => onChange("name", e.target.value)}
           hasError={!!errors.name}
+          onChange={(e) => {
+            onChange("name", e.target.value);
+          }}
         />
-        {errors.name && <div className="text-xs text-red-500 mt-1">{errors.name}</div>}
+        {errors.name && <div className="mt-1 text-xs text-red-500">{errors.name}</div>}
       </div>
       <div>
-        <label className="block text-sm font-medium mb-1">Description</label>
+        <label className="mb-1 block text-sm font-medium">Description</label>
         <Input
           value={values.description}
-          onChange={(e) => onChange("description", e.target.value)}
           hasError={!!errors.description}
+          onChange={(e) => {
+            onChange("description", e.target.value);
+          }}
         />
-        {errors.description && <div className="text-xs text-red-500 mt-1">{errors.description}</div>}
+        {errors.description && (
+          <div className="mt-1 text-xs text-red-500">{errors.description}</div>
+        )}
       </div>
       <div>
         <div className="flex items-center gap-2">
           <Checkbox
             checked={values.showDescription}
-            onCheckedChange={(checked) => onChange("showDescription", checked as boolean)}
+            onCheckedChange={(checked) => {
+              onChange("showDescription", checked as boolean);
+            }}
           />
           <span className="text-sm">Show Description</span>
         </div>
-        {errors.showDescription && <div className="text-xs text-red-500 mt-1">{errors.showDescription}</div>}
+        {errors.showDescription && (
+          <div className="mt-1 text-xs text-red-500">{errors.showDescription}</div>
+        )}
       </div>
       <div className="sm:col-span-2">
-        <label className="block text-sm font-medium mb-1">Level</label>
+        <label className="mb-1 block text-sm font-medium">Level</label>
         <div className="flex items-center gap-x-4 py-2">
           <Slider
             min={0}
@@ -68,30 +78,36 @@ export const SkillsSectionForm = ({
             <span className="text-base font-bold">Hidden</span>
           )}
         </div>
-        {errors.level && <div className="text-xs text-red-500 mt-1">{errors.level}</div>}
+        {errors.level && <div className="mt-1 text-xs text-red-500">{errors.level}</div>}
       </div>
       <div className="space-y-3 sm:col-span-2">
         <div>
-          <label className="block text-sm font-medium mb-1">Keywords</label>
+          <label className="mb-1 block text-sm font-medium">Keywords</label>
           <BadgeInput
             value={values.keywords}
-            onChange={(value) => onChange("keywords", value)}
             setPendingKeyword={setPendingKeyword}
             hasError={!!errors.keywords}
+            onChange={(value) => {
+              onChange("keywords", value);
+            }}
           />
-          <div className="text-xs text-muted-foreground mt-1">
+          <div className="text-muted-foreground mt-1 text-xs">
             You can add multiple keywords by separating them with a comma or pressing enter.
           </div>
-          {errors.keywords && <div className="text-xs text-red-500 mt-1">{errors.keywords}</div>}
+          {errors.keywords && <div className="mt-1 text-xs text-red-500">{errors.keywords}</div>}
         </div>
         <div className="flex items-center gap-2">
           <Checkbox
             checked={values.showKeywords}
-            onCheckedChange={(checked) => onChange("showKeywords", checked as boolean)}
+            onCheckedChange={(checked) => {
+              onChange("showKeywords", checked as boolean);
+            }}
           />
           <span className="text-sm">Show Keywords</span>
         </div>
-        {errors.showKeywords && <div className="text-xs text-red-500 mt-1">{errors.showKeywords}</div>}
+        {errors.showKeywords && (
+          <div className="mt-1 text-xs text-red-500">{errors.showKeywords}</div>
+        )}
         <div className="flex flex-wrap items-center gap-x-2 gap-y-3">
           <AnimatePresence>
             {values.keywords.map((item, index) => (
@@ -105,7 +121,10 @@ export const SkillsSectionForm = ({
                 <Badge
                   className="cursor-pointer"
                   onClick={() => {
-                    onChange("keywords", values.keywords.filter((v) => item !== v));
+                    onChange(
+                      "keywords",
+                      values.keywords.filter((v) => item !== v),
+                    );
                   }}
                 >
                   <span className="mr-1">{item}</span>
@@ -118,4 +137,4 @@ export const SkillsSectionForm = ({
       </div>
     </div>
   );
-}; 
+};

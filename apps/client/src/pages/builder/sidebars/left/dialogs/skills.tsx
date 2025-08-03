@@ -1,8 +1,8 @@
-import { defaultSkill, skillSchema } from "@reactive-resume/schema";
+import type { skillSchema } from "@reactive-resume/schema";
+import { defaultSkill } from "@reactive-resume/schema";
+import { SkillsSectionForm } from "@reactive-resume/ui";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
-
-import { SkillsSectionForm } from "@reactive-resume/ui";
 
 import { SectionDialog } from "../sections/shared/section-dialog";
 
@@ -14,16 +14,12 @@ export const SkillsDialog = () => {
   });
 
   return (
-    <SectionDialog<FormValues>
-      id="skills"
-      form={form}
-      defaultValues={defaultSkill}
-    >
+    <SectionDialog<FormValues> id="skills" form={form} defaultValues={defaultSkill}>
       <SkillsSectionForm
         values={form.watch()}
         onChange={(field, value) => {
           form.setValue(field, value);
-                        }}
+        }}
       />
     </SectionDialog>
   );

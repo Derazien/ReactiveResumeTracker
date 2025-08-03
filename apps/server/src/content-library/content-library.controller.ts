@@ -275,7 +275,7 @@ export class ContentLibraryController {
 
           // Prepare section-specific data based on the content type
           let sectionData: any = {};
-          
+
           // Map old fields to new data structure based on section type
           if (item.sectionId) {
             // For experience items
@@ -283,15 +283,16 @@ export class ContentLibraryController {
               sectionData = {
                 company: item.company || "",
                 position: item.position || "",
-                date: (item.startDate && item.endDate 
-                  ? `${convertDateToISO(item.startDate)} - ${convertDateToISO(item.endDate)}`
-                  : (item.startDate 
-                    ? convertDateToISO(item.startDate)
-                    : "")),
+                date:
+                  item.startDate && item.endDate
+                    ? `${convertDateToISO(item.startDate)} - ${convertDateToISO(item.endDate)}`
+                    : (item.startDate
+                      ? convertDateToISO(item.startDate)
+                      : ""),
                 location: item.location || "",
                 summary: item.description || "",
                 url: item.url || "",
-                contacts: []
+                contacts: [],
               };
             }
             // For education items
@@ -301,13 +302,14 @@ export class ContentLibraryController {
                 studyType: item.studyType || "",
                 area: item.area || "",
                 score: item.score || "",
-                date: (item.startDate && item.endDate 
-                  ? `${convertDateToISO(item.startDate)} - ${convertDateToISO(item.endDate)}`
-                  : (item.startDate 
-                    ? convertDateToISO(item.startDate)
-                    : "")),
+                date:
+                  item.startDate && item.endDate
+                    ? `${convertDateToISO(item.startDate)} - ${convertDateToISO(item.endDate)}`
+                    : (item.startDate
+                      ? convertDateToISO(item.startDate)
+                      : ""),
                 summary: item.description || "",
-                url: item.url || ""
+                url: item.url || "",
               };
             }
             // For skills items
@@ -318,7 +320,7 @@ export class ContentLibraryController {
                 level: item.proficiencyLevel || 50,
                 keywords: item.skills || [],
                 showDescription: true,
-                showKeywords: true
+                showKeywords: true,
               };
             }
             // For other items, use the content field as fallback

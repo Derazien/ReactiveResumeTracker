@@ -21,15 +21,15 @@ import { Badge, Button, Tooltip } from "@reactive-resume/ui";
 import { cn } from "@reactive-resume/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import get from "lodash.get";
+import { useState } from "react";
 
+import { ContentSelectionDialog } from "@/client/pages/builder/_components/content-selection-dialog";
 import { useDialog } from "@/client/stores/dialog";
 import { useResumeStore } from "@/client/stores/resume";
-import { useState } from "react";
 
 import { SectionIcon } from "./section-icon";
 import { SectionListItem } from "./section-list-item";
 import { SectionOptions } from "./section-options";
-import { ContentSelectionDialog } from "@/client/pages/builder/_components/content-selection-dialog";
 
 type Props<T extends SectionItem> = {
   id: SectionKey;
@@ -257,9 +257,9 @@ export const SectionBase = <T extends SectionItem>({ id, title, description }: P
       {/* Content Selection Dialog */}
       <ContentSelectionDialog
         open={contentSelectionOpen}
-        onOpenChange={setContentSelectionOpen}
         sectionId={id}
         sectionName={section.name}
+        onOpenChange={setContentSelectionOpen}
       />
     </motion.section>
   );
