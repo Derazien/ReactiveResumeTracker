@@ -1,27 +1,23 @@
+import * as fs from "node:fs";
+import * as path from "node:path";
+
 import { Injectable, Logger } from "@nestjs/common";
 import { createId } from "@paralleldrive/cuid2";
 import { JobApplication } from "@prisma/client";
 import { CreateJobApplicationDto, UpdateJobApplicationDto } from "@reactive-resume/dto";
 import { PrismaService } from "nestjs-prisma";
 
+import { CompanyService } from "@/server/company/company.service";
+import { CompanyResearchService } from "@/server/company/company-research.service";
 import { ContentLibraryService } from "@/server/content-library/content-library.service";
 import { ContentMatchingService } from "@/server/content-matching/content-matching.service";
+import { CoverLetterService } from "@/server/cover-letter/cover-letter.service";
 import { EmbeddingService } from "@/server/embedding/embedding.service";
 import { LLMService } from "@/server/llm/llm.service";
-import * as fs from 'fs';
-import * as path from 'path';
 
-export type JobAnalysisResult = {
-  title: string;
-  company: string;
-  description: string;
-  requirements: string[];
-  extractedTags: string[];
-  location?: string;
-  salaryRange?: string;
-  employmentType?: string;
-  experienceLevel?: string;
-};
+import { CoverLetterGenerationService } from "./cover-letter-generation.service";
+import { JobAnalysisService, type JobAnalysisResult } from "./job-analysis.service";
+import { ResumeGenerationService } from "./resume-generation.service";
 
 @Injectable()
 export class JobApplicationService {
@@ -32,8 +28,28 @@ export class JobApplicationService {
     private readonly llmService: LLMService,
     private readonly contentLibraryService: ContentLibraryService,
     private readonly contentMatchingService: ContentMatchingService,
+    private readonly coverLetterService: CoverLetterService,
     private readonly embeddingService: EmbeddingService,
+    private readonly companyService: CompanyService,
+    private readonly companyResearchService: CompanyResearchService,
+    private readonly jobAnalysisService: JobAnalysisService,
+    private readonly resumeGenerationService: ResumeGenerationService,
+    private readonly coverLetterGenerationService: CoverLetterGenerationService,
   ) {}
+
+  /**
+   * Parse JSON string array or return empty array
+   */
+  private parseArray(value: any): any[] {
+    if (typeof value === "string") {
+      try {
+        return JSON.parse(value);
+      } catch {
+        return [];
+      }
+    }
+    return Array.isArray(value) ? value : [];
+  }
 
   async create(
     userId: string,
@@ -42,7 +58,7 @@ export class JobApplicationService {
     return this.prisma.jobApplication.create({
       data: {
         title: createJobApplicationDto.title,
-        company: createJobApplicationDto.company,
+        companyName: createJobApplicationDto.companyName,
         description: createJobApplicationDto.description ?? "",
         url: createJobApplicationDto.url,
         notes: createJobApplicationDto.notes,
@@ -91,8 +107,8 @@ export class JobApplicationService {
     // Copy basic fields
     if (updateJobApplicationDto.title !== undefined)
       updateData.title = updateJobApplicationDto.title;
-    if (updateJobApplicationDto.company !== undefined)
-      updateData.company = updateJobApplicationDto.company;
+    if (updateJobApplicationDto.companyName !== undefined)
+      updateData.companyName = updateJobApplicationDto.companyName;
     if (updateJobApplicationDto.description !== undefined)
       updateData.description = updateJobApplicationDto.description;
     if (updateJobApplicationDto.url !== undefined) updateData.url = updateJobApplicationDto.url;
@@ -112,9 +128,9 @@ export class JobApplicationService {
     }
 
     // Check if embedding-relevant fields have changed
-    const embeddingFieldsChanged = 
+    const embeddingFieldsChanged =
       updateJobApplicationDto.title !== undefined ||
-      updateJobApplicationDto.company !== undefined ||
+      updateJobApplicationDto.companyName !== undefined ||
       updateJobApplicationDto.description !== undefined ||
       updateJobApplicationDto.requirements !== undefined ||
       updateJobApplicationDto.extractedTags !== undefined;
@@ -123,17 +139,19 @@ export class JobApplicationService {
       try {
         // Create new job embedding text with updated data
         const newTitle = updateJobApplicationDto.title ?? currentJob.title;
-        const newCompany = updateJobApplicationDto.company ?? currentJob.company;
+        const newCompany = updateJobApplicationDto.companyName ?? currentJob.companyName;
         const newDescription = updateJobApplicationDto.description ?? currentJob.description ?? "";
-        const newRequirements = updateJobApplicationDto.requirements ?? JSON.parse(currentJob.requirements || "[]");
-        const newExtractedTags = updateJobApplicationDto.extractedTags ?? JSON.parse(currentJob.extractedTags || "[]");
+        const newRequirements =
+          updateJobApplicationDto.requirements ?? JSON.parse(currentJob.requirements || "[]");
+        const newExtractedTags =
+          updateJobApplicationDto.extractedTags ?? JSON.parse(currentJob.extractedTags || "[]");
 
         const jobEmbeddingText = this.createJobEmbeddingText(
           newTitle,
           newCompany,
           newDescription,
           newRequirements,
-          newExtractedTags
+          newExtractedTags,
         );
 
         // Check if we need to regenerate embedding
@@ -179,6 +197,22 @@ export class JobApplicationService {
   }
 
   /**
+   * Extract company information from job posting and match/create company record
+   */
+  private async extractAndMatchCompany(
+    companyName: string,
+    jobDescription: string,
+    jobUrl?: string,
+  ): Promise<{ companyId: string; isNew: boolean; analysisStatus: "pending" | "completed" }> {
+    // Delegate to CompanyResearchService
+    return this.companyResearchService.extractAndMatchCompany(
+      companyName,
+      jobDescription,
+      jobUrl,
+    );
+  }
+
+  /**
    * Analyze a job posting URL or text - ONLY analysis, no creation
    */
   async analyzeJobPosting(
@@ -189,15 +223,11 @@ export class JobApplicationService {
   }> {
     this.logger.log(`Analyzing job posting text`);
 
-    // Only analyze the job posting with LLM
-    const analysisResult = await this.llmService.analyzeJobPosting(jobText);
-
-    if (!analysisResult.success || !analysisResult.data) {
-      throw new Error(`Job analysis failed: ${analysisResult.error ?? "Unknown error"}`);
-    }
+    // Use JobAnalysisService for job posting analysis
+    const analysisResult = await this.jobAnalysisService.analyzeJobPosting(jobText);
 
     return {
-      analysisResult: analysisResult.data,
+      analysisResult,
     };
   }
 
@@ -210,6 +240,13 @@ export class JobApplicationService {
     url?: string,
   ): Promise<JobApplication> {
     this.logger.log(`Creating job application from analysis for user ${userId}`);
+
+    // Extract and match company
+    const companyResult = await this.extractAndMatchCompany(
+      analysisData.company,
+      analysisData.description,
+      url,
+    );
 
     // Generate embedding for the job data
     let embedding: string | null = null;
@@ -242,7 +279,7 @@ export class JobApplicationService {
     const jobApplication = await this.prisma.jobApplication.create({
       data: {
         title: analysisData.title,
-        company: analysisData.company,
+        companyName: analysisData.company,
         description: analysisData.description,
         requirements: JSON.stringify(analysisData.requirements ?? []),
         extractedTags: JSON.stringify(analysisData.extractedTags ?? []),
@@ -250,10 +287,13 @@ export class JobApplicationService {
         embedding,
         embeddingHash,
         userId,
+        companyId: companyResult.companyId, // Link to company
       },
     });
 
-    // Analysis completed - no need to store generated content records
+    this.logger.log(
+      `Created job application with company link: ${jobApplication.id} -> ${companyResult.companyId} (${companyResult.isNew ? "new" : "existing"} company)`,
+    );
 
     return jobApplication;
   }
@@ -281,7 +321,14 @@ export class JobApplicationService {
 
     const jobData = analysisResult.data!;
 
-    // Step 2: Generate embedding for the job data
+    // Step 2: Extract and match company
+    const companyResult = await this.extractAndMatchCompany(
+      jobData.company,
+      jobData.description,
+      url,
+    );
+
+    // Step 3: Generate embedding for the job data
     let embedding: string | null = null;
     let embeddingHash: string | null = null;
 
@@ -300,15 +347,17 @@ export class JobApplicationService {
 
       this.logger.log(`Generated embedding for job: ${jobData.title} at ${jobData.company}`);
     } catch (error) {
-      this.logger.warn(`Failed to generate embedding for job application: ${error instanceof Error ? error.message : "Unknown error"}`);
+      this.logger.warn(
+        `Failed to generate embedding for job application: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
       // Continue without embedding - the system should still work
     }
 
-    // Step 3: Create the job application with embedding
+    // Step 4: Create the job application with embedding and company link
     const jobApplication = await this.prisma.jobApplication.create({
       data: {
         title: jobData.title,
-        company: jobData.company,
+        companyName: jobData.company,
         description: jobData.description,
         requirements: JSON.stringify(jobData.requirements),
         extractedTags: JSON.stringify(jobData.extractedTags),
@@ -316,10 +365,15 @@ export class JobApplicationService {
         embedding,
         embeddingHash,
         userId,
+        companyId: companyResult.companyId, // Link to company
       },
     });
 
-    // Step 4: Get user's content library
+    this.logger.log(
+      `Created job application with company link: ${jobApplication.id} -> ${companyResult.companyId} (${companyResult.isNew ? "new" : "existing"} company)`,
+    );
+
+    // Step 5: Get user's content library
     const userContent = await this.contentLibraryService.findAll(userId);
 
     // Step 5: Match content to job requirements using RAG-based matching
@@ -370,100 +424,100 @@ export class JobApplicationService {
     });
 
     // Step 1: Auto-select best matching content using structured selection
-      const jobRequirements = JSON.parse(jobApplication.requirements ?? "[]");
-      
-      // Get job embedding if available
-      let jobEmbedding: number[] | undefined;
-      if (jobApplication.embedding) {
-        try {
-          jobEmbedding = this.embeddingService.parseEmbedding(jobApplication.embedding);
-          this.logger.log("Using stored job embedding for enhanced content matching");
-        } catch (error) {
-          this.logger.warn(`Failed to parse job embedding: ${error instanceof Error ? error.message : "Unknown error"}`);
-        }
+    const jobRequirements = JSON.parse(jobApplication.requirements ?? "[]");
+
+    // Get job embedding if available
+    let jobEmbedding: number[] | undefined;
+    if (jobApplication.embedding) {
+      try {
+        jobEmbedding = this.embeddingService.parseEmbedding(jobApplication.embedding);
+        this.logger.log("Using stored job embedding for enhanced content matching");
+      } catch (error) {
+        this.logger.warn(
+          `Failed to parse job embedding: ${error instanceof Error ? error.message : "Unknown error"}`,
+        );
       }
+    }
 
-      // Use structured content selection with specific limits for one-page resume
-      const structuredSelection = await this.contentMatchingService.selectStructuredContent(
-        userId,
-        jobRequirements,
-        jobApplication.description ?? "",
-        {
+    // Use structured content selection with specific limits for one-page resume
+    const structuredSelection = await this.contentMatchingService.selectStructuredContent(
+      userId,
+      jobRequirements,
+      jobApplication.description ?? "",
+      {
         useVectorSimilarity: true, // DISABLED: Only use tag matching
-          useTagMatching: true,
-          vectorWeight: 0.7,
-          tagWeight: 0.3,
-          minSimilarity: 0, // Only include reasonably relevant content
-          maxResults: 100,
-          // Structured selection options for one-page resume
-          maxExperiences: 5, // LLM will determine if 2 or 3 fit on one page
-          maxProjects: 3,
-          includeAllInterests: true,
-          includeAllLanguages: true,
-          includeAllSkills: true,
-          includeAllEducation: true,
-          includeAllCertificates: true,
-          includeAllVolunteer: true,
-          includeAllCauses: true,
-          // Lower thresholds for content types that should be included regardless
-          minSimilarityForLanguages: 5, // Very low threshold for languages
-          minSimilarityForSkills: 5, // Very low threshold for skills
-          minSimilarityForEducation: 5, // Very low threshold for education
-          minSimilarityForCertificates: 5, // Very low threshold for certificates
-          minSimilarityForInterests: 5, // Very low threshold for interests
-          minSimilarityForVolunteer: 5, // Very low threshold for volunteer
-          minSimilarityForCauses: 5, // Very low threshold for causes
-        },
-        jobEmbedding // Pass job embedding for enhanced matching (will be ignored since vector matching is disabled)
-      );
+        useTagMatching: true,
+        vectorWeight: 0.7,
+        tagWeight: 0.3,
+        minSimilarity: 0, // Only include reasonably relevant content
+        maxResults: 100,
+        // Structured selection options for one-page resume
+        maxExperiences: 5, // LLM will determine if 2 or 3 fit on one page
+        maxProjects: 3,
+        includeAllInterests: true,
+        includeAllLanguages: true,
+        includeAllSkills: true,
+        includeAllEducation: true,
+        includeAllCertificates: true,
+        includeAllVolunteer: true,
+        includeAllCauses: true,
+        // Lower thresholds for content types that should be included regardless
+        minSimilarityForLanguages: 5, // Very low threshold for languages
+        minSimilarityForSkills: 5, // Very low threshold for skills
+        minSimilarityForEducation: 5, // Very low threshold for education
+        minSimilarityForCertificates: 5, // Very low threshold for certificates
+        minSimilarityForInterests: 5, // Very low threshold for interests
+        minSimilarityForVolunteer: 5, // Very low threshold for volunteer
+        minSimilarityForCauses: 5, // Very low threshold for causes
+      },
+      jobEmbedding, // Pass job embedding for enhanced matching (will be ignored since vector matching is disabled)
+    );
 
-      // Convert structured selection to content objects and add match scores
+    // Convert structured selection to content objects and add match scores
     const selectedContent: any[] = [];
-      
-      // Combine all selected content from different sections
-      const allSelectedMatches = [
-        ...structuredSelection.experiences,
-        ...structuredSelection.projects,
-        ...structuredSelection.interests,
-        ...structuredSelection.languages,
-        ...structuredSelection.summary,
-        ...structuredSelection.contact,
-        ...structuredSelection.skills,
-        ...structuredSelection.education,
-        ...structuredSelection.certificates,
-        ...structuredSelection.volunteer,
-        ...structuredSelection.causes,
-      ];
 
-      // Remove duplicates and get content details
-      const uniqueContentIds = [...new Set(allSelectedMatches.map(match => match.contentId))];
-      
-      for (const contentId of uniqueContentIds) {
-        const content = await this.contentLibraryService.findOne(contentId, userId);
-        if (content) {
-          const match = allSelectedMatches.find(m => m.contentId === contentId);
-          selectedContent.push({
-            ...content,
+    // Combine all selected content from different sections
+    const allSelectedMatches = [
+      ...structuredSelection.experiences,
+      ...structuredSelection.projects,
+      ...structuredSelection.interests,
+      ...structuredSelection.languages,
+      ...structuredSelection.summary,
+      ...structuredSelection.contact,
+      ...structuredSelection.skills,
+      ...structuredSelection.education,
+      ...structuredSelection.certificates,
+      ...structuredSelection.volunteer,
+      ...structuredSelection.causes,
+    ];
+
+    // Remove duplicates and get content details
+    const uniqueContentIds = [...new Set(allSelectedMatches.map((match) => match.contentId))];
+
+    for (const contentId of uniqueContentIds) {
+      const content = await this.contentLibraryService.findOne(contentId, userId);
+      if (content) {
+        const match = allSelectedMatches.find((m) => m.contentId === contentId);
+        selectedContent.push({
+          ...content,
           matchScore: match?.score ?? 0,
-            vectorSimilarity: match?.vectorSimilarity,
-            tagSimilarity: match?.tagSimilarity,
+          vectorSimilarity: match?.vectorSimilarity,
+          tagSimilarity: match?.tagSimilarity,
           matchReasons: match?.reasons ?? [],
           matchSuggestions: match?.suggestions ?? [],
-          });
-        }
+        });
       }
+    }
 
-      this.logger.log(
-        `Auto-selected ${selectedContent.length} relevant content pieces using structured selection (TAG-ONLY matching)`,
-      );
-      this.logger.log(`Content breakdown: ${structuredSelection.experiences.length} experiences, ${structuredSelection.projects.length} projects, ${structuredSelection.skills.length} skills, ${structuredSelection.education.length} education items`);
+    this.logger.log(
+      `Auto-selected ${selectedContent.length} relevant content pieces using structured selection (TAG-ONLY matching)`,
+    );
+    this.logger.log(
+      `Content breakdown: ${structuredSelection.experiences.length} experiences, ${structuredSelection.projects.length} projects, ${structuredSelection.skills.length} skills, ${structuredSelection.education.length} education items`,
+    );
 
     // Step 2: Create structured resume data (summary and basics generation handled inside)
-    const resumeData = await this.buildResumeFromContent(
-      user,
-      selectedContent,
-      jobApplication,
-    );
+    const resumeData = await this.buildResumeFromContent(user, selectedContent, jobApplication);
 
     // Step 4: Apply LLM-powered tailoring to optimize the resume
     let tailoringResult: any = null;
@@ -475,17 +529,17 @@ export class JobApplicationService {
 
       const jobRequirements = JSON.parse(jobApplication.requirements ?? "[]");
 
-        // --- Capture LLM input ---
-        llmInput = {
-          userId,
-          jobDescription: jobApplication.description ?? "",
-          jobRequirements,
-          resumeData,
-        };
+      // --- Capture LLM input ---
+      llmInput = {
+        userId,
+        jobDescription: jobApplication.description ?? "",
+        jobRequirements,
+        resumeData,
+      };
 
       const tailoringResponse = await this.llmService.tailorResumeContentForUser(
         userId,
-          jobApplication.description ?? "",
+        jobApplication.description ?? "",
         jobRequirements,
         resumeData,
       );
@@ -537,12 +591,12 @@ export class JobApplicationService {
     }
 
     // Step 5: Create the resume record with enhanced metadata
-    const resumeTitle = `${jobApplication.title} - ${jobApplication.company}`;
-    const resumeSlug = `${jobApplication.title.toLowerCase().replace(/[^\da-z]+/g, "-")}-${jobApplication.company.toLowerCase().replace(/[^\da-z]+/g, "-")}-${Date.now()}`;
+    const resumeTitle = `${jobApplication.title} - ${jobApplication.companyName}`;
+    const resumeSlug = `${jobApplication.title.toLowerCase().replace(/[^\da-z]+/g, "-")}-${jobApplication.companyName?.toLowerCase().replace(/[^\da-z]+/g, "-") || "unknown"}-${Date.now()}`;
 
     // Prepare resume notes with comprehensive content selection info and changes summary
     let resumeNotes = `<h2>Comprehensive One-Page Resume Details</h2>`;
-    resumeNotes += `<p><strong>Job:</strong> ${jobApplication.title} at ${jobApplication.company}</p>`;
+    resumeNotes += `<p><strong>Job:</strong> ${jobApplication.title} at ${jobApplication.companyName}</p>`;
     resumeNotes += `<p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>`;
     resumeNotes += `<p><strong>Format:</strong> Optimized for single-page layout with concise content</p>`;
 
@@ -705,13 +759,7 @@ export class JobApplicationService {
       const rightColumn = [];
 
       // Distribute sections across columns (prioritize main content on left)
-      const leftPriority = [
-        "summary",
-        "experience",
-        "education",
-        "volunteer",
-        "references",
-      ];
+      const leftPriority = ["summary", "experience", "education", "volunteer", "references"];
       const rightPriority = [
         "profiles",
         "skills",
@@ -1157,9 +1205,7 @@ export class JobApplicationService {
       item.sourceContentId = item.contentId;
       item.contentId = null;
 
-      this.logger.debug(
-        `Marked item as modified from content library: ${item.sourceContentId}`,
-      );
+      this.logger.debug(`Marked item as modified from content library: ${item.sourceContentId}`);
     }
   }
 
@@ -1184,7 +1230,7 @@ export class JobApplicationService {
   async addModifiedContentToLibrary(
     userId: string,
     modifiedItem: any,
-    sectionKey: string
+    sectionKey: string,
   ): Promise<string> {
     // Get section
     const section = await this.prisma.section.findUnique({
@@ -1199,7 +1245,7 @@ export class JobApplicationService {
     const newContent = await this.prisma.content.create({
       data: {
         id: createId(),
-        title: modifiedItem.title || modifiedItem.name || 'Modified Content',
+        title: modifiedItem.title || modifiedItem.name || "Modified Content",
         description: `Modified from original content`,
         data: JSON.stringify(modifiedItem),
         sectionId: section.id,
@@ -1424,12 +1470,12 @@ export class JobApplicationService {
 
     // Handle basics/contact info - use existing content if available, only modify name and picture
     const basicInfo = selectedContent.filter((c) => c.section?.key === "contact");
-    
+
     if (basicInfo.length > 0) {
       // Use existing contact data from content library
       const info = basicInfo[0];
       const data = typeof info.data === "string" ? JSON.parse(info.data) : info.data;
-      
+
       // Use the existing data structure which is already in the correct format
       // Only override name and picture with user data, preserve everything else
       resumeData.basics = {
@@ -1437,7 +1483,7 @@ export class JobApplicationService {
         name: user.name, // Override with user name
         picture: {
           ...data.picture,
-           // Preserve existing picture settings (aspectRatio, borderRadius, effects)
+          // Preserve existing picture settings (aspectRatio, borderRadius, effects)
           url: user.picture || "", // Only override the URL with user picture
           size: 90, // Explicitly set picture size to 90
           aspectRatio: 1,
@@ -1446,12 +1492,13 @@ export class JobApplicationService {
         url: data?.url ?? { href: "", label: "" },
         headline: data.headline || jobApplication.title, // Override headline for job relevance
         // Ensure all custom fields have proper IDs
-        customFields: data?.customFields?.map((field: any, index: number) => ({
-          ...field,
-          id: field.id || createId(), // Create ID if missing
-        })) || [],
+        customFields:
+          data?.customFields?.map((field: any, index: number) => ({
+            ...field,
+            id: field.id || createId(), // Create ID if missing
+          })) || [],
       };
-      
+
       this.logger.log("Using existing contact data from content library");
     } else {
       // No contact content found, use user defaults
@@ -1462,28 +1509,28 @@ export class JobApplicationService {
       resumeData.basics.picture.size = 90;
       resumeData.basics.picture.aspectRatio = 1;
       resumeData.basics.picture.borderRadius = 9999;
-      
+
       this.logger.log("Using user defaults for basics as no contact content was found");
     }
-      
-  
+
     // Handle summary content - use existing content if available, generate if not
     const existingSummaryContent = selectedContent.filter((c) => c.section?.key === "summary");
-    
+
     if (existingSummaryContent.length > 0) {
       // Use existing summary content as-is (no <p> tags added)
       const summaryData =
         typeof existingSummaryContent[0].data === "string"
           ? JSON.parse(existingSummaryContent[0].data)
           : existingSummaryContent[0].data;
-      resumeData.sections.summary.content = summaryData?.content || existingSummaryContent[0].description || "";
-      
+      resumeData.sections.summary.content =
+        summaryData?.content || existingSummaryContent[0].description || "";
+
       this.logger.log("Using existing summary content from content library");
     } else {
       // Generate basic summary and add <p> tags
       const generatedSummary = this.generateBasicSummary(user, jobApplication, selectedContent);
       resumeData.sections.summary.content = `<p>${generatedSummary}</p>`;
-      
+
       this.logger.log("Generated basic summary as no summary content was found");
     }
 
@@ -1511,12 +1558,12 @@ export class JobApplicationService {
       const data = typeof exp.data === "string" ? JSON.parse(exp.data) : exp.data;
 
       return {
-        ...(data || {}),
+        ...data,
         id: createId(),
         visible: true,
         // Map the existing data structure to the expected fields
         company: data.company || exp.company || "Company",
-        position: data.position || exp.position || exp.title || "Position", 
+        position: data.position || exp.position || exp.title || "Position",
         location: data.location || exp.location || "",
         date: data.date || this.formatDateRange(exp.startDate, exp.endDate) || "Present",
         summary: data.summary || exp.description || "",
@@ -1532,7 +1579,7 @@ export class JobApplicationService {
       const data = typeof proj.data === "string" ? JSON.parse(proj.data) : proj.data;
 
       return {
-        ...(data || {}),
+        ...data,
         id: createId(),
         visible: true,
         // Map the existing data structure to the expected fields
@@ -1540,9 +1587,11 @@ export class JobApplicationService {
         description: data.description || proj.position || "Project",
         date: data.date || this.formatDateRange(proj.startDate, proj.endDate) || "Recent",
         summary: data.summary || "",
-        keywords: data.keywords || (typeof proj.skills === "string" ? JSON.parse(proj.skills) : proj.skills || []),
-        showDescription: data.showDescription !== undefined ? data.showDescription : true,
-        showKeywords: data.showKeywords !== undefined ? data.showKeywords : true,
+        keywords:
+          data.keywords ||
+          (typeof proj.skills === "string" ? JSON.parse(proj.skills) : proj.skills || []),
+        showDescription: data.showDescription === undefined ? true : data.showDescription,
+        showKeywords: data.showKeywords === undefined ? true : data.showKeywords,
         url: this.ensureValidUrl(data.url),
         contentId: proj.id,
         sourceContentId: null,
@@ -1553,11 +1602,11 @@ export class JobApplicationService {
     resumeData.sections.education.items = education.map((edu) => {
       // Use the existing data field which contains the properly formatted structure
       const data = typeof edu.data === "string" ? JSON.parse(edu.data) : edu.data;
-      
+
       return {
-        ...(data || {}),
-      id: createId(),
-      visible: true,
+        ...data,
+        id: createId(),
+        visible: true,
         // Map the existing data structure to the expected fields
         institution: data.institution || edu.company || edu.title || "Institution",
         studyType: data.studyType || edu.position || "Degree",
@@ -1566,28 +1615,30 @@ export class JobApplicationService {
         date: data.date || this.formatDateRange(edu.startDate, edu.endDate) || "Graduated",
         summary: data.summary || "",
         url: this.ensureValidUrl(data.url),
-      contentId: edu.id,
-      sourceContentId: null,
+        contentId: edu.id,
+        sourceContentId: null,
       };
     });
 
     // Add technical skills - use existing data field which contains the properly formatted structure
     resumeData.sections.skills.items = technicalSkills.map((skill) => {
       const data = typeof skill.data === "string" ? JSON.parse(skill.data) : skill.data;
-      
+
       return {
-        ...(data || {}),
+        ...data,
         id: createId(),
         visible: true,
         // Map the existing data structure to the expected fields
         name: data.name || skill.title || "Technical Skill",
         description: data.description || skill.description || "",
         level: data.level || 0,
-        keywords: data.keywords || (typeof skill.skills === "string"
-          ? JSON.parse(skill.skills ?? "[]")
-          : (skill.skills ?? [])),
-        showDescription: data.showDescription !== undefined ? data.showDescription : true,
-        showKeywords: data.showKeywords !== undefined ? data.showKeywords : true,
+        keywords:
+          data.keywords ||
+          (typeof skill.skills === "string"
+            ? JSON.parse(skill.skills ?? "[]")
+            : (skill.skills ?? [])),
+        showDescription: data.showDescription === undefined ? true : data.showDescription,
+        showKeywords: data.showKeywords === undefined ? true : data.showKeywords,
         contentId: skill.id,
         sourceContentId: null,
       };
@@ -1596,20 +1647,22 @@ export class JobApplicationService {
     // Add soft skills - use existing data field which contains the properly formatted structure
     const softSkillItems = softSkills.map((skill) => {
       const data = typeof skill.data === "string" ? JSON.parse(skill.data) : skill.data;
-      
+
       return {
-        ...(data || {}),
+        ...data,
         id: createId(),
         visible: true,
         // Map the existing data structure to the expected fields
         name: data.name || skill.title || "Soft Skill",
         description: data.description || skill.description || "",
         level: data.level || 0,
-        keywords: data.keywords || (typeof skill.skills === "string"
-          ? JSON.parse(skill.skills ?? "[]")
-          : (skill.skills ?? [])),
-        showDescription: data.showDescription !== undefined ? data.showDescription : true,
-        showKeywords: data.showKeywords !== undefined ? data.showKeywords : true,
+        keywords:
+          data.keywords ||
+          (typeof skill.skills === "string"
+            ? JSON.parse(skill.skills ?? "[]")
+            : (skill.skills ?? [])),
+        showDescription: data.showDescription === undefined ? true : data.showDescription,
+        showKeywords: data.showKeywords === undefined ? true : data.showKeywords,
         contentId: skill.id,
         sourceContentId: null,
       };
@@ -1622,21 +1675,23 @@ export class JobApplicationService {
     resumeData.sections.certifications.items = certifications.map((cert) => {
       // Use the existing data field which contains the properly formatted structure
       const data = typeof cert.data === "string" ? JSON.parse(cert.data) : cert.data;
-      
+
       return {
-        ...(data || {}),
-      id: createId(),
-      visible: true,
+        ...data,
+        id: createId(),
+        visible: true,
         // Map the existing data structure to the expected fields
         name: data.name || cert.title || "Certification",
         issuer: data.issuer || cert.company || "Issuing Organization",
-        date: data.date || (cert.startDate
-        ? new Date(cert.startDate).getFullYear().toString()
-          : new Date().getFullYear().toString()),
+        date:
+          data.date ||
+          (cert.startDate
+            ? new Date(cert.startDate).getFullYear().toString()
+            : new Date().getFullYear().toString()),
         summary: data.summary || "",
         url: this.ensureValidUrl(data.url),
-      contentId: cert.id,
-      sourceContentId: null,
+        contentId: cert.id,
+        sourceContentId: null,
       };
     });
 
@@ -1644,22 +1699,24 @@ export class JobApplicationService {
     resumeData.sections.publications.items = publications.map((pub) => {
       // Use the existing data field which contains the properly formatted structure
       const data = typeof pub.data === "string" ? JSON.parse(pub.data) : pub.data;
-      
+
       return {
-        ...(data || {}),
-      id: createId(),
-      visible: true,
+        ...data,
+        id: createId(),
+        visible: true,
         // Map the existing data structure to the expected fields
         name: data.name || pub.title || "Publication",
         publisher: data.publisher || pub.company || "Publisher",
-        date: data.date || (pub.startDate
-        ? new Date(pub.startDate).getFullYear().toString()
-          : new Date().getFullYear().toString()),
+        date:
+          data.date ||
+          (pub.startDate
+            ? new Date(pub.startDate).getFullYear().toString()
+            : new Date().getFullYear().toString()),
         summary: data.summary || "",
-        showDescription: data.showDescription !== undefined ? data.showDescription : true,
+        showDescription: data.showDescription === undefined ? true : data.showDescription,
         url: this.ensureValidUrl(data.url || { label: "", href: pub.url || "" }),
-      contentId: pub.id,
-      sourceContentId: null,
+        contentId: pub.id,
+        sourceContentId: null,
       };
     });
 
@@ -1667,21 +1724,23 @@ export class JobApplicationService {
     resumeData.sections.awards.items = awards.map((award) => {
       // Use the existing data field which contains the properly formatted structure
       const data = typeof award.data === "string" ? JSON.parse(award.data) : award.data;
-      
+
       return {
-        ...(data || {}),
-      id: createId(),
-      visible: true,
+        ...data,
+        id: createId(),
+        visible: true,
         // Map the existing data structure to the expected fields
         title: data.title || award.title || "Award",
         awarder: data.awarder || award.company || award.issuer || "Awarding Organization",
-        date: data.date || (award.startDate
-        ? new Date(award.startDate).getFullYear().toString()
-          : new Date().getFullYear().toString()),
+        date:
+          data.date ||
+          (award.startDate
+            ? new Date(award.startDate).getFullYear().toString()
+            : new Date().getFullYear().toString()),
         summary: data.summary || "",
         url: this.ensureValidUrl(data.url || { label: "", href: award.url || "" }),
-      contentId: award.id,
-      sourceContentId: null,
+        contentId: award.id,
+        sourceContentId: null,
       };
     });
 
@@ -1689,7 +1748,7 @@ export class JobApplicationService {
     resumeData.sections.languages.items = languages.map((lang) => {
       // Use the existing data field which contains the properly formatted structure
       const data = typeof lang.data === "string" ? JSON.parse(lang.data) : lang.data;
-      
+
       // Convert percentage (0-100) to level (0-5) scale
       const convertPercentageToLevel = (percentage: number): number => {
         if (percentage >= 90) return 5;
@@ -1704,16 +1763,18 @@ export class JobApplicationService {
       const convertedLevel = rawLevel > 5 ? convertPercentageToLevel(rawLevel) : rawLevel;
 
       return {
-        ...(data || {}),
+        ...data,
         id: createId(),
         visible: true,
         // Map the existing data structure to the expected fields
         name: data.name || lang.title || "Language",
-        description: data.description || (lang.proficiencyLevel
-          ? `${lang.proficiencyLevel}% proficiency (Level ${convertedLevel}/5)`
-          : lang.description || "No proficiency level specified"),
+        description:
+          data.description ||
+          (lang.proficiencyLevel
+            ? `${lang.proficiencyLevel}% proficiency (Level ${convertedLevel}/5)`
+            : lang.description || "No proficiency level specified"),
         level: convertedLevel,
-        showDescription: data.showDescription !== undefined ? data.showDescription : true,
+        showDescription: data.showDescription === undefined ? true : data.showDescription,
         contentId: lang.id,
         sourceContentId: null,
       };
@@ -1723,19 +1784,21 @@ export class JobApplicationService {
     resumeData.sections.interests.items = interests.map((interest) => {
       // Use the existing data field which contains the properly formatted structure
       const data = typeof interest.data === "string" ? JSON.parse(interest.data) : interest.data;
-      
+
       return {
-        ...(data || {}),
-      id: createId(),
-      visible: true,
+        ...data,
+        id: createId(),
+        visible: true,
         // Map the existing data structure to the expected fields
         name: data.name || interest.title || "Interest",
-        keywords: data.keywords || (typeof interest.keywords === "string"
-          ? JSON.parse(interest.keywords)
-          : interest.keywords || []),
-        showKeywords: data.showKeywords !== undefined ? data.showKeywords : true,
-      contentId: interest.id,
-      sourceContentId: null,
+        keywords:
+          data.keywords ||
+          (typeof interest.keywords === "string"
+            ? JSON.parse(interest.keywords)
+            : interest.keywords || []),
+        showKeywords: data.showKeywords === undefined ? true : data.showKeywords,
+        contentId: interest.id,
+        sourceContentId: null,
       };
     });
 
@@ -1743,11 +1806,11 @@ export class JobApplicationService {
     resumeData.sections.volunteer.items = volunteer.map((vol) => {
       // Use the existing data field which contains the properly formatted structure
       const data = typeof vol.data === "string" ? JSON.parse(vol.data) : vol.data;
-      
+
       return {
-        ...(data || {}),
-      id: createId(),
-      visible: true,
+        ...data,
+        id: createId(),
+        visible: true,
         // Map the existing data structure to the expected fields
         organization: data.organization || vol.company || "Organization",
         position: data.position || vol.position || vol.title || "Volunteer",
@@ -1755,8 +1818,8 @@ export class JobApplicationService {
         date: data.date || this.formatDateRange(vol.startDate, vol.endDate) || "Recent",
         summary: data.summary || "",
         url: this.ensureValidUrl(data.url || { label: "", href: vol.url || "" }),
-      contentId: vol.id,
-      sourceContentId: null,
+        contentId: vol.id,
+        sourceContentId: null,
       };
     });
 
@@ -1764,19 +1827,19 @@ export class JobApplicationService {
     resumeData.sections.references.items = references.map((ref) => {
       // Use the existing data field which contains the properly formatted structure
       const data = typeof ref.data === "string" ? JSON.parse(ref.data) : ref.data;
-      
+
       return {
-        ...(data || {}),
-      id: createId(),
-      visible: true,
+        ...data,
+        id: createId(),
+        visible: true,
         // Map the existing data structure to the expected fields
         name: data.name || ref.title || "Reference",
         description: data.description || ref.position || ref.company || "Reference",
         summary: data.summary || "",
-        showDescription: data.showDescription !== undefined ? data.showDescription : true,
+        showDescription: data.showDescription === undefined ? true : data.showDescription,
         url: this.ensureValidUrl(data.url || { label: "", href: ref.url || "" }),
-      contentId: ref.id,
-      sourceContentId: null,
+        contentId: ref.id,
+        sourceContentId: null,
       };
     });
 
@@ -1784,23 +1847,24 @@ export class JobApplicationService {
     resumeData.sections.profiles.items = profiles.map((profile) => {
       // Use the existing data field which contains the properly formatted structure
       const data = typeof profile.data === "string" ? JSON.parse(profile.data) : profile.data;
-      const content = typeof profile.content === "string" ? JSON.parse(profile.content) : profile.content;
-      
+      const content =
+        typeof profile.content === "string" ? JSON.parse(profile.content) : profile.content;
+
       return {
-        ...(data || {}),
+        ...data,
         id: createId(),
         visible: true,
         // Map the existing data structure to the expected fields
         network: data.network || profile.company || content?.network || "Social Media",
         username: data.username || content?.username || profile.title || "Username",
         icon: data.icon || content?.icon || "",
-        url: this.ensureValidUrl(data.url || { label: "", href: profile.url || content?.url || "" }),
+        url: this.ensureValidUrl(
+          data.url || { label: "", href: profile.url || content?.url || "" },
+        ),
         contentId: profile.id,
         sourceContentId: null,
       };
     });
-
-
 
     return resumeData;
   }
@@ -1809,17 +1873,15 @@ export class JobApplicationService {
    * Ensure URL object has valid href (empty string instead of null or invalid URLs)
    */
   private ensureValidUrl(urlObj: any): { label: string; href: string } {
-    if (!urlObj || typeof urlObj !== 'object') {
+    if (!urlObj || typeof urlObj !== "object") {
       return { label: "", href: "" };
     }
-    
+
     const label = urlObj.label || "";
     let href = urlObj.href || "";
-    
+
     // Convert null/undefined to empty string
-    if (!href) {
-      href = "";
-    } else {
+    if (href) {
       // Validate that href is a proper URL or empty string
       try {
         // If it's an empty string, keep it
@@ -1835,11 +1897,13 @@ export class JobApplicationService {
         // Convert invalid URLs like "#", "javascript:", etc. to empty string
         href = "";
       }
+    } else {
+      href = "";
     }
-    
+
     return {
       label,
-      href
+      href,
     };
   }
 
@@ -1857,7 +1921,6 @@ export class JobApplicationService {
 
     return `${formatDate(startDate)} - ${formatDate(endDate)}`;
   }
-
 
   /**
    * Group skills by category for better organization
@@ -1982,46 +2045,17 @@ export class JobApplicationService {
   ): Promise<string> {
     this.logger.log(`Generating cover letter for job application ${jobApplicationId}`);
 
-    const jobApplication = await this.findOne(jobApplicationId, userId);
-    if (!jobApplication) {
-      throw new Error("Job application not found");
-    }
-
-    // Get selected content (similar logic to resume generation)
-    const selectedContent: any[] = [];
-    if (selectedContentIds?.length) {
-      for (const contentId of selectedContentIds) {
-        const content = await this.contentLibraryService.findOne(contentId, userId);
-        if (content) {
-          selectedContent.push(content);
-        }
-      }
-    }
-
-    const userProfile = { name: "User", email: "user@example.com" }; // TODO: Get real user profile
-
-    const coverLetterResult = await this.llmService.generateCoverLetter(
-      jobApplication.description || "",
-      jobApplication.company,
-      userProfile,
-      selectedContent,
+    // Use CoverLetterGenerationService for cover letter generation
+    const result = await this.coverLetterGenerationService.generateTailoredCoverLetter(
+      jobApplicationId,
+      userId,
+      {
+        selectedParagraphIds: selectedContentIds,
+        tone: "formal",
+      },
     );
 
-    if (!coverLetterResult.success) {
-      throw new Error(`Cover letter generation failed: ${coverLetterResult.error}`);
-    }
-
-    // Save cover letter
-    await this.prisma.coverLetter.create({
-      data: {
-        content: coverLetterResult.data!,
-        jobApplicationId: jobApplication.id,
-      },
-    });
-
-    // Cover letter generation completed - no need to store generated content records
-
-    return coverLetterResult.data!;
+    return result.content;
   }
 
   /**
@@ -2058,20 +2092,18 @@ export class JobApplicationService {
     company: string,
     description: string,
     requirements: string[],
-    extractedTags: string[]
+    extractedTags: string[],
   ): string {
     // Create a comprehensive text representation of the job
     const parts: string[] = [];
 
     // Add job title and company
-    parts.push(`Job Title: ${title}`);
-    parts.push(`Company: ${company}`);
+    parts.push(`Job Title: ${title}`, `Company: ${company}`);
 
     // Add description (truncate if too long)
     if (description) {
-      const truncatedDescription = description.length > 1000 
-        ? description.substring(0, 1000) + "..."
-        : description;
+      const truncatedDescription =
+        description.length > 1000 ? description.slice(0, 1000) + "..." : description;
       parts.push(`Description: ${truncatedDescription}`);
     }
 
@@ -2101,11 +2133,11 @@ export class JobApplicationService {
     llmOutput: any;
     apiOutput: any;
   }) {
-    const logsDir = path.join(process.cwd(), 'logs', 'api-calls');
+    const logsDir = path.join(process.cwd(), "logs", "api-calls");
     if (!fs.existsSync(logsDir)) {
       fs.mkdirSync(logsDir, { recursive: true });
     }
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const timestamp = new Date().toISOString().replace(/[.:]/g, "-");
     const filename = `resume_${jobApplicationId}_${timestamp}.md`;
     const filePath = path.join(logsDir, filename);
     const md = [
@@ -2114,22 +2146,333 @@ export class JobApplicationService {
       `- **Job Application ID:** \`${jobApplicationId}\``,
       `- **User ID:** \`${userId}\``,
       `- **Content Selection:** Auto-selected via content matching`,
-      '',
-      '## LLM Input',
-      '```json',
+      "",
+      "## LLM Input",
+      "```json",
       JSON.stringify(llmInput, null, 2),
-      '```',
-      '',
-      '## LLM Output',
-      '```json',
+      "```",
+      "",
+      "## LLM Output",
+      "```json",
       JSON.stringify(llmOutput, null, 2),
-      '```',
-      '',
-      '## API Output',
-      '```json',
+      "```",
+      "",
+      "## API Output",
+      "```json",
       JSON.stringify(apiOutput, null, 2),
-      '```',
-    ].join('\n');
-    fs.writeFileSync(filePath, md, 'utf-8');
+      "```",
+    ].join("\n");
+    fs.writeFileSync(filePath, md, "utf-8");
+  }
+
+  /**
+   * Enhanced Cover Letter Generation using new CoverLetterContent system
+   */
+  async generateEnhancedCoverLetter(
+    jobApplicationId: string,
+    userId: string,
+    templateName?: string,
+    tone?: string,
+  ): Promise<{
+    coverLetter: string;
+    usedContent: any[];
+    template: string;
+    tone: string;
+  }> {
+    this.logger.debug(`Generating enhanced cover letter for job application ${jobApplicationId}`);
+
+    try {
+      // Get job application with company info
+      const jobApplication = await this.findOne(jobApplicationId, userId);
+      if (!jobApplication) {
+        throw new Error("Job application not found");
+      }
+
+      // Get company information if available
+      let companyInfo = null;
+      if (jobApplication.companyId) {
+        companyInfo = await this.prisma.company.findUnique({
+          where: { id: jobApplication.companyId },
+        });
+      }
+
+      // Get user profile
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      });
+
+      // Generate cover letter using enhanced LLM service
+      const result = await this.llmService.generateCoverLetterWithContent(
+        userId,
+        jobApplication.description || "",
+        companyInfo,
+        this.parseArray(jobApplication.requirements),
+        templateName,
+        tone,
+        user || undefined,
+      );
+
+      if (result.success && result.data) {
+        return {
+          coverLetter: result.data.coverLetter,
+          usedContent: result.data.usedContent,
+          template: result.data.template,
+          tone: result.data.tone,
+        };
+      } else {
+        throw new Error("Failed to generate enhanced cover letter");
+      }
+    } catch (error) {
+      this.logger.error(
+        `Enhanced cover letter generation failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Generate Tailored Cover Letter following the mass-production workflow
+   * This implements the token-based template approach from the cover letter content library document
+   */
+  async generateTailoredCoverLetter(
+    jobApplicationId: string,
+    userId: string,
+    options?: {
+      templateName?: string;
+      tone?: string;
+      maxParagraphs?: number;
+    },
+  ): Promise<{
+    coverLetter: any; // Now returns CoverLetter database object
+    usedContent: any[];
+    companyThemes: string[];
+    selectedParagraphs: any[];
+    template: string;
+    tone: string;
+    metadata: {
+      companyValueAlignment: number;
+      contentDiversity: number;
+      overallFitScore: number;
+    };
+  }> {
+    // Delegate to CoverLetterService for generation and database persistence
+    return this.coverLetterService.generateTailoredCoverLetter(jobApplicationId, userId, options);
+  }
+
+
+
+  /**
+   * Conduct Interview for Story Extraction
+   */
+  async conductInterviewForStories(
+    jobApplicationId: string,
+    userId: string,
+    interviewType: "cover_letter" | "q&a" = "cover_letter",
+  ): Promise<{
+    interviewQuestions: string[];
+    suggestedStoryTypes: string[];
+    followUpQuestions: string[];
+  }> {
+    this.logger.debug(`Conducting interview for job application ${jobApplicationId}`);
+
+    try {
+      const jobApplication = await this.findOne(jobApplicationId, userId);
+      if (!jobApplication) {
+        throw new Error("Job application not found");
+      }
+
+      // Get company information if available
+      let companyInfo = null;
+      if (jobApplication.companyId) {
+        companyInfo = await this.prisma.company.findUnique({
+          where: { id: jobApplication.companyId },
+        });
+      }
+
+      const result = await this.llmService.conductInterviewForStories(
+        userId,
+        jobApplication.description || "",
+        companyInfo,
+        interviewType,
+      );
+
+      if (result.success && result.data) {
+        return {
+          interviewQuestions: result.data.interviewQuestions,
+          suggestedStoryTypes: result.data.suggestedStoryTypes,
+          followUpQuestions: result.data.followUpQuestions,
+        };
+      } else {
+        throw new Error("Failed to conduct interview");
+      }
+    } catch (error) {
+      this.logger.error(
+        `Interview conduction failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Generate Contact Messages for Job Application
+   */
+  async generateContactMessages(
+    jobApplicationId: string,
+    userId: string,
+    contactId: string,
+    messageType: "email" | "linkedin" | "general",
+    customInstructions?: string,
+  ): Promise<{
+    message: string;
+    type: string;
+    contactInfo: any;
+  }> {
+    this.logger.debug(`Generating contact message for job application ${jobApplicationId}`);
+
+    try {
+      const jobApplication = await this.findOne(jobApplicationId, userId);
+      if (!jobApplication) {
+        throw new Error("Job application not found");
+      }
+
+      const contact = await this.prisma.contact.findFirst({
+        where: { id: contactId, userId },
+        include: {
+          company: true,
+        },
+      });
+
+      if (!contact) {
+        throw new Error("Contact not found");
+      }
+
+      const result = await this.llmService.generateContactMessage(
+        userId,
+        contact,
+        messageType,
+        jobApplication,
+        customInstructions,
+      );
+
+      if (result.success && result.data) {
+        return {
+          message: result.data.message,
+          type: result.data.type,
+          contactInfo: result.data.contactInfo,
+        };
+      } else {
+        throw new Error("Failed to generate contact message");
+      }
+    } catch (error) {
+      this.logger.error(
+        `Contact message generation failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Analyze Company for Job Application
+   */
+  async analyzeCompanyForJob(
+    jobApplicationId: string,
+    userId: string,
+  ): Promise<{
+    culture: string;
+    values: string[];
+    mission: string;
+    industry: string;
+    reputation: string;
+    growth: string;
+    technology: string;
+    benefits: string;
+    opportunities: string;
+  }> {
+    this.logger.debug(`Analyzing company for job application ${jobApplicationId}`);
+
+    const jobApplication = await this.findOne(jobApplicationId, userId);
+    if (!jobApplication) {
+      throw new Error("Job application not found");
+    }
+
+    // Use CompanyResearchService for company analysis
+    const result = await this.companyResearchService.analyzeCompanyForJob(
+      jobApplication.companyId,
+      jobApplication.companyName || "Unknown Company",
+      jobApplication.url || undefined,
+      jobApplication.description || undefined,
+    );
+
+    // If no company was linked, create the link
+    if (!jobApplication.companyId && result) {
+      // Try to find the company that was created during analysis
+      const company = await this.companyService.findByName(jobApplication.companyName || "");
+      if (company) {
+        await this.update(jobApplicationId, userId, {
+          companyId: company.id,
+        });
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Get Job Application with Enhanced Data
+   */
+  async findOneWithEnhancedData(id: string, userId: string): Promise<any> {
+    const jobApplication = await this.findOne(id, userId);
+    if (!jobApplication) {
+      return null;
+    }
+
+    // Get company information
+    let company = null;
+    if (jobApplication.companyId) {
+      company = await this.prisma.company.findUnique({
+        where: { id: jobApplication.companyId },
+      });
+    }
+
+    // Get contacts
+    const contacts = await this.prisma.contact.findMany({
+      where: { jobApplicationId: id, userId },
+      include: {
+        company: true,
+        messages: {
+          orderBy: { createdAt: "desc" },
+          take: 5,
+        },
+      },
+    });
+
+    // Get questions
+    const questions = await this.prisma.jobApplicationQuestion.findMany({
+      where: { jobApplicationId: id },
+      orderBy: { priority: "asc" },
+    });
+
+    // Get cover letter content
+    const coverLetterContent = await this.prisma.coverLetterContent.findMany({
+      where: { userId },
+      include: {
+        content: true,
+      },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+    });
+
+    return {
+      ...jobApplication,
+      company,
+      contacts,
+      questions,
+      coverLetterContent,
+    };
   }
 }
