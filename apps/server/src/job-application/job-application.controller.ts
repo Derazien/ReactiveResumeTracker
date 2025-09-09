@@ -6,7 +6,8 @@ import type { CreateJobApplicationDto, UpdateJobApplicationDto } from "@reactive
 import { TwoFactorGuard } from "@/server/auth/guards/two-factor.guard";
 import { User } from "@/server/user/decorators/user.decorator";
 
-import { type JobAnalysisResult, JobApplicationService } from "./job-application.service";
+import { type JobAnalysisResult } from "./job-analysis.service";
+import { JobApplicationService } from "./job-application.service";
 
 @ApiTags("Job Applications")
 @Controller("job-applications")
@@ -98,5 +99,94 @@ export class JobApplicationController {
   async generateInterviewQuestions(@User("id") userId: string, @Param("id") id: string) {
     const questions = await this.jobApplicationService.generateInterviewQuestions(id, userId);
     return { questions };
+  }
+
+  // Enhanced Cover Letter System Endpoints
+
+  @Post(":id/generate-enhanced-cover-letter")
+  @ApiOperation({ summary: "Generate enhanced cover letter using CoverLetterContent system" })
+  async generateEnhancedCoverLetter(
+    @User("id") userId: string,
+    @Param("id") id: string,
+    @Body() body: { templateName?: string; tone?: string },
+  ) {
+    return this.jobApplicationService.generateEnhancedCoverLetter(
+      id,
+      userId,
+      body.templateName,
+      body.tone,
+    );
+  }
+
+  @Post(":id/generate-tailored-cover-letter")
+  @ApiOperation({ summary: "Generate tailored cover letter following mass-production workflow" })
+  async generateTailoredCoverLetter(
+    @User("id") userId: string,
+    @Param("id") id: string,
+    @Body() body: { 
+      templateName?: string; 
+      tone?: string;
+      maxParagraphs?: number;
+    },
+  ) {
+    return this.jobApplicationService.generateTailoredCoverLetter(
+      id,
+      userId,
+      {
+        templateName: body.templateName,
+        tone: body.tone,
+        maxParagraphs: body.maxParagraphs,
+      },
+    );
+  }
+
+  @Post(":id/conduct-interview")
+  @ApiOperation({ summary: "Conduct LLM interview for story extraction" })
+  async conductInterviewForStories(
+    @User("id") userId: string,
+    @Param("id") id: string,
+    @Body() body: { interviewType?: "cover_letter" | "q&a" },
+  ) {
+    return this.jobApplicationService.conductInterviewForStories(
+      id,
+      userId,
+      body.interviewType || "cover_letter",
+    );
+  }
+
+  @Post(":id/generate-contact-message")
+  @ApiOperation({ summary: "Generate contact message for job application" })
+  async generateContactMessages(
+    @User("id") userId: string,
+    @Param("id") id: string,
+    @Body()
+    body: {
+      contactId: string;
+      messageType: "email" | "linkedin" | "general";
+      customInstructions?: string;
+    },
+  ) {
+    return this.jobApplicationService.generateContactMessages(
+      id,
+      userId,
+      body.contactId,
+      body.messageType,
+      body.customInstructions,
+    );
+  }
+
+  @Post(":id/analyze-company")
+  @ApiOperation({ summary: "Analyze company for job application" })
+  async analyzeCompanyForJob(@User("id") userId: string, @Param("id") id: string) {
+    return this.jobApplicationService.analyzeCompanyForJob(id, userId);
+  }
+
+  @Get(":id/enhanced")
+  @ApiOperation({
+    summary:
+      "Get job application with enhanced data (company, contacts, questions, cover letter content)",
+  })
+  async findOneWithEnhancedData(@User("id") userId: string, @Param("id") id: string) {
+    return this.jobApplicationService.findOneWithEnhancedData(id, userId);
   }
 }
