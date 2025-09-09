@@ -23,10 +23,13 @@ import { useNavigate, useParams } from "react-router";
 import { useToast } from "@/client/hooks/use-toast";
 import { useJobApplication } from "@/client/services/job-application/job-application";
 import { useUpdateJobApplication } from "@/client/services/job-application/update";
+import { useCreateCompany, type Company } from "@/client/services/company";
+import { CompanyAutocomplete } from "@/client/components/company-autocomplete";
 
 type FormData = {
   title: string;
   company: string;
+  companyId?: string;
   description: string;
   url: string;
   notes: string;
@@ -57,11 +60,13 @@ export const JobApplicationEditPage = () => {
   const { toast } = useToast();
 
   const { jobApplication, loading } = useJobApplication(id!);
+  const { createCompany, loading: isCreatingCompany } = useCreateCompany();
   const { updateJobApplication, loading: isUpdating } = useUpdateJobApplication();
 
   const [formData, setFormData] = useState<FormData>({
     title: "",
     company: "",
+    companyId: undefined,
     description: "",
     url: "",
     notes: "",
@@ -76,7 +81,8 @@ export const JobApplicationEditPage = () => {
     if (jobApplication) {
       setFormData({
         title: jobApplication.title || "",
-        company: jobApplication.company || "",
+        company: jobApplication.companyName || "",
+        companyId: jobApplication.companyId || undefined,
         description: jobApplication.description || "",
         url: jobApplication.url || "",
         notes: jobApplication.notes || "",
@@ -104,6 +110,54 @@ export const JobApplicationEditPage = () => {
 
       return newData;
     });
+  };
+
+  // Handle company selection from autocomplete
+  const handleCompanySelect = (company: Company | null) => {
+    if (company) {
+      setFormData((prev) => ({
+        ...prev,
+        company: company.name,
+        companyId: company.id,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        company: "",
+        companyId: undefined,
+      }));
+    }
+  };
+
+  // Handle creating new company
+  const handleCreateNewCompany = async (companyName: string) => {
+    try {
+      const newCompany = await createCompany({
+        name: companyName,
+        description: `Company created from job application`,
+        values: "[]",
+      });
+
+      // Auto-research the new company in background
+      // This will happen automatically via the CompanyResearchService
+      
+      setFormData((prev) => ({
+        ...prev,
+        company: newCompany.name,
+        companyId: newCompany.id,
+      }));
+
+      toast({
+        title: t`Company Created`,
+        description: t`"${companyName}" has been created and will be researched automatically.`,
+      });
+    } catch (error) {
+      console.error("Failed to create company:", error);
+      toast({
+        title: t`Error`,
+        description: t`Failed to create company. Please try again.`,
+      });
+    }
   };
 
   const handleRequirementChange = (index: number, value: string) => {
@@ -164,7 +218,8 @@ export const JobApplicationEditPage = () => {
         id,
         data: {
           title: formData.title,
-          company: formData.company,
+          companyName: formData.company,
+          companyId: formData.companyId,
           description: formData.description,
           url: formData.url || undefined,
           notes: formData.notes || undefined,
@@ -244,7 +299,7 @@ export const JobApplicationEditPage = () => {
           <div className="text-muted-foreground flex items-center gap-4">
             <div className="flex items-center gap-1">
               <Building size={16} />
-              <span>{jobApplication.company}</span>
+              <span>{jobApplication.companyName}</span>
             </div>
             {jobApplication.appliedDate && (
               <div className="flex items-center gap-1">
@@ -282,14 +337,18 @@ export const JobApplicationEditPage = () => {
             </div>
             <div>
               <Label htmlFor="company">{t`Company`} *</Label>
-              <Input
-                id="company"
+              <CompanyAutocomplete
                 value={formData.company}
-                placeholder={t`e.g. TechCorp Inc.`}
-                onChange={(e) => {
-                  handleInputChange("company", e.target.value);
-                }}
+                onSelect={handleCompanySelect}
+                onCreateNew={handleCreateNewCompany}
+                placeholder={t`Search or create company...`}
+                disabled={isCreatingCompany}
               />
+              {isCreatingCompany && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  {t`Creating company and researching details...`}
+                </p>
+              )}
             </div>
           </div>
 
