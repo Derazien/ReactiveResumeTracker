@@ -9,7 +9,6 @@ import { CoverLetterModule } from "@/server/cover-letter/cover-letter.module";
 import { EmbeddingModule } from "@/server/embedding/embedding.module";
 import { LLMModule } from "@/server/llm/llm.module";
 
-import { CoverLetterGenerationService } from "./cover-letter-generation.service";
 import { JobAnalysisService } from "./job-analysis.service";
 import { JobApplicationController } from "./job-application.controller";
 import { JobApplicationService } from "./job-application.service";
@@ -31,13 +30,11 @@ import { ResumeGenerationService } from "./resume-generation.service";
     JobApplicationService,
     JobAnalysisService,
     ResumeGenerationService,
-    CoverLetterGenerationService,
   ],
   exports: [
     JobApplicationService,
     JobAnalysisService,
     ResumeGenerationService,
-    CoverLetterGenerationService,
   ],
 })
 export class JobApplicationModule {}

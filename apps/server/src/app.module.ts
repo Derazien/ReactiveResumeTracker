@@ -3,33 +3,39 @@ import path from "node:path";
 import { HttpException, Module } from "@nestjs/common";
 import { APP_INTERCEPTOR, APP_PIPE } from "@nestjs/core";
 import { ServeStaticModule } from "@nestjs/serve-static";
-import { RavenInterceptor, RavenModule } from "nest-raven";
+// import { RavenInterceptor, RavenModule } from "nest-raven"; // TODO: Replace with compatible Sentry integration
 import { ZodValidationPipe } from "nestjs-zod";
 
 import { AuthModule } from "./auth/auth.module";
+import { CompanyModule } from "./company/company.module";
 import { ConfigModule } from "./config/config.module";
+import { ContactModule } from "./contact/contact.module";
+import { ContactMessageModule } from "./contact-message/contact-message.module";
 import { ContentLibraryModule } from "./content-library/content-library.module";
 import { ContributorsModule } from "./contributors/contributors.module";
+import { CoverLetterModule } from "./cover-letter/cover-letter.module";
+import { CoverLetterContentModule } from "./cover-letter-content/cover-letter-content.module";
 import { DatabaseModule } from "./database/database.module";
 import { FeatureModule } from "./feature/feature.module";
 import { HealthModule } from "./health/health.module";
 import { JobApplicationModule } from "./job-application/job-application.module";
+import { JobApplicationQuestionModule } from "./job-application-question/job-application-question.module";
 import { LLMModule } from "./llm/llm.module";
 import { MailModule } from "./mail/mail.module";
 import { PrinterModule } from "./printer/printer.module";
 import { ResumeModule } from "./resume/resume.module";
 import { StorageModule } from "./storage/storage.module";
 import { TagModule } from "./tag/tag.module";
+import { TranscriptionModule } from "./transcription/transcription.module";
 import { TranslationModule } from "./translation/translation.module";
 import { UserModule } from "./user/user.module";
-
 @Module({
   imports: [
     // Core Modules
     ConfigModule,
     DatabaseModule,
     MailModule,
-    RavenModule,
+    // RavenModule, // TODO: Replace with compatible Sentry integration
     HealthModule,
 
     // Feature Modules
@@ -38,7 +44,14 @@ import { UserModule } from "./user/user.module";
     ResumeModule,
     JobApplicationModule,
     ContentLibraryModule,
+    CoverLetterModule,
+    CoverLetterContentModule,
+    CompanyModule,
+    ContactModule,
+    JobApplicationQuestionModule,
+    ContactMessageModule,
     TagModule,
+    TranscriptionModule,
     LLMModule,
     StorageModule,
     PrinterModule,
@@ -63,18 +76,19 @@ import { UserModule } from "./user/user.module";
       provide: APP_PIPE,
       useClass: ZodValidationPipe,
     },
-    {
-      provide: APP_INTERCEPTOR,
-      useValue: new RavenInterceptor({
-        filters: [
-          // Filter all HttpException with status code <= 500
-          {
-            type: HttpException,
-            filter: (exception: HttpException) => exception.getStatus() < 500,
-          },
-        ],
-      }),
-    },
+    // TODO: Replace RavenInterceptor with compatible Sentry integration
+    // {
+    //   provide: APP_INTERCEPTOR,
+    //   useValue: new RavenInterceptor({
+    //     filters: [
+    //       // Filter all HttpException with status code <= 500
+    //       {
+    //         type: HttpException,
+    //         filter: (exception: HttpException) => exception.getStatus() < 500,
+    //       },
+    //     ],
+    //   }),
+    // },
   ],
 })
 export class AppModule {}

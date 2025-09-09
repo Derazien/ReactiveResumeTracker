@@ -15,7 +15,6 @@ import { CoverLetterService } from "@/server/cover-letter/cover-letter.service";
 import { EmbeddingService } from "@/server/embedding/embedding.service";
 import { LLMService } from "@/server/llm/llm.service";
 
-import { CoverLetterGenerationService } from "./cover-letter-generation.service";
 import { JobAnalysisService, type JobAnalysisResult } from "./job-analysis.service";
 import { ResumeGenerationService } from "./resume-generation.service";
 
@@ -34,7 +33,6 @@ export class JobApplicationService {
     private readonly companyResearchService: CompanyResearchService,
     private readonly jobAnalysisService: JobAnalysisService,
     private readonly resumeGenerationService: ResumeGenerationService,
-    private readonly coverLetterGenerationService: CoverLetterGenerationService,
   ) {}
 
   /**
@@ -2035,28 +2033,6 @@ export class JobApplicationService {
       });
   }
 
-  /**
-   * Generate a personalized cover letter
-   */
-  async generateCoverLetter(
-    jobApplicationId: string,
-    userId: string,
-    selectedContentIds?: string[],
-  ): Promise<string> {
-    this.logger.log(`Generating cover letter for job application ${jobApplicationId}`);
-
-    // Use CoverLetterGenerationService for cover letter generation
-    const result = await this.coverLetterGenerationService.generateTailoredCoverLetter(
-      jobApplicationId,
-      userId,
-      {
-        selectedParagraphIds: selectedContentIds,
-        tone: "formal",
-      },
-    );
-
-    return result.content;
-  }
 
   /**
    * Generate interview questions for practice
@@ -2165,75 +2141,6 @@ export class JobApplicationService {
     fs.writeFileSync(filePath, md, "utf-8");
   }
 
-  /**
-   * Enhanced Cover Letter Generation using new CoverLetterContent system
-   */
-  async generateEnhancedCoverLetter(
-    jobApplicationId: string,
-    userId: string,
-    templateName?: string,
-    tone?: string,
-  ): Promise<{
-    coverLetter: string;
-    usedContent: any[];
-    template: string;
-    tone: string;
-  }> {
-    this.logger.debug(`Generating enhanced cover letter for job application ${jobApplicationId}`);
-
-    try {
-      // Get job application with company info
-      const jobApplication = await this.findOne(jobApplicationId, userId);
-      if (!jobApplication) {
-        throw new Error("Job application not found");
-      }
-
-      // Get company information if available
-      let companyInfo = null;
-      if (jobApplication.companyId) {
-        companyInfo = await this.prisma.company.findUnique({
-          where: { id: jobApplication.companyId },
-        });
-      }
-
-      // Get user profile
-      const user = await this.prisma.user.findUnique({
-        where: { id: userId },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-        },
-      });
-
-      // Generate cover letter using enhanced LLM service
-      const result = await this.llmService.generateCoverLetterWithContent(
-        userId,
-        jobApplication.description || "",
-        companyInfo,
-        this.parseArray(jobApplication.requirements),
-        templateName,
-        tone,
-        user || undefined,
-      );
-
-      if (result.success && result.data) {
-        return {
-          coverLetter: result.data.coverLetter,
-          usedContent: result.data.usedContent,
-          template: result.data.template,
-          tone: result.data.tone,
-        };
-      } else {
-        throw new Error("Failed to generate enhanced cover letter");
-      }
-    } catch (error) {
-      this.logger.error(
-        `Enhanced cover letter generation failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-      );
-      throw error;
-    }
-  }
 
   /**
    * Generate Tailored Cover Letter following the mass-production workflow

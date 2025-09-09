@@ -80,47 +80,8 @@ export class JobApplicationController {
   }
 
   @Post(":id/generate-cover-letter")
-  @ApiOperation({ summary: "Generate personalized cover letter" })
+  @ApiOperation({ summary: "Generate tailored cover letter following blueprint" })
   async generateCoverLetter(
-    @User("id") userId: string,
-    @Param("id") id: string,
-    @Body() body: { selectedContentIds?: string[] },
-  ) {
-    const coverLetter = await this.jobApplicationService.generateCoverLetter(
-      id,
-      userId,
-      body.selectedContentIds,
-    );
-    return { coverLetter };
-  }
-
-  @Post(":id/generate-interview-questions")
-  @ApiOperation({ summary: "Generate interview practice questions" })
-  async generateInterviewQuestions(@User("id") userId: string, @Param("id") id: string) {
-    const questions = await this.jobApplicationService.generateInterviewQuestions(id, userId);
-    return { questions };
-  }
-
-  // Enhanced Cover Letter System Endpoints
-
-  @Post(":id/generate-enhanced-cover-letter")
-  @ApiOperation({ summary: "Generate enhanced cover letter using CoverLetterContent system" })
-  async generateEnhancedCoverLetter(
-    @User("id") userId: string,
-    @Param("id") id: string,
-    @Body() body: { templateName?: string; tone?: string },
-  ) {
-    return this.jobApplicationService.generateEnhancedCoverLetter(
-      id,
-      userId,
-      body.templateName,
-      body.tone,
-    );
-  }
-
-  @Post(":id/generate-tailored-cover-letter")
-  @ApiOperation({ summary: "Generate tailored cover letter following mass-production workflow" })
-  async generateTailoredCoverLetter(
     @User("id") userId: string,
     @Param("id") id: string,
     @Body() body: { 
@@ -139,6 +100,14 @@ export class JobApplicationController {
       },
     );
   }
+
+  @Post(":id/generate-interview-questions")
+  @ApiOperation({ summary: "Generate interview practice questions" })
+  async generateInterviewQuestions(@User("id") userId: string, @Param("id") id: string) {
+    const questions = await this.jobApplicationService.generateInterviewQuestions(id, userId);
+    return { questions };
+  }
+
 
   @Post(":id/conduct-interview")
   @ApiOperation({ summary: "Conduct LLM interview for story extraction" })

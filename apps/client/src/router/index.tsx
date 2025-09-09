@@ -10,7 +10,16 @@ import { VerifyEmailPage } from "../pages/auth/verify-email/page";
 import { VerifyOtpPage } from "../pages/auth/verify-otp/page";
 import { BuilderLayout } from "../pages/builder/layout";
 import { builderLoader, BuilderPage } from "../pages/builder/page";
+import { CoverLetterBuilderLayout } from "../pages/cover-letter-builder/layout";
+import {
+  coverLetterBuilderLoader,
+  CoverLetterBuilderPage,
+} from "../pages/cover-letter-builder/page";
+import CompaniesPage from "../pages/dashboard/companies/page";
+import CompanyDetailPage from "../pages/dashboard/companies/[id]/page";
+import CompanyEditPage from "../pages/dashboard/companies/[id]/edit/page";
 import ContentLibraryPage from "../pages/dashboard/content-library/page";
+import CoverLetterStoriesPage from "../pages/dashboard/cover-letter-stories/page";
 import { JobApplicationEditPage } from "../pages/dashboard/job-applications/[id]/edit/page";
 import { JobApplicationDetailPage } from "../pages/dashboard/job-applications/[id]/page";
 import { NewJobApplicationPage } from "../pages/dashboard/job-applications/new/page";
@@ -74,6 +83,10 @@ export const routes = createRoutesFromElements(
             <Route path="job-applications/:id" element={<JobApplicationDetailPage />} />
             <Route path="job-applications/:id/edit" element={<JobApplicationEditPage />} />
             <Route path="content-library" element={<ContentLibraryPage />} />
+            <Route path="cover-letter-stories" element={<CoverLetterStoriesPage />} />
+            <Route path="companies" element={<CompaniesPage />} />
+            <Route path="companies/:id" element={<CompanyDetailPage />} />
+            <Route path="companies/:id/edit" element={<CompanyEditPage />} />
             <Route path="settings" element={<SettingsPage />} />
 
             <Route index element={<Navigate replace to="/dashboard/resumes" />} />
@@ -87,6 +100,20 @@ export const routes = createRoutesFromElements(
             <Route path=":id" loader={builderLoader} element={<BuilderPage />} />
 
             <Route index element={<Navigate replace to="/dashboard/resumes" />} />
+          </Route>
+        </Route>
+      </Route>
+
+      <Route path="cover-letter-builder">
+        <Route element={<AuthGuard />}>
+          <Route element={<CoverLetterBuilderLayout />}>
+            <Route
+              path=":id"
+              loader={coverLetterBuilderLoader}
+              element={<CoverLetterBuilderPage />}
+            />
+
+            <Route index element={<Navigate replace to="/dashboard/job-applications" />} />
           </Route>
         </Route>
       </Route>

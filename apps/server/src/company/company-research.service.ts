@@ -107,30 +107,32 @@ export class CompanyResearchService {
 
       const companyData = analysisResult.data;
 
-      // Update company with enhanced structured data
-      await this.companyService.update(companyId, {
-        // Basic company info
-        name: companyData.companyInfo?.name || companyName,
-        description: companyData.companyInfo?.description || `Company: ${companyName}`,
-        industry: companyData.companyInfo?.industry,
-        size: companyData.companyInfo?.size,
-        location: companyData.companyInfo?.location,
-        website: companyData.companyInfo?.website || companyData.socialMedia?.linkedin || jobUrl,
-        logo: companyData.companyInfo?.logo,
-        
-        // Culture and values
-        values: JSON.stringify(companyData.culture?.values || []),
-        mission: companyData.culture?.mission,
-        culture: companyData.culture?.culture,
-        
-        // Social media links
-        linkedinUrl: companyData.socialMedia?.linkedin,
-        twitterUrl: companyData.socialMedia?.twitter,
-        facebookUrl: companyData.socialMedia?.facebook,
-        instagramUrl: companyData.socialMedia?.instagram,
-        youtubeUrl: companyData.socialMedia?.youtube,
-        githubUrl: companyData.socialMedia?.github,
-      });
+      // Update company with enhanced structured data only if analysis succeeded
+      if (companyData) {
+        await this.companyService.update(companyId, {
+          // Basic company info
+          name: companyData.companyInfo?.name || companyName,
+          description: companyData.companyInfo?.description || `Company: ${companyName}`,
+          industry: companyData.companyInfo?.industry,
+          size: companyData.companyInfo?.size,
+          location: companyData.companyInfo?.location,
+          website: companyData.companyInfo?.website || companyData.socialMedia?.linkedin || jobUrl,
+          logo: companyData.companyInfo?.logo,
+          
+          // Culture and values
+          values: JSON.stringify(companyData.culture?.values || []),
+          mission: companyData.culture?.mission,
+          culture: companyData.culture?.culture,
+          
+          // Social media links
+          linkedinUrl: companyData.socialMedia?.linkedin,
+          twitterUrl: companyData.socialMedia?.twitter,
+          facebookUrl: companyData.socialMedia?.facebook,
+          instagramUrl: companyData.socialMedia?.instagram,
+          youtubeUrl: companyData.socialMedia?.youtube,
+          githubUrl: companyData.socialMedia?.github,
+        });
+      }
 
       this.logger.log(`Completed background analysis for company: ${companyName}`);
     } catch (error) {
@@ -184,13 +186,16 @@ export class CompanyResearchService {
       );
 
       if (result.success && result.data) {
+        const analysisData = result.data;
+        
         // If we have a company record, update it
         if (company) {
           await this.companyService.update(company.id, {
-            description: result.data.industry,
-            values: JSON.stringify(result.data.values),
-            mission: result.data.mission,
-            culture: result.data.culture,
+            description: analysisData.companyInfo?.description,
+            industry: analysisData.companyInfo?.industry,
+            values: JSON.stringify(analysisData.culture?.values || []),
+            mission: analysisData.culture?.mission,
+            culture: analysisData.culture?.culture,
             website: jobUrl,
           });
         } else if (!companyId) {
@@ -198,10 +203,11 @@ export class CompanyResearchService {
           const newCompany = await this.prisma.company.create({
             data: {
               name: companyName,
-              description: result.data.industry,
-              values: JSON.stringify(result.data.values),
-              mission: result.data.mission,
-              culture: result.data.culture,
+              description: analysisData.companyInfo?.description || `Company: ${companyName}`,
+              industry: analysisData.companyInfo?.industry,
+              values: JSON.stringify(analysisData.culture?.values || []),
+              mission: analysisData.culture?.mission,
+              culture: analysisData.culture?.culture,
               website: jobUrl,
             },
           });
@@ -209,7 +215,18 @@ export class CompanyResearchService {
           this.logger.log(`Created new company record: ${newCompany.id}`);
         }
 
-        return result.data;
+        // Return the expected CompanyAnalysisResult structure
+        return {
+          culture: analysisData.culture?.culture || "",
+          values: analysisData.culture?.values || [],
+          mission: analysisData.culture?.mission || "",
+          industry: analysisData.companyInfo?.industry || "",
+          reputation: "",
+          growth: "",
+          technology: "",
+          benefits: "",
+          opportunities: "",
+        };
       } else {
         throw new Error("Failed to analyze company");
       }
