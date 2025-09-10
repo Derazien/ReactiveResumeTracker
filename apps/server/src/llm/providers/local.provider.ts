@@ -457,7 +457,7 @@ Return only the JSON object, no additional text.`;
         data: result,
         usage: response.usage,
       };
-    } catch (error) {
+    } catch {
       return {
         success: false,
         error: "Failed to parse complete CV tailoring result",

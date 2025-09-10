@@ -2153,9 +2153,10 @@ export class JobApplicationService {
       templateName?: string;
       tone?: string;
       maxParagraphs?: number;
+      selectedStoryIds?: string[];
     },
   ): Promise<{
-    coverLetter: any; // Now returns CoverLetter database object
+    coverLetter: any; // Enhanced CoverLetter object with metadata
     usedContent: any[];
     companyThemes: string[];
     selectedParagraphs: any[];

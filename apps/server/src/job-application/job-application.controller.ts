@@ -88,6 +88,7 @@ export class JobApplicationController {
       templateName?: string; 
       tone?: string;
       maxParagraphs?: number;
+      selectedStoryIds?: string[];
     },
   ) {
     return this.jobApplicationService.generateTailoredCoverLetter(
@@ -97,6 +98,7 @@ export class JobApplicationController {
         templateName: body.templateName,
         tone: body.tone,
         maxParagraphs: body.maxParagraphs,
+        selectedStoryIds: body.selectedStoryIds,
       },
     );
   }

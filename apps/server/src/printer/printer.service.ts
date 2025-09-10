@@ -281,4 +281,103 @@ export class PrinterService {
 
     return previewUrl;
   }
+
+  /**
+   * Print cover letter as PDF
+   */
+  async printCoverLetter(coverLetterData: any): Promise<string> {
+    const start = performance.now();
+
+    const url = await retry<string | undefined>(() => this.generateCoverLetterPDF(coverLetterData), {
+      retries: 3,
+      randomize: true,
+      onRetry: (_, attempt) => {
+        this.logger.log(`Retrying to print cover letter #${coverLetterData.id}, attempt #${attempt}`);
+      },
+    });
+
+    if (!url) {
+      throw new InternalServerErrorException("Failed to generate cover letter PDF");
+    }
+
+    const duration = Number(performance.now() - start).toFixed(0);
+
+    this.logger.debug(`Chrome took ${duration}ms to print cover letter`);
+
+    return url;
+  }
+
+  /**
+   * Generate cover letter PDF using puppeteer
+   */
+  private async generateCoverLetterPDF(coverLetterData: any): Promise<string | undefined> {
+    try {
+      const browser = await this.getBrowser();
+      const page = await browser.newPage();
+
+      const publicUrl = this.configService.getOrThrow<string>("PUBLIC_URL");
+      const storageUrl = this.configService.getOrThrow<string>("STORAGE_URL");
+
+      let url = publicUrl;
+
+      if ([publicUrl, storageUrl].some((url) => /https?:\/\/localhost(:\d+)?/.test(url))) {
+        // Switch client URL for docker development
+        url = url.replace(
+          /localhost(:\d+)?/,
+          (_match, port) => `host.docker.internal${port ?? ""}`,
+        );
+
+        await page.setRequestInterception(true);
+
+        page.on("request", (request) => {
+          if (request.url().startsWith(storageUrl)) {
+            const modifiedUrl = request
+              .url()
+              .replace(/localhost(:\d+)?/, (_match, port) => `host.docker.internal${port ?? ""}`);
+
+            void request.continue({ url: modifiedUrl });
+          } else {
+            void request.continue();
+          }
+        });
+      }
+
+      // Store cover letter data in localStorage for artboard access
+      await page.evaluateOnNewDocument((data) => {
+        window.localStorage.setItem("coverLetter", JSON.stringify(data));
+      }, coverLetterData);
+
+      // Navigate to cover letter preview
+      await page.goto(`${url}/artboard/cover-letter/preview`, { waitUntil: "networkidle0" });
+
+      // Generate PDF
+      const buffer = await page.pdf({
+        format: coverLetterData.metadata?.page?.format === "letter" ? "letter" : "a4",
+        margin: {
+          top: "0mm",
+          right: "0mm", 
+          bottom: "0mm",
+          left: "0mm",
+        },
+        printBackground: true,
+      });
+
+      // Close page and disconnect
+      await page.close();
+      await browser.disconnect();
+
+      // Save PDF and return URL (using "resumes" type for cover letters)
+      const pdfUrl = await this.storageService.uploadObject(
+        coverLetterData.userId,
+        "resumes",
+        Buffer.from(buffer),
+        `cover-letter-${coverLetterData.id}`,
+      );
+
+      return pdfUrl;
+    } catch (error) {
+      this.logger.error(`Failed to generate cover letter PDF: ${error.message}`);
+      throw error;
+    }
+  }
 }

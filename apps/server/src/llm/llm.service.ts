@@ -1,3 +1,6 @@
+import * as fs from "node:fs";
+import * as path from "node:path";
+
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "nestjs-prisma";
@@ -3385,54 +3388,81 @@ Return format: theme1, theme2, theme3`;
 
       const provider = await this.getProviderForUser(user.id);
 
-      // Build the master template following the document structure
-      const masterTemplate = this.buildMasterCoverLetterTemplate();
+      // Build the body template only (header/footer handled separately)
+      const bodyTemplate = this.buildCoverLetterBodyTemplate();
 
-      // Create the generation prompt
+      // Get best contact content for accurate header details (with job title for headline)
+      const contactContent = await this.getBestContactContent(user.id, jobApplication?.title);
+
+      // Create the generation prompt for body only
       const prompt = this.buildTailoredCoverLetterPrompt(
-        masterTemplate,
+        bodyTemplate,
         user,
         jobApplication,
         companyInfo,
         selectedContent,
         companyThemes,
         options,
+        contactContent,
       );
+
+      // Log LLM request for inspection
+      await this.logCoverLetterRequest(prompt, user.id, jobApplication.id);
 
       const result = await provider.chat([
         {
           role: "system" as const,
-          content: `You are an expert cover letter writer implementing a mass-production workflow. 
+          content: `You are an expert cover letter writer. Generate ONLY the body content of a cover letter.
 
 CRITICAL REQUIREMENTS:
-1. Follow the token-based template structure EXACTLY
-2. Replace ALL bracketed tokens with appropriate content
-3. Use the selected paragraph blocks in [Paragraph A], [Paragraph B], [Paragraph C] positions
-4. Incorporate company-specific language and values naturally
-5. Maintain the specified tone throughout
-6. Ensure the letter flows naturally and tells a compelling story
-7. Keep the letter concise and impactful (under 400 words)
+1. Generate ONLY body content (no header like name/email, no footer like Sincerely)
+2. Replace ALL [bracketed tokens] with actual content - NO brackets should remain
+3. Use the provided story blocks for [Paragraph A], [Paragraph B], [Paragraph C]
+4. Integrate company values and themes naturally
+5. Use ${options.tone} tone throughout
+6. Keep body concise (200-300 words)
+7. Ensure authentic, personal storytelling that matches company culture
 
-You must produce a complete, professional cover letter that follows the template structure while seamlessly integrating the candidate's stories and company information.`,
+Output only the body text with no structural elements.`,
         },
         { role: "user" as const, content: prompt },
       ]);
 
+      // Log LLM response for inspection
+      await this.logCoverLetterResponse(result, user.id, jobApplication.id);
+
       if (result.success && result.data) {
+        // Build structured header data (separate from content)
+        const headerData = this.buildCoverLetterHeaderData(user, contactContent);
+        const companyData = this.buildCoverLetterCompanyData(jobApplication, companyInfo);
+        
         // Calculate alignment scores
         const companyValueAlignment = this.calculateOverallCompanyAlignment(selectedContent, companyInfo);
         const overallFitScore = this.calculateOverallFitScore(selectedContent, companyThemes);
 
+        // For now, return the legacy structure but store the structured data for later use
+        const structuredData = {
+          bodyContent: result.data,
+          headerData,
+          companyData, 
+          footerData: {
+            closing: "Sincerely,",
+            senderName: headerData.senderName,
+          },
+        };
+
         return {
           success: true,
           data: {
-            coverLetter: result.data,
+            coverLetter: result.data, // Body content only
             template: options.templateName,
             tone: options.tone,
             companyValueAlignment,
             overallFitScore,
           },
-        };
+          // Store structured data in a way that's accessible
+          structuredData,
+        } as any; // Temporarily bypass type checking for enhanced data
       } else {
         return {
           success: false,
@@ -3451,25 +3481,10 @@ You must produce a complete, professional cover letter that follows the template
   }
 
   /**
-   * Build master cover letter template following the document structure
+   * Build master cover letter template - BODY ONLY (header/footer separate)
    */
-  private buildMasterCoverLetterTemplate(): string {
-    return `[FIRST NAME] [LAST NAME]
-[Address] (optional)
-E: [Email] | M: [Phone]
-[LinkedIn] (optional)
-
-[Date]
-
-[Recruiter Name] (optional)
-[Company Name]
-[Company Address] (optional)
-
-Application for [Role] at [Company]
-
-Dear [Name | Recruiting Team | Hiring Manager],
-
-[Intake-Sentence]
+  private buildCoverLetterBodyTemplate(): string {
+    return `[Intake-Sentence]
 
 [Paragraph A]
 
@@ -3477,24 +3492,51 @@ Dear [Name | Recruiting Team | Hiring Manager],
 
 [Paragraph C]
 
-[Closing-Sentence]
+[Closing-Sentence]`;
+  }
 
-Sincerely,
+  /**
+   * Get cover letter header structure (separate from content)
+   */
+  private buildCoverLetterHeaderData(user: any, contactContent: any = null): any {
+    return {
+      senderName: user?.name || contactContent?.name || "",
+      senderEmail: user?.email || contactContent?.email || "",
+      senderPhone: contactContent?.phone || "",
+      senderAddress: contactContent?.address || "",
+      senderLinkedIn: contactContent?.linkedin || "",
+      senderTitle: contactContent?.title || "",
+      senderWebsite: contactContent?.website || "",
+      senderLocation: contactContent?.location || "",
+      senderPhoto: contactContent?.fullContactData?.picture?.url || contactContent?.picture?.url || user?.picture || "",
+    };
+  }
 
-[Your Name]`;
+  /**
+   * Get cover letter company structure (separate from content)  
+   */
+  private buildCoverLetterCompanyData(jobApplication: any, companyInfo: any = null): any {
+    return {
+      companyName: companyInfo?.name || jobApplication?.companyName || "",
+      companyAddress: companyInfo?.address || "",
+      recipientName: "Hiring Manager",
+      recipientTitle: "Hiring Manager", 
+      applicationSubject: `Application for ${jobApplication?.title || "Position"} at ${companyInfo?.name || jobApplication?.companyName || "Company"}`,
+    };
   }
 
   /**
    * Build tailored cover letter generation prompt
    */
   private buildTailoredCoverLetterPrompt(
-    template: string,
+    bodyTemplate: string,
     user: any,
     jobApplication: any,
     companyInfo: any,
     selectedContent: any[],
     companyThemes: string[],
     options: { templateName: string; tone: string },
+    contactContent: any = null,
   ): string {
     const paragraphBlocks = selectedContent.map((content, index) => 
       `Paragraph ${String.fromCharCode(65 + index)}: ${content.storyText} (Theme: ${content.skillTheme}, Type: ${content.contentType})`
@@ -3502,22 +3544,19 @@ Sincerely,
 
     return `Generate a tailored cover letter using the token-based template and selected paragraph blocks.
 
-MASTER TEMPLATE:
-${template}
+BODY TEMPLATE (Header/Footer handled separately):
+${bodyTemplate}
 
-TOKEN REPLACEMENT DATA:
-- [FIRST NAME]: ${user?.name?.split(" ")[0] || "Your First Name"}
-- [LAST NAME]: ${user?.name?.split(" ").slice(1).join(" ") || "Your Last Name"}
-- [Email]: ${user?.email || "your.email@example.com"}
-- [Phone]: [Your Phone Number]
-- [LinkedIn]: [Your LinkedIn Profile]
-- [Date]: ${new Date().toLocaleDateString()}
-- [Company Name]: ${companyInfo?.name || jobApplication?.companyName || "Company"}
-- [Company Address]: ${companyInfo?.address || "[Company Address]"}
-- [Role]: ${jobApplication?.title || "Position"}
-- [Recruiter Name]: [Hiring Manager Name if known]
-- [Name | Recruiting Team | Hiring Manager]: Hiring Manager
-- [Your Name]: ${user?.name || "Your Name"}
+USER DETAILS (for context only - NOT included in output):
+- Name: ${contactContent?.name || user?.name || ""}
+- Title: ${contactContent?.title || ""}  
+- Email: ${contactContent?.email || user?.email || ""}
+- Phone: ${contactContent?.phone || ""}
+
+COMPANY DETAILS (for context only - NOT included in output):
+- Company: ${companyInfo?.name || jobApplication?.companyName || "Company"}
+- Position: ${jobApplication?.title || "Position"}
+- Industry: ${companyInfo?.industry || ""}
 
 SELECTED PARAGRAPH BLOCKS:
 ${paragraphBlocks}
@@ -3535,16 +3574,16 @@ JOB DESCRIPTION:
 ${jobApplication?.description || ""}
 
 GENERATION INSTRUCTIONS:
-1. Replace ALL bracketed tokens in the template with appropriate content
-2. Create an engaging [Intake-Sentence] that shows genuine interest in the company/role
-3. Use the paragraph blocks for [Paragraph A], [Paragraph B], [Paragraph C] - incorporate them naturally into the letter flow
-4. Tailor each paragraph to emphasize the relevant company theme
-5. Create a compelling [Closing-Sentence] with a call to action
-6. Use ${options.tone} tone throughout
-7. Incorporate company-specific language and values naturally
-8. Ensure smooth transitions between paragraphs
-9. Keep the letter under 400 words
-10. Make specific connections between the candidate's stories and job requirements
+1. Generate ONLY the body content following the body template
+2. Replace [Intake-Sentence] with engaging opening showing genuine interest in company/role
+3. Replace [Paragraph A], [Paragraph B], [Paragraph C] with the provided story blocks
+4. Replace [Closing-Sentence] with compelling call to action
+5. Use ${options.tone} tone throughout
+6. NO header information (name, email, phone, date, address)  
+7. NO footer information (Sincerely, signature)
+8. NO [bracketed] tokens should remain in output - replace all
+9. Focus on authentic storytelling matching company themes
+10. Keep body concise (200-300 words)
 
 LEXICAL TUNING REQUIREMENTS:
 - Echo company language from their values/mission/culture
@@ -3552,7 +3591,126 @@ LEXICAL TUNING REQUIREMENTS:
 - Mirror the tone and style of the company's public communications
 - Inject company-specific facts and references naturally
 
-Generate the complete cover letter:`;
+Generate ONLY the body content (no header, no footer):`;
+  }
+
+  /**
+   * Get best contact content for accurate header details (enhanced like resume generation)
+   */
+  private async getBestContactContent(userId: string, jobTitle?: string): Promise<any> {
+    try {
+      // Get contact content from content library (same logic as resume generation)
+      const contactContent = await this.prisma.content.findFirst({
+        where: {
+          userId,
+          section: {
+            name: { in: ["contact", "basics", "personal"] }
+          }
+        },
+        include: {
+          section: true,
+        },
+        orderBy: { updatedAt: "desc" }
+      });
+
+      if (contactContent) {
+        const data = JSON.parse(contactContent.data || "{}");
+        
+        // Enhanced processing like resume generation
+        return {
+          name: data.name || contactContent.title,
+          email: data.email,
+          phone: data.phone,
+          address: data.address,
+          linkedin: data.linkedin || data.linkedinUrl || data.url?.href,
+          title: data.title || data.headline || jobTitle, // Use job title for relevance like resume
+          location: data.location,
+          website: data.website || data.url?.href,
+          customFields: data.customFields || [],
+          
+          // Full structured data (like resume basics)
+          fullContactData: data,
+        };
+      }
+
+      return null;
+    } catch (error) {
+      this.logger.warn(`Failed to get contact content: ${error}`);
+      return null;
+    }
+  }
+
+  /**
+   * Log LLM cover letter request for inspection
+   */
+  private async logCoverLetterRequest(prompt: string, userId: string, jobApplicationId: string): Promise<void> {
+    try {
+      const timestamp = new Date().toISOString();
+      const logId = `cover_letter_${timestamp.replace(/[:.]/g, "-")}_${Math.random().toString(36).slice(2, 8)}`;
+      
+      const logContent = `# Cover Letter Generation Request
+- **Timestamp:** ${timestamp}
+- **User ID:** ${userId}
+- **Job Application ID:** ${jobApplicationId}
+- **Log ID:** \`${logId}\`
+
+## Request Prompt
+\`\`\`
+${prompt}
+\`\`\`
+
+---
+`;
+
+      const logDir = path.join(process.cwd(), "logs", "cover-letter-generation");
+      const logFile = path.join(logDir, `${logId}_request.md`);
+      
+      // Ensure directory exists
+      await fs.promises.mkdir(logDir, { recursive: true });
+      await fs.promises.writeFile(logFile, logContent, "utf8");
+      
+      this.logger.debug(`Cover letter request logged: ${logFile}`);
+    } catch (error) {
+      this.logger.warn(`Failed to log cover letter request: ${error}`);
+    }
+  }
+
+  /**
+   * Log LLM cover letter response for inspection
+   */
+  private async logCoverLetterResponse(result: any, userId: string, jobApplicationId: string): Promise<void> {
+    try {
+      const timestamp = new Date().toISOString();
+      const logId = `cover_letter_${timestamp.replace(/[:.]/g, "-")}_${Math.random().toString(36).slice(2, 8)}`;
+      
+      const logContent = `# Cover Letter Generation Response
+- **Timestamp:** ${timestamp}
+- **User ID:** ${userId}  
+- **Job Application ID:** ${jobApplicationId}
+- **Log ID:** \`${logId}\`
+- **Success:** ${result.success ? "✅" : "❌"}
+
+## Response Data
+\`\`\`json
+${JSON.stringify(result, null, 2)}
+\`\`\`
+
+## Generated Content
+\`\`\`
+${result.data || "No content generated"}
+\`\`\`
+
+---
+`;
+
+      const logDir = path.join(process.cwd(), "logs", "cover-letter-generation");
+      const logFile = path.join(logDir, `${logId}_response.md`);
+      
+      await fs.promises.writeFile(logFile, logContent, "utf8");
+      this.logger.debug(`Cover letter response logged: ${logFile}`);
+    } catch (error) {
+      this.logger.warn(`Failed to log cover letter response: ${error}`);
+    }
   }
 
   /**

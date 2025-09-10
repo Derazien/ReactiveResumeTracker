@@ -83,6 +83,10 @@ export const configSchema = z.object({
   OPENID_SCOPE: z.string().optional(),
   OPENID_TOKEN_URL: z.string().url().optional(),
   OPENID_USER_INFO_URL: z.string().url().optional(),
+
+  // LLM API Keys (Optional)
+  OPENAI_API_KEY: z.string().optional(),
+  OPENAI_MODEL: z.string().default("gpt-4-turbo-preview").optional(),
 });
 
 export type Config = z.infer<typeof configSchema>;

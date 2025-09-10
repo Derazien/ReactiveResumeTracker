@@ -25,7 +25,7 @@ export type ContentMatchResult = {
 
 export type CVTailoringResult = {
   // New complete resume approach
-  optimizedResumeData?: any; // Complete resume JSON structure
+  optimizedResumeData?: Record<string, unknown>; // Complete resume JSON structure
   changesSummary?: string; // Brief summary for resume notes
 
   // Legacy fields (for backwards compatibility)
@@ -58,45 +58,72 @@ export type LLMResponse<T = any> = {
   };
 };
 
+// Web search types
+export type WebSearchOptions = {
+  maxSearches?: number;
+  temperature?: number;
+  maxTokens?: number;
+  domainAllowList?: string[];
+  domainBlockList?: string[];
+};
+
+export type WebSearchResult = {
+  success: boolean;
+  data?: {
+    query: string;
+    results: string;
+    citations: string[];
+    searchCount: number;
+    timestamp: string;
+    structuredData?: Record<string, unknown>; // For structured data returned by researchCompany
+  };
+  error?: string;
+};
+
 export type LLMProvider = {
   readonly name: string;
   readonly model: string;
+  readonly supportsWebSearch?: boolean;
 
   // Core chat functionality
   chat(messages: ChatMessage[], options?: ChatOptions): Promise<LLMResponse<string>>;
+
+  // Web search functionality (optional - only for providers that support it)
+  webSearch?(query: string, options?: WebSearchOptions): Promise<WebSearchResult>;
+  researchCompany?(companyName: string, options?: WebSearchOptions): Promise<WebSearchResult>;
 
   // Specialized methods for our use cases
   analyzeJobPosting(jobText: string): Promise<LLMResponse<JobAnalysisResult>>;
 
   matchContent(
     jobRequirements: string[],
-    userContent: any[],
+    userContent: Record<string, unknown>[],
     jobDescription: string,
   ): Promise<LLMResponse<ContentMatchResult[]>>;
 
   generateResumeSummary(
     jobDescription: string,
-    selectedContent: any[],
-    userProfile: any,
+    selectedContent: Record<string, unknown>[],
+    userProfile: Record<string, unknown>,
   ): Promise<LLMResponse<string>>;
 
   generateCoverLetter(
     jobDescription: string,
     company: string,
-    userProfile: any,
-    selectedContent: any[],
+    userProfile: Record<string, unknown>,
+    selectedContent: Record<string, unknown>[],
   ): Promise<LLMResponse<string>>;
 
   generateInterviewQuestions(
     jobDescription: string,
-    userContent: any[],
+    userContent: Record<string, unknown>[],
   ): Promise<LLMResponse<string[]>>;
 
   // New method for CV tailoring
   tailorResumeContent(
     jobDescription: string,
     jobRequirements: string[],
-    currentResumeData: any,
+    currentResumeData: Record<string, unknown>,
   ): Promise<LLMResponse<CVTailoringResult>>;
 };
 
@@ -106,6 +133,9 @@ export type ChatOptions = {
   topP?: number;
   stream?: boolean;
   stopSequences?: string[];
+  // Web search options
+  enableWebSearch?: boolean;
+  maxWebSearchUses?: number;
 };
 
 export enum LLMProviderType {
