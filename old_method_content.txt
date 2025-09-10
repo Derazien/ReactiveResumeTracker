@@ -1,0 +1,290 @@
+  async generateTailoredResume(
+    jobApplicationId: string,
+    userId: string,
+  ): Promise<{
+    resume: any;
+    selectedContent: any[];
+    suggestions: string[];
+    tailoringResult?: any;
+  }> {
+    this.logger.log(`Generating tailored resume for job application ${jobApplicationId} (via ResumeGenerationService)`);
+
+    // REPLACED: 285+ line monster method with clean delegation to ResumeGenerationService
+    // This maintains exact same API interface while using proper service delegation
+    return this.resumeGenerationService.generateForJobApplication(jobApplicationId, userId);
+
+    // Get job application
+    const jobApplication = await this.findOne(jobApplicationId, userId);
+    if (!jobApplication) {
+      throw new Error("Job application not found");
+    }
+
+    // Get user's basic info
+    const user = await this.prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+      select: { name: true, email: true, picture: true },
+    });
+
+    // Step 1: Auto-select best matching content using structured selection
+    const jobRequirements = JSON.parse(jobApplication.requirements ?? "[]");
+
+    // Get job embedding if available
+    let jobEmbedding: number[] | undefined;
+    if (jobApplication.embedding) {
+      try {
+        jobEmbedding = this.embeddingService.parseEmbedding(jobApplication.embedding);
+        this.logger.log("Using stored job embedding for enhanced content matching");
+      } catch (error) {
+        this.logger.warn(
+          `Failed to parse job embedding: ${error instanceof Error ? error.message : "Unknown error"}`,
+        );
+      }
+    }
+
+    // Use structured content selection with specific limits for one-page resume
+    const structuredSelection = await this.contentMatchingService.selectStructuredContent(
+      userId,
+      jobRequirements,
+      jobApplication.description ?? "",
+      {
+        useVectorSimilarity: true, // DISABLED: Only use tag matching
+        useTagMatching: true,
+        vectorWeight: 0.7,
+        tagWeight: 0.3,
+        minSimilarity: 0, // Only include reasonably relevant content
+        maxResults: 100,
+        // Structured selection options for one-page resume
+        maxExperiences: 5, // LLM will determine if 2 or 3 fit on one page
+        maxProjects: 3,
+        includeAllInterests: true,
+        includeAllLanguages: true,
+        includeAllSkills: true,
+        includeAllEducation: true,
+        includeAllCertificates: true,
+        includeAllVolunteer: true,
+        includeAllCauses: true,
+        // Lower thresholds for content types that should be included regardless
+        minSimilarityForLanguages: 5, // Very low threshold for languages
+        minSimilarityForSkills: 5, // Very low threshold for skills
+        minSimilarityForEducation: 5, // Very low threshold for education
+        minSimilarityForCertificates: 5, // Very low threshold for certificates
+        minSimilarityForInterests: 5, // Very low threshold for interests
+        minSimilarityForVolunteer: 5, // Very low threshold for volunteer
+        minSimilarityForCauses: 5, // Very low threshold for causes
+      },
+      jobEmbedding, // Pass job embedding for enhanced matching (will be ignored since vector matching is disabled)
+    );
+
+    // Convert structured selection to content objects and add match scores
+    const selectedContent: any[] = [];
+
+    // Combine all selected content from different sections
+    const allSelectedMatches = [
+      ...structuredSelection.experiences,
+      ...structuredSelection.projects,
+      ...structuredSelection.interests,
+      ...structuredSelection.languages,
+      ...structuredSelection.summary,
+      ...structuredSelection.contact,
+      ...structuredSelection.skills,
+      ...structuredSelection.education,
+      ...structuredSelection.certificates,
+      ...structuredSelection.volunteer,
+      ...structuredSelection.causes,
+    ];
+
+    // Remove duplicates and get content details
+    const uniqueContentIds = [...new Set(allSelectedMatches.map((match) => match.contentId))];
+
+    for (const contentId of uniqueContentIds) {
+      const content = await this.contentLibraryService.findOne(contentId, userId);
+      if (content) {
+        const match = allSelectedMatches.find((m) => m.contentId === contentId);
+        selectedContent.push({
+          ...content,
+          matchScore: match?.score ?? 0,
+          vectorSimilarity: match?.vectorSimilarity,
+          tagSimilarity: match?.tagSimilarity,
+          matchReasons: match?.reasons ?? [],
+          matchSuggestions: match?.suggestions ?? [],
+        });
+      }
+    }
+
+    this.logger.log(
+      `Auto-selected ${selectedContent.length} relevant content pieces using structured selection (TAG-ONLY matching)`,
+    );
+    this.logger.log(
+      `Content breakdown: ${structuredSelection.experiences.length} experiences, ${structuredSelection.projects.length} projects, ${structuredSelection.skills.length} skills, ${structuredSelection.education.length} education items`,
+    );
+
+    // Step 2: Create structured resume data (summary and basics generation handled inside)
+    const resumeData = await this.buildResumeFromContent(user, selectedContent, jobApplication);
+
+    // Step 4: Apply LLM-powered tailoring to optimize the resume
+    let tailoringResult: any = null;
+    let finalResumeData = resumeData;
+    let enhancedSuggestions: string[] = [];
+
+    try {
+      this.logger.log("Applying LLM-powered CV tailoring for ONE-PAGE resume...");
+
+      const jobRequirements = JSON.parse(jobApplication.requirements ?? "[]");
+
+      // --- Capture LLM input ---
+      llmInput = {
+        userId,
+        jobDescription: jobApplication.description ?? "",
+        jobRequirements,
+        resumeData,
+      };
+
+      const tailoringResponse = await this.llmService.tailorResumeContentForUser(
+        userId,
+        jobApplication.description ?? "",
+        jobRequirements,
+        resumeData,
+      );
+
+      // --- Capture LLM output ---
+      llmOutput = tailoringResponse;
+
+      if (tailoringResponse.success && tailoringResponse.data) {
+        tailoringResult = tailoringResponse.data;
+
+        // Apply LLM recommendations to the resume data
+        finalResumeData = this.applyTailoringToResume(resumeData, tailoringResult);
+
+        // CRITICAL DEBUG: Log the final layout structure to help debug frontend issues
+        this.logger.log(
+          `Final resume layout structure: ${JSON.stringify(finalResumeData?.metadata?.layout, null, 2)}`,
+        );
+
+        enhancedSuggestions = tailoringResult.suggestions || [];
+
+        this.logger.log(
+          `LLM tailoring completed. Overall fit score: ${tailoringResult.overallFitScore}/100`,
+        );
+        this.logger.log(
+          `Applied ${tailoringResult.experienceAdjustments?.length || 0} experience adjustments`,
+        );
+        this.logger.log(
+          `Skills to add: ${tailoringResult.skillsToAdd?.length || 0}, Skills to remove: ${tailoringResult.skillsToRemove?.length || 0}`,
+        );
+      } else {
+        this.logger.warn(
+          `LLM tailoring failed: ${tailoringResponse.error}. Using basic resume without tailoring.`,
+        );
+        // CRITICAL DEBUG: Log the basic resume layout structure to help debug
+        this.logger.log(
+          `Basic resume layout structure (no LLM): ${JSON.stringify(resumeData?.metadata?.layout, null, 2)}`,
+        );
+        finalResumeData = resumeData;
+      }
+    } catch (error) {
+      this.logger.error(
+        `LLM tailoring error: ${error instanceof Error ? error.message : "Unknown error"}. Proceeding with basic resume.`,
+      );
+      // CRITICAL DEBUG: Log the basic resume layout structure to help debug
+      this.logger.log(
+        `Basic resume layout structure (error case): ${JSON.stringify(resumeData?.metadata?.layout, null, 2)}`,
+      );
+      finalResumeData = resumeData;
+    }
+
+    // Step 5: Create the resume record with enhanced metadata
+    const resumeTitle = `${jobApplication.title} - ${jobApplication.companyName}`;
+    const resumeSlug = `${jobApplication.title.toLowerCase().replace(/[^\da-z]+/g, "-")}-${jobApplication.companyName?.toLowerCase().replace(/[^\da-z]+/g, "-") || "unknown"}-${Date.now()}`;
+
+    // Prepare resume notes with comprehensive content selection info and changes summary
+    let resumeNotes = `<h2>Comprehensive One-Page Resume Details</h2>`;
+    resumeNotes += `<p><strong>Job:</strong> ${jobApplication.title} at ${jobApplication.companyName}</p>`;
+    resumeNotes += `<p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>`;
+    resumeNotes += `<p><strong>Format:</strong> Optimized for single-page layout with concise content</p>`;
+
+    if (tailoringResult?.changesSummary) {
+      resumeNotes += `<h3>LLM Optimizations Applied</h3>`;
+      resumeNotes += `<p>${tailoringResult.changesSummary}</p>`;
+      resumeNotes += `<p><strong>Job Fit Score:</strong> ${tailoringResult.overallFitScore}/100</p>`;
+    }
+
+    resumeNotes += `<h3>Comprehensive Content Selection Strategy</h3>`;
+    resumeNotes += `<ul>`;
+    resumeNotes += `<li><strong>Experiences:</strong> Top 2-3 most relevant (${selectedContent.filter((c) => c.section?.key === "experience").length} provided, LLM optimizes for one-page fit)</li>`;
+    resumeNotes += `<li><strong>Education:</strong> Most relevant degree(s)</li>`;
+    resumeNotes += `<li><strong>Technical Skills:</strong> All relevant technical skills and competencies</li>`;
+    resumeNotes += `<li><strong>Soft Skills:</strong> All relevant interpersonal and soft skills</li>`;
+    resumeNotes += `<li><strong>Projects:</strong> Top 2 most relevant projects</li>`;
+    resumeNotes += `<li><strong>Languages:</strong> All languages (sorted by relevancy)</li>`;
+    resumeNotes += `<li><strong>Certifications:</strong> Most relevant certifications only</li>`;
+    resumeNotes += `<li><strong>Additional:</strong> Volunteer experience, awards, publications (if highly relevant)</li>`;
+    resumeNotes += `</ul>`;
+
+    resumeNotes += `<h3>Content Library Items Used (${selectedContent.length} total)</h3>`;
+    resumeNotes += `<ul>`;
+    for (const content of selectedContent) {
+      resumeNotes += `<li><strong>${content.section?.name ?? content.type}:</strong> ${content.title} (Score: ${content.matchScore?.toFixed(1) ?? "N/A"})</li>`;
+    }
+    resumeNotes += `</ul>`;
+
+    resumeNotes += `<p><em>This resume is optimized for one-page format with comprehensive coverage. Use the resume builder to further customize sections and formatting.</em></p>`;
+
+    // Set the notes in the resume data
+    finalResumeData.metadata.notes = resumeNotes;
+
+    const resume = await this.prisma.resume.create({
+      data: {
+        title: resumeTitle,
+        slug: resumeSlug,
+        data: JSON.stringify(finalResumeData),
+        userId,
+        jobApplicationId: jobApplication.id,
+        visibility: "private",
+      },
+    });
+
+    // Step 6: Generation record removed - users will add generated content as variants through resume editor
+
+    const basicSuggestions = [
+      `Comprehensive one-page resume generated from ${selectedContent.length} strategically selected content items`,
+      `Content includes: ${selectedContent.filter((c) => c.section?.key === "experience").length} experiences, education, technical skills, soft skills, projects, languages, and certifications`,
+      `Summary optimized to 1-2 sentences focusing on years of experience and key qualifications`,
+      `Format optimized for single-page layout while maintaining comprehensive coverage`,
+      `Use the resume builder to further adjust formatting and section order if needed`,
+    ];
+
+    const finalSuggestions = tailoringResult
+      ? [
+          `LLM tailoring achieved ${tailoringResult.overallFitScore}/100 job fit score for one-page optimization`,
+          ...enhancedSuggestions,
+          ...basicSuggestions,
+        ]
+      : [
+          `Resume generated with comprehensive content selection - configure LLM settings for enhanced job-specific tailoring`,
+          ...basicSuggestions,
+        ];
+
+    const result = {
+      resume,
+      selectedContent,
+      suggestions: finalSuggestions,
+      tailoringResult,
+    };
+
+    // --- Capture API output ---
+    apiOutput = result;
+
+    // --- Write Markdown log ---
+    await this.writeApiCallLogMarkdown({
+      jobApplicationId,
+      userId,
+      llmInput,
+      llmOutput,
+      apiOutput,
+    });
+
+    return result;
+  }
+
+  /**
+   * Apply LLM tailoring recommendations to the resume data

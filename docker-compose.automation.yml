@@ -1,0 +1,170 @@
+version: '3.8'
+
+services:
+  # PostgreSQL database (shared by both main server and Skyvern)
+  postgres:
+    image: postgres:14-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=reactive_resume
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=reactive_resume
+      - POSTGRES_MULTIPLE_DATABASES=skyvern
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-multiple-dbs.sh:/docker-entrypoint-initdb.d/init-multiple-dbs.sh
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U reactive_resume"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis (for Skyvern caching)
+  redis:
+    image: redis:alpine
+    restart: always
+    ports:
+      - "6379:6379"
+
+  # Skyvern automation service
+  skyvern:
+    build: ./services/skyvern
+    restart: on-failure
+    environment:
+      # Database
+      - DATABASE_STRING=postgresql+psycopg://reactive_resume:password@postgres:5432/skyvern
+      
+      # Browser settings
+      - BROWSER_TYPE=chromium-headful
+      - ENABLE_CODE_BLOCK=true
+      
+      # LLM Settings - Configure your preferred provider
+      - ENABLE_OPENAI=true
+      - LLM_KEY=OPENAI_GPT4O
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      
+      # Alternative: Use Anthropic Claude
+      # - ENABLE_ANTHROPIC=true
+      # - LLM_KEY=ANTHROPIC_CLAUDE3.5_SONNET
+      # - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      
+      # Alternative: Use Ollama (local)
+      # - LLM_KEY=OLLAMA
+      # - ENABLE_OLLAMA=true
+      # - OLLAMA_MODEL=qwen2.5:7b-instruct
+      # - OLLAMA_SERVER_URL=http://host.docker.internal:11434
+      
+      # Disable telemetry
+      - SKYVERN_TELEMETRY=false
+      
+      # API settings
+      - API_PORT=8000
+    ports:
+      - "8000:8000"  # Skyvern API
+      - "9222:9222"  # Chrome debugging port
+    volumes:
+      - ./services/skyvern/artifacts:/data/artifacts
+      - ./services/skyvern/videos:/data/videos
+      - ./services/skyvern/har:/data/har
+      - ./services/skyvern/log:/data/log
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  # Skyvern UI (optional - for debugging)
+  skyvern-ui:
+    build: ./services/skyvern/skyvern-frontend
+    restart: on-failure
+    ports:
+      - "8080:8080"  # Skyvern UI
+      - "9090:9090"  # Artifact server
+    volumes:
+      - ./services/skyvern/artifacts:/data/artifacts
+      - ./services/skyvern/videos:/data/videos
+      - ./services/skyvern/har:/data/har
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000/api/v1
+      - VITE_WSS_BASE_URL=ws://localhost:8000/api/v1
+      - VITE_ARTIFACT_API_BASE_URL=http://localhost:9090
+    depends_on:
+      - skyvern
+
+  # Automation Engine (your new NestJS service)
+  automation-engine:
+    build: 
+      context: .
+      dockerfile: apps/automation-engine/Dockerfile
+    restart: on-failure
+    environment:
+      # Skyvern integration
+      - SKYVERN_API_URL=http://skyvern:8000/api/v1
+      - SKYVERN_API_KEY=local-key
+      
+      # Main server integration
+      - MAIN_SERVER_URL=http://server:3000
+      
+      # Service settings
+      - PORT=3001
+      - NODE_ENV=development
+      
+      # Job automation settings
+      - DEFAULT_MAX_APPLICATIONS=5
+      - DEFAULT_TIMEOUT_MINUTES=10
+      - ENABLE_DEBUG_LOGGING=true
+    ports:
+      - "3001:3001"
+    depends_on:
+      - skyvern
+      - postgres
+
+  # Your main server (updated to include automation)
+  server:
+    build: 
+      context: .
+      dockerfile: apps/server/Dockerfile
+    restart: on-failure
+    environment:
+      # Database
+      - DATABASE_URL=postgresql://reactive_resume:password@postgres:5432/reactive_resume
+      
+      # Automation engine integration
+      - AUTOMATION_ENGINE_URL=http://automation-engine:3001/api
+      
+      # Your existing environment variables
+      - NODE_ENV=development
+      - PORT=3000
+      - SECRET_KEY=your-secret-key
+      
+      # LLM Settings (same as your existing config)
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      automation-engine:
+        condition: service_started
+    volumes:
+      - ./apps/server:/app/server
+
+  # Your existing client
+  client:
+    build: 
+      context: .
+      dockerfile: apps/client/Dockerfile
+    restart: on-failure
+    ports:
+      - "5173:5173"
+    depends_on:
+      - server
+    volumes:
+      - ./apps/client:/app/client
+
+volumes:
+  postgres_data:
+

@@ -13,7 +13,9 @@ import { JobApplicationService } from "./job-application.service";
 @Controller("job-applications")
 @UseGuards(TwoFactorGuard)
 export class JobApplicationController {
-  constructor(private readonly jobApplicationService: JobApplicationService) {}
+  constructor(
+    private readonly jobApplicationService: JobApplicationService,
+  ) {}
 
   @Post()
   @ApiOperation({ summary: "Create a new job application" })
@@ -159,5 +161,18 @@ export class JobApplicationController {
   })
   async findOneWithEnhancedData(@User("id") userId: string, @Param("id") id: string) {
     return this.jobApplicationService.findOneWithEnhancedData(id, userId);
+  }
+
+  // ===== AUTOMATION ENDPOINTS (DISABLED - ENABLE WHEN AUTOMATION ENGINE IS READY) =====
+  
+  @Get("automation/engine-status")
+  @ApiOperation({ summary: "Check if automation engine is available" })
+  async getAutomationEngineStatus() {
+    return {
+      available: false,
+      url: 'http://localhost:3001/api',
+      message: 'Automation features are currently disabled',
+      hint: 'To enable automation, see AUTOMATION_SETUP.md for instructions'
+    };
   }
 }
