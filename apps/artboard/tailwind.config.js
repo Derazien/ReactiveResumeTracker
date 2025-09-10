@@ -17,8 +17,8 @@ module.exports = {
         background: "var(--color-background)",
       },
       gridTemplateColumns: {
-        '10': 'repeat(10, minmax(0, 1fr))',
-        '20': 'repeat(20, minmax(0, 1fr))',
+        10: "repeat(10, minmax(0, 1fr))",
+        20: "repeat(20, minmax(0, 1fr))",
       },
       lineHeight: {
         tight: "calc(var(--line-height) - 0.5)",
