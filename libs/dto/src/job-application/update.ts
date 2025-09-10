@@ -3,7 +3,8 @@ import { z } from "zod";
 
 export const updateJobApplicationSchema = z.object({
   title: z.string().min(1).optional(),
-  company: z.string().min(1).optional(),
+  companyName: z.string().min(1).optional(),
+  companyId: z.string().optional(),
   description: z.string().optional(),
   url: z.string().url().optional(),
   status: z

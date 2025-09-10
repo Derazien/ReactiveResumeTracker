@@ -39,7 +39,8 @@ const interviewRelationSchema = z.object({
 export const jobApplicationSchema = z.object({
   id: idSchema,
   title: z.string(),
-  company: z.string(),
+  companyName: z.string(),
+  companyId: z.string().nullable(),
   description: z.string().nullable(),
   requirements: z.array(z.string()),
   extractedTags: z.array(z.string()),
@@ -64,6 +65,10 @@ export const jobApplicationSchema = z.object({
   resumes: z.array(resumeRelationSchema).optional(),
   coverLetters: z.array(coverLetterRelationSchema).optional(),
   interviews: z.array(interviewRelationSchema).optional(),
+  // Additional fields for enhanced functionality
+  location: z.string().nullable(),
+  salary: z.string().nullable(),
+  industry: z.string().nullable(),
 });
 
 export class JobApplicationDto extends createZodDto(jobApplicationSchema) {}

@@ -118,9 +118,7 @@ export const sampleResume: ResumeData = {
             label: "",
             href: "https://creativesolutions.inc/",
           },
-          contacts: [
-            { name: "Youssef Jradeh", email: "youssef.jradeh@anywr-group.com" }
-          ],
+          contacts: [{ name: "Youssef Jradeh", email: "youssef.jradeh@anywr-group.com" }],
         },
         {
           id: "r6543lil53ntrxmvel53gbtm",
@@ -135,9 +133,7 @@ export const sampleResume: ResumeData = {
             label: "",
             href: "https://techadvancers.com/",
           },
-          contacts: [
-            { name: "Jane Doe", email: "jane.doe@techadvancers.com" }
-          ],
+          contacts: [{ name: "Jane Doe", email: "jane.doe@techadvancers.com" }],
         },
       ],
     },

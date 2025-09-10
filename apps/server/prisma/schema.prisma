@@ -42,6 +42,19 @@ enum LLMProvider {
   OLLAMA
 }
 
+enum CoverLetterContentType {
+  PARAGRAPH_ANALYTICS
+  PARAGRAPH_DIVERSITY
+  PARAGRAPH_LEADERSHIP
+  PARAGRAPH_TECH
+  PARAGRAPH_CHALLENGE
+  PARAGRAPH_COLLABORATION
+  PARAGRAPH_INNOVATION
+  PARAGRAPH_IMPACT
+  PARAGRAPH_GROWTH
+  PARAGRAPH_VALUES
+}
+
 model User {
   id               String   @id @default(cuid())
   name             String
@@ -63,6 +76,8 @@ model User {
   llmSettings      UserLLMSettings?
   storyBlocks      StoryBlock[]
   answerSnippets   AnswerSnippet[]
+  coverLetterContents CoverLetterContent[]
+  contacts         Contact[]
 }
 
 model Secrets {
@@ -187,6 +202,7 @@ model Content {
   transformationNotes String?   // Metadata about the transformation process
   
   tags        ContentTag[]
+  coverLetterContents CoverLetterContent[]
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
   
@@ -221,7 +237,7 @@ model ContentTag {
 model JobApplication {
   id                String            @id @default(cuid())
   title             String            // Job title
-  company           String
+  companyName       String            // Company name (legacy field, kept for backward compatibility)
   description       String?           // Job description
   requirements      String            @default("[]")
   extractedTags     String            @default("[]")
@@ -238,6 +254,11 @@ model JobApplication {
   resumes           Resume[]
   coverLetters      CoverLetter[]
   interviews        Interview[]
+  companyId         String?           // Company relation ID
+  company           Company?          @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  contacts          Contact[]
+  questions         JobApplicationQuestion[]
+  contactMessages   ContactMessage[]
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
   
@@ -306,4 +327,152 @@ model AnswerSnippet {
   @@index(fields: [userId, questionTag])
   @@index(fields: [userId, skillTheme])
   @@index(fields: [userId, createdAt])
+}
+
+model CoverLetterContent {
+  id          String                @id @default(cuid())
+  
+  // Story Classification
+  contentType CoverLetterContentType
+  
+  // Content Relationship
+  contentId   String                // References Content.id (experience/project/skill)
+  content     Content               @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  
+  // User's Narrative
+  storyText   String                // 3-5 sentence story format
+  skillTheme  String                // What this demonstrates (leadership, analytical thinking, etc.)
+  tone        String                @default("professional") // professional, enthusiastic, confident
+  
+  // Targeting & Matching
+  tags        String                @default("[]")  // JSON array of additional context tags
+  embedding   String?               // Vector embedding for semantic matching
+  embeddingHash String?             // Cache hash for embedding
+  
+  // Metadata
+  userId      String
+  user        User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+  
+  @@index(fields: [contentId, contentType])
+  @@index(fields: [userId, contentType])
+  @@index(fields: [userId, skillTheme])
+  @@index(fields: [userId, createdAt])
+}
+
+model Company {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  website     String?
+  logo        String?  // URL to company logo
+  industry    String?
+  size        String?  // e.g., "10-50", "100-500", "1000+"
+  location    String?
+  values      String   @default("[]")  // JSON array of company values
+  mission     String?
+  culture     String?  // Company culture description
+  linkedinUrl String?
+  twitterUrl  String?
+  facebookUrl String?
+  instagramUrl String?
+  youtubeUrl  String?
+  githubUrl   String?
+  
+  // Relationships
+  contacts    Contact[]
+  jobApplications JobApplication[]
+  
+  // Metadata
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index(fields: [name])
+  @@index(fields: [industry])
+  @@index(fields: [createdAt])
+}
+
+model Contact {
+  id          String   @id @default(cuid())
+  name        String
+  title       String?  // Job title
+  email       String?
+  phone       String?
+  linkedinUrl String?
+  twitterUrl  String?
+  githubUrl   String?
+  website     String?
+  bio         String?  // Brief bio or description
+  
+  // Company Relationship
+  companyId   String?
+  company     Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  
+  // Job Application Relationship
+  jobApplicationId String?
+  jobApplication   JobApplication? @relation(fields: [jobApplicationId], references: [id], onDelete: SetNull)
+  
+  // User Relationship
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Message History
+  messages    ContactMessage[]
+  
+  // Metadata
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index(fields: [companyId])
+  @@index(fields: [jobApplicationId])
+  @@index(fields: [userId])
+  @@index(fields: [name])
+  @@index(fields: [createdAt])
+}
+
+model JobApplicationQuestion {
+  id          String   @id @default(cuid())
+  question    String
+  answer      String?
+  questionType String  @default("general") // general, technical, behavioral, etc.
+  priority    Int      @default(1) // 1-5 priority level
+  
+  // Job Application Relationship
+  jobApplicationId String
+  jobApplication   JobApplication @relation(fields: [jobApplicationId], references: [id], onDelete: Cascade)
+  
+  // Metadata
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index(fields: [jobApplicationId])
+  @@index(fields: [questionType])
+  @@index(fields: [priority])
+}
+
+model ContactMessage {
+  id          String   @id @default(cuid())
+  type        String   // email, linkedin, twitter, etc.
+  subject     String?
+  content     String   // Generated message content
+  instructions String? // User's custom instructions for generation
+  status      String   @default("draft") // draft, sent, failed
+  
+  // Contact Relationship
+  contactId   String
+  contact     Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  
+  // Job Application Relationship
+  jobApplicationId String?
+  jobApplication   JobApplication? @relation(fields: [jobApplicationId], references: [id], onDelete: SetNull)
+  
+  // Metadata
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index(fields: [contactId])
+  @@index(fields: [jobApplicationId])
+  @@index(fields: [status])
+  @@index(fields: [createdAt])
 }
