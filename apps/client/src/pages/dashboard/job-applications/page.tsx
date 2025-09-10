@@ -6,7 +6,7 @@ import { useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router";
 
-import { useJobApplications } from "@/client/services/job-application";
+import { useJobApplications } from "@/client/services/job-application/job-applications";
 
 import { JobApplicationCard } from "./_components/job-application-card";
 import { JobApplicationsFilter } from "./_components/job-applications-filter";

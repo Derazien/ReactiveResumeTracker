@@ -1,5 +1,13 @@
 import { t } from "@lingui/macro";
-import { Briefcase, Database, FadersHorizontal, FileText, Microphone } from "@phosphor-icons/react";
+import {
+  Briefcase,
+  Building,
+  Database,
+  FadersHorizontal,
+  FileText,
+  Microphone,
+  Notebook,
+} from "@phosphor-icons/react";
 import { Button, KeyboardShortcut, Separator } from "@reactive-resume/ui";
 import { cn } from "@reactive-resume/utils";
 import { motion } from "framer-motion";
@@ -84,10 +92,16 @@ export const Sidebar = ({ setOpen }: SidebarProps) => {
     setOpen?.(false);
   });
 
-  useKeyboardShortcut(["shift", "v"], () => {
-    void navigate("/dashboard/voice-stories");
+  useKeyboardShortcut(["shift", "l"], () => {
+    void navigate("/dashboard/cover-letter-stories");
     setOpen?.(false);
   });
+
+  useKeyboardShortcut(["shift", "b"], () => {
+    void navigate("/dashboard/companies");
+    setOpen?.(false);
+  });
+
 
   useKeyboardShortcut(["shift", "s"], () => {
     void navigate("/dashboard/settings");
@@ -114,10 +128,16 @@ export const Sidebar = ({ setOpen }: SidebarProps) => {
       icon: <Database />,
     },
     {
-      path: "/dashboard/voice-stories",
-      name: t`Voice Stories`,
-      shortcut: "⇧V",
-      icon: <Microphone />,
+      path: "/dashboard/cover-letter-stories",
+      name: t`Cover Letter Stories`,
+      shortcut: "⇧L",
+      icon: <Notebook />,
+    },
+    {
+      path: "/dashboard/companies",
+      name: t`Companies`,
+      shortcut: "⇧B",
+      icon: <Building />,
     },
     {
       path: "/dashboard/settings",

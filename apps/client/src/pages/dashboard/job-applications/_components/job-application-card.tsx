@@ -142,7 +142,7 @@ export const JobApplicationCard = ({ application }: Props) => {
             <h3 className="text-lg font-semibold leading-tight">{application.title}</h3>
             <div className="text-muted-foreground flex items-center gap-1 text-sm">
               <Building size={14} />
-              <span>{application.company}</span>
+              <span>{application.companyName}</span>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -192,7 +192,7 @@ export const JobApplicationCard = ({ application }: Props) => {
                         {t`Delete Job Application`}
                       </AlertDialogTitle>
                       <AlertDialogDescription>
-                        {t`Are you sure you want to delete "${application.title}" at ${application.company}? This action cannot be undone.`}
+                        {t`Are you sure you want to delete "${application.title}" at ${application.companyName}? This action cannot be undone.`}
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

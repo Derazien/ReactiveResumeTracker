@@ -9,7 +9,9 @@ import {
   Pencil,
   Plus,
   Sparkle,
+  Target,
   Trash,
+  Users,
   Warning,
 } from "@phosphor-icons/react";
 import {
@@ -30,6 +32,7 @@ import {
   CardTitle,
 } from "@reactive-resume/ui";
 import { cn } from "@reactive-resume/utils";
+import { MessageSquare } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 
@@ -37,6 +40,11 @@ import { useToast } from "@/client/hooks/use-toast";
 import { useDeleteJobApplication } from "@/client/services/job-application/delete";
 import { useGenerateTailoredResume } from "@/client/services/job-application/generate-resume";
 import { useJobApplication } from "@/client/services/job-application/job-application";
+import {
+  useGenerateCoverLetter,
+  useDeleteCoverLetter,
+} from "@/client/services/cover-letter/cover-letter";
+import { useDeleteResume } from "@/client/services/resume/delete";
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -112,6 +120,11 @@ export const JobApplicationDetailPage = () => {
 
   const { deleteJobApplication, loading: isDeleting } = useDeleteJobApplication();
   const { generateTailoredResume, loading: isGeneratingResume } = useGenerateTailoredResume();
+  const { generateCoverLetter, loading: isGeneratingCoverLetter } = useGenerateCoverLetter();
+  const { deleteCoverLetter, loading: isDeletingCoverLetter } = useDeleteCoverLetter();
+  const { deleteResume, loading: isDeletingResume } = useDeleteResume();
+  const [isConductingInterview, setIsConductingInterview] = useState(false);
+  const [isAnalyzingCompany, setIsAnalyzingCompany] = useState(false);
 
   const handleGenerateCV = async () => {
     if (!id) return;
@@ -135,7 +148,7 @@ export const JobApplicationDetailPage = () => {
       }
 
       // Navigate directly to the resume builder for editing
-      navigate(`/builder/${result.resume.id}`);
+      void navigate(`/builder/${result.resume.id}`);
     } catch (error: any) {
       toast({
         variant: "error",
@@ -158,13 +171,135 @@ export const JobApplicationDetailPage = () => {
         description: t`Job application deleted successfully`,
       });
 
-      navigate("/dashboard/job-applications");
+      void navigate("/dashboard/job-applications");
     } catch {
       toast({
         variant: "error",
         title: t`Error`,
         description: t`Failed to delete job application. Please try again.`,
       });
+    }
+  };
+
+  const handleGenerateCoverLetter = async () => {
+    if (!id) return;
+
+    try {
+      // Generate tailored cover letter using the proper service
+      const result = await generateCoverLetter({
+        jobApplicationId: id,
+        templateName: "professional",
+        tone: "professional",
+        maxParagraphs: 3,
+      });
+
+      toast({
+        title: t`Cover Letter Generated Successfully`,
+        description: t`Created tailored cover letter with ${result.usedContent?.length || 0} relevant stories. Opening editor...`,
+      });
+
+      // Navigate to cover letter builder with the generated cover letter ID
+      void navigate(`/cover-letter-builder/${result.coverLetter.id}`);
+    } catch (error: any) {
+      const errorMessage = error instanceof Error ? error.message : t`Unknown error occurred`;
+      
+      toast({
+        variant: "error",
+        title: t`Cover Letter Generation Failed`,
+        description: errorMessage.includes("No relevant cover letter content found") 
+          ? t`Please add cover letter stories to your content library first`
+          : errorMessage,
+      });
+      
+      console.error("Cover Letter Generation Error:", error);
+    }
+  };
+
+  const handleDeleteCoverLetter = async (coverLetterId: string) => {
+    try {
+      await deleteCoverLetter({ id: coverLetterId });
+      
+      toast({
+        title: t`Cover Letter Deleted`,
+        description: t`The cover letter has been successfully deleted.`,
+      });
+      
+      // Refresh job application data
+      window.location.reload();
+    } catch (error) {
+      console.error("Error deleting cover letter:", error);
+      toast({
+        title: t`Delete Failed`,
+        description: t`Failed to delete cover letter. Please try again.`,
+        variant: "error",
+      });
+    }
+  };
+
+  const handleDeleteResume = async (resumeId: string) => {
+    try {
+      await deleteResume({ id: resumeId });
+      
+      toast({
+        title: t`Resume Deleted`,
+        description: t`The resume has been successfully deleted.`,
+      });
+      
+      // Refresh job application data
+      window.location.reload();
+    } catch (error) {
+      console.error("Error deleting resume:", error);
+      toast({
+        title: t`Delete Failed`,
+        description: t`Failed to delete resume. Please try again.`,
+        variant: "error",
+      });
+    }
+  };
+
+  const handleConductInterview = async () => {
+    if (!id) return;
+
+    setIsConductingInterview(true);
+
+    try {
+      // Navigate to cover letter builder with interview mode
+      navigate(`/cover-letter-builder/${id}`);
+
+      toast({
+        title: t`Interview Mode`,
+        description: t`Opening interview mode to extract your stories...`,
+      });
+    } catch (error: any) {
+      toast({
+        variant: "error",
+        title: t`Error`,
+        description: error?.message || t`Failed to start interview. Please try again.`,
+      });
+    } finally {
+      setIsConductingInterview(false);
+    }
+  };
+
+  const handleAnalyzeCompany = async () => {
+    if (!id) return;
+
+    setIsAnalyzingCompany(true);
+
+    try {
+      // TODO: Implement company analysis API call
+      toast({
+        title: t`Company Analysis`,
+        description: t`Analyzing company information...`,
+      });
+    } catch (error: any) {
+      toast({
+        variant: "error",
+        title: t`Error`,
+        description: error?.message || t`Failed to analyze company. Please try again.`,
+      });
+    } finally {
+      setIsAnalyzingCompany(false);
     }
   };
 
@@ -218,7 +353,7 @@ export const JobApplicationDetailPage = () => {
           <div className="text-muted-foreground flex items-center gap-4">
             <div className="flex items-center gap-1">
               <Building size={16} />
-              <span>{jobApplication.company}</span>
+              <span>{jobApplication.companyName}</span>
             </div>
             <div className="flex items-center gap-1">
               <Calendar size={16} />
@@ -252,7 +387,7 @@ export const JobApplicationDetailPage = () => {
                   {t`Delete Job Application`}
                 </AlertDialogTitle>
                 <AlertDialogDescription>
-                  {t`Are you sure you want to delete "${jobApplication.title}" at ${jobApplication.company}? This action cannot be undone and will permanently remove:`}
+                  {t`Are you sure you want to delete "${jobApplication.title}" at ${jobApplication.companyName}? This action cannot be undone and will permanently remove:`}
                   <ul className="mt-2 list-inside list-disc space-y-1 text-sm">
                     <li>{t`Job application details and notes`}</li>
                     <li>{t`Generated resumes and cover letters`}</li>
@@ -420,6 +555,104 @@ export const JobApplicationDetailPage = () => {
             </CardContent>
           </Card>
 
+          {/* Cover Letter Generation */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MessageSquare size={20} />
+                {t`Cover Letter`}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-muted-foreground text-sm">
+                {t`Create a tailored cover letter for this job application using AI-powered story extraction and company analysis.`}
+              </p>
+
+              <div className="space-y-2">
+                <Button
+                  className="w-full gap-2"
+                  disabled={isGeneratingCoverLetter}
+                  onClick={handleGenerateCoverLetter}
+                >
+                  {isGeneratingCoverLetter ? (
+                    <>
+                      <div className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                      {t`Generating...`}
+                    </>
+                  ) : (
+                    <>
+                      <MessageSquare size={16} />
+                      {t`Generate Tailored Cover Letter`}
+                    </>
+                  )}
+                </Button>
+
+                <Button
+                  variant="outline"
+                  className="w-full gap-2"
+                  disabled={isConductingInterview}
+                  onClick={handleConductInterview}
+                >
+                  {isConductingInterview ? (
+                    <>
+                      <div className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                      {t`Starting...`}
+                    </>
+                  ) : (
+                    <>
+                      <Target size={16} />
+                      {t`Conduct Interview`}
+                    </>
+                  )}
+                </Button>
+
+                <Button
+                  variant="outline"
+                  className="w-full gap-2"
+                  disabled={isAnalyzingCompany}
+                  onClick={handleAnalyzeCompany}
+                >
+                  {isAnalyzingCompany ? (
+                    <>
+                      <div className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                      {t`Analyzing...`}
+                    </>
+                  ) : (
+                    <>
+                      <Building size={16} />
+                      {t`Analyze Company`}
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              {/* Show existing generated cover letters */}
+              {jobApplication.coverLetters && jobApplication.coverLetters.length > 0 && (
+                <div className="space-y-2">
+                  <div className="text-sm font-medium">{t`Generated Cover Letters`}</div>
+                  {jobApplication.coverLetters.map((coverLetter) => (
+                    <Button
+                      key={coverLetter.id}
+                      asChild
+                      variant="outline"
+                      size="sm"
+                      className="w-full justify-start gap-2"
+                    >
+                      <Link to={`/cover-letter-builder/${coverLetter.id}`}>
+                        <MessageSquare size={14} />
+                        {t`Cover Letter`} - {new Date(coverLetter.createdAt).toLocaleDateString()}
+                      </Link>
+                    </Button>
+                  ))}
+                </div>
+              )}
+
+              <div className="text-muted-foreground text-xs">
+                {t`Use the cover letter builder to create personalized cover letters with AI-powered story extraction and company analysis.`}
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Application Status */}
           <Card>
             <CardHeader>
@@ -461,6 +694,70 @@ export const JobApplicationDetailPage = () => {
             </CardContent>
           </Card>
 
+          {/* Company & Contacts */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Building size={20} />
+                {t`Company & Contacts`}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <div>
+                  <label className="text-sm font-medium">{t`Company`}</label>
+                  <div className="mt-1 text-sm">
+                    {jobApplication.companyName || t`No company information`}
+                  </div>
+                </div>
+
+                {jobApplication.location && (
+                  <div>
+                    <label className="text-sm font-medium">{t`Location`}</label>
+                    <div className="mt-1 text-sm">{jobApplication.location}</div>
+                  </div>
+                )}
+
+                {jobApplication.salary && (
+                  <div>
+                    <label className="text-sm font-medium">{t`Salary`}</label>
+                    <div className="mt-1 text-sm">{jobApplication.salary}</div>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Button
+                  variant="outline"
+                  className="w-full gap-2"
+                  disabled={isAnalyzingCompany}
+                  onClick={handleAnalyzeCompany}
+                >
+                  {isAnalyzingCompany ? (
+                    <>
+                      <div className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                      {t`Analyzing...`}
+                    </>
+                  ) : (
+                    <>
+                      <Target size={16} />
+                      {t`Analyze Company`}
+                    </>
+                  )}
+                </Button>
+
+                <Button variant="outline" className="w-full gap-2">
+                  <Users size={16} />
+                  {t`Manage Contacts`}
+                </Button>
+              </div>
+
+              <div className="text-muted-foreground text-xs">
+                {t`Analyze company information and manage contacts for networking.`}
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Quick Actions */}
           <Card>
             <CardHeader>
@@ -474,9 +771,24 @@ export const JobApplicationDetailPage = () => {
                 </Link>
               </Button>
 
-              <Button variant="outline" className="w-full gap-2">
+              <Button
+                variant="outline"
+                className="w-full gap-2"
+                disabled={isGeneratingResume}
+                onClick={handleGenerateCV}
+              >
                 <FileText size={16} />
-                {t`Generate Cover Letter`}
+                {isGeneratingResume ? t`Generating...` : t`Generate Tailored Resume`}
+              </Button>
+
+              <Button
+                variant="outline"
+                className="w-full gap-2"
+                disabled={isGeneratingCoverLetter}
+                onClick={handleGenerateCoverLetter}
+              >
+                <MessageSquare size={16} />
+                {isGeneratingCoverLetter ? t`Generating...` : t`Generate Tailored Cover Letter`}
               </Button>
 
               {/* Show existing cover letters */}
@@ -484,15 +796,101 @@ export const JobApplicationDetailPage = () => {
                 <div className="space-y-2">
                   <div className="text-sm font-medium">{t`Cover Letters`}</div>
                   {jobApplication.coverLetters.map((coverLetter) => (
-                    <Button
-                      key={coverLetter.id}
-                      variant="outline"
-                      size="sm"
-                      className="w-full justify-start gap-2"
-                    >
-                      <FileText size={14} />
-                      {t`Cover Letter`} - {new Date(coverLetter.createdAt).toLocaleDateString()}
-                    </Button>
+                    <div key={coverLetter.id} className="flex items-center gap-2">
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 justify-start gap-2"
+                      >
+                        <Link to={`/cover-letter-builder/${coverLetter.id}`}>
+                          <FileText size={14} />
+                          {t`Cover Letter`} - {new Date(coverLetter.createdAt).toLocaleDateString()}
+                        </Link>
+                      </Button>
+                      
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="px-2"
+                            disabled={isDeletingCoverLetter}
+                          >
+                            <Trash size={14} />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>{t`Delete Cover Letter`}</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              {t`Are you sure you want to delete this cover letter? This action cannot be undone.`}
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>{t`Cancel`}</AlertDialogCancel>
+                            <AlertDialogAction 
+                              onClick={() => handleDeleteCoverLetter(coverLetter.id)}
+                              className="bg-red-600 hover:bg-red-700"
+                            >
+                              {t`Delete`}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Show existing resumes */}
+              {jobApplication.resumes && jobApplication.resumes.length > 0 && (
+                <div className="space-y-2">
+                  <div className="text-sm font-medium">{t`Resumes`}</div>
+                  {jobApplication.resumes.map((resume) => (
+                    <div key={resume.id} className="flex items-center gap-2">
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 justify-start gap-2"
+                      >
+                        <Link to={`/builder/${resume.id}`}>
+                          <FileText size={14} />
+                          {resume.title || t`Resume`} - {new Date(resume.createdAt).toLocaleDateString()}
+                        </Link>
+                      </Button>
+                      
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="px-2"
+                            disabled={isDeletingResume}
+                          >
+                            <Trash size={14} />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>{t`Delete Resume`}</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              {t`Are you sure you want to delete this resume? This action cannot be undone.`}
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>{t`Cancel`}</AlertDialogCancel>
+                            <AlertDialogAction 
+                              onClick={() => handleDeleteResume(resume.id)}
+                              className="bg-red-600 hover:bg-red-700"
+                            >
+                              {t`Delete`}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
                   ))}
                 </div>
               )}

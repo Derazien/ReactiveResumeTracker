@@ -148,7 +148,7 @@ const JobApplicationRow = ({
           <div className="font-medium">{application.title}</div>
           <div className="text-muted-foreground flex items-center gap-1 text-sm">
             <Building size={14} />
-            {application.company}
+            {application.companyName}
           </div>
         </div>
       </td>
@@ -248,7 +248,7 @@ const JobApplicationRow = ({
                 <AlertDialogHeader>
                   <AlertDialogTitle>{t`Delete Job Application`}</AlertDialogTitle>
                   <AlertDialogDescription>
-                    {t`Are you sure you want to delete "${application.title}" at ${application.company}? This action cannot be undone.`}
+                    {t`Are you sure you want to delete "${application.title}" at ${application.companyName}? This action cannot be undone.`}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

@@ -1,9 +1,10 @@
-import { MagnifyingGlass, PencilSimple, Plus, TrashSimple, Upload } from "@phosphor-icons/react";
-import { Card, CardContent, CardHeader, CardTitle } from "@reactive-resume/ui";
-import { Button } from "@reactive-resume/ui";
-import { Input } from "@reactive-resume/ui";
-import { Badge } from "@reactive-resume/ui";
-import { ScrollArea } from "@reactive-resume/ui";
+import {
+  MagnifyingGlassIcon,
+  PencilSimpleIcon,
+  PlusIcon,
+  TrashSimpleIcon,
+  UploadIcon,
+} from "@phosphor-icons/react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,6 +15,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Input,
+  ScrollArea,
 } from "@reactive-resume/ui";
 import { cn } from "@reactive-resume/utils";
 import { useState } from "react";
@@ -61,7 +70,7 @@ const ContentLibraryPage = () => {
   );
 
   // Get the first active section as default if none selected
-  const defaultSection = sections?.find((section: any) => section.isActive) || sections?.[0];
+  const defaultSection = sections?.find((section: any) => section.isActive) ?? sections?.[0];
   if (!selectedSectionId && defaultSection) {
     setSelectedSectionId(defaultSection.id as SectionKey);
   }
@@ -132,7 +141,7 @@ const ContentLibraryPage = () => {
                 setUploadDialogOpen(true);
               }}
             >
-              <Upload className="size-4" />
+              <UploadIcon className="size-4" />
               Upload CV
             </Button>
             <Button
@@ -141,7 +150,7 @@ const ContentLibraryPage = () => {
               disabled={!selectedSectionId}
               onClick={handleCreateContent}
             >
-              <Plus className="size-4" />
+              <PlusIcon className="size-4" />
               Add Content
             </Button>
           </div>
@@ -217,7 +226,7 @@ const ContentLibraryPage = () => {
 
                 <div className="flex items-center gap-2">
                   <div className="relative">
-                    <MagnifyingGlass className="text-muted-foreground absolute left-3 top-3 size-4" />
+                    <MagnifyingGlassIcon className="text-muted-foreground absolute left-3 top-3 size-4" />
                     <Input
                       placeholder="Search content..."
                       value={searchQuery}
@@ -228,7 +237,7 @@ const ContentLibraryPage = () => {
                     />
                   </div>
                   <Button onClick={handleCreateContent}>
-                    <Plus className="mr-2 size-4" />
+                    <PlusIcon className="mr-2 size-4" />
                     Add Content
                   </Button>
                 </div>
@@ -261,11 +270,11 @@ const ContentLibraryPage = () => {
                       <p className="mb-4 text-sm">
                         {searchQuery
                           ? `No content matches "${searchQuery}"`
-                          : `Start by adding content to ${selectedSection.name.toLowerCase()}`}
+                          : `Start by adding content to ${selectedSection?.name?.toLowerCase() || "this section"}`}
                       </p>
                     </div>
                     <Button onClick={handleCreateContent}>
-                      <Plus className="mr-2 size-4" />
+                      <PlusIcon className="mr-2 size-4" />
                       Add Content
                     </Button>
                   </div>
@@ -364,14 +373,13 @@ const ContentDetailCard = ({ item, onEdit }: { item: any; onEdit: () => void }) 
         title: "Content deleted",
         description: `"${item.title}" has been successfully deleted.`,
       });
-    } catch (error) {
-      console.error("Failed to delete content:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete content. Please try again.",
-        variant: "error",
-      });
-    }
+          } catch {
+        toast({
+          title: "Error",
+          description: "Failed to delete content. Please try again.",
+          variant: "error",
+        });
+      }
   };
 
   return (
@@ -393,7 +401,7 @@ const ContentDetailCard = ({ item, onEdit }: { item: any; onEdit: () => void }) 
           </div>
           <div className="flex gap-2">
             <Button size="sm" variant="ghost" onClick={onEdit}>
-              <PencilSimple className="size-4" />
+              <PencilSimpleIcon className="size-4" />
             </Button>
             <AlertDialog>
               <AlertDialogTrigger asChild>
@@ -403,7 +411,7 @@ const ContentDetailCard = ({ item, onEdit }: { item: any; onEdit: () => void }) 
                   className="text-destructive hover:text-destructive"
                   disabled={deleteContentMutation.isPending}
                 >
-                  <TrashSimple className="size-4" />
+                  <TrashSimpleIcon className="size-4" />
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>

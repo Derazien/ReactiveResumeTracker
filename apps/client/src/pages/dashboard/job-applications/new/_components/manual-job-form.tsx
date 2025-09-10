@@ -78,7 +78,7 @@ export const ManualJobForm = () => {
     try {
       await createJobApplication({
         title: formData.title,
-        company: formData.company,
+        companyName: formData.company,
         description: formData.description,
         url: formData.url,
         notes: formData.notes,
