@@ -12,6 +12,7 @@
 - **Advanced Content Matching** with multi-layer optimization
 - **Embedding-based Similarity Search** using Cohere API
 - **Tagging System** for smart categorization and filtering
+- **✨ Tailored Cover Letter Generation** with mass-production workflow and company theme analysis
 
 ## 🏗️ Architecture & Tech Stack
 
@@ -61,6 +62,7 @@ ReactiveResumeTracker/
 │   │   │   │   ├── providers/            # LLM provider implementations
 │   │   │   │   └── interfaces/           # LLM provider interfaces
 │   │   │   ├── content-library/          # Content management API
+│   │   │   ├── cover-letter-content/     # Cover letter content management
 │   │   │   ├── content-matching/         # Content matching service
 │   │   │   ├── embedding/                # Embedding generation service
 │   │   │   ├── tag/                      # Tagging system
@@ -186,6 +188,39 @@ ReactiveResumeTracker/
 - Auto-tagging with LLM assistance
 - Tag-based content organization
 
+### 7. ✨ Tailored Cover Letter Generation System
+**Location**: `apps/server/src/cover-letter-content/` & `apps/client/src/pages/cover-letter-builder/`
+
+**Features**:
+- **Mass-Production Workflow**: Automated cover letter generation following industry best practices
+- **Company Theme Analysis**: Extracts key themes (analytics, leadership, tech, etc.) from job descriptions
+- **Smart Content Selection**: Maps company themes to paragraph types using semantic similarity
+- **Token-Based Templates**: Master template with replaceable tokens (`[FIRST NAME]`, `[Company]`, `[Paragraph A]`)
+- **Content Scoring**: Company value alignment and overall fit scoring (0-100)
+- **Lexical Tuning**: Echoes company language and incorporates company-specific terminology
+
+**Content Types**:
+- `PARAGRAPH_ANALYTICS`: Quantitative + qualitative analytical skills
+- `PARAGRAPH_DIVERSITY`: Diversity & curiosity stories  
+- `PARAGRAPH_LEADERSHIP`: Leadership + client management
+- `PARAGRAPH_TECH`: Technical depth (software/AI)
+- `PARAGRAPH_COLLABORATION`: Teamwork and communication
+- `PARAGRAPH_INNOVATION`: Creative problem-solving
+- `PARAGRAPH_IMPACT`: Results-oriented achievements
+- `PARAGRAPH_GROWTH`: Learning ability and adaptability
+- `PARAGRAPH_CHALLENGE`: Problem-solving and resilience
+- `PARAGRAPH_VALUES`: Company culture and values alignment
+
+**Generation Workflow**:
+1. **Theme Extraction**: Analyze job description and company info to identify 3-5 key themes
+2. **Content Selection**: Map themes to content types and select best matching paragraph blocks
+3. **Template Generation**: Use token-based template with selected content and user data
+4. **Quality Scoring**: Calculate company alignment, content diversity, and overall fit scores
+
+**API**: `POST /api/job-applications/:id/generate-tailored-cover-letter`
+
+**Documentation**: `docs/TAILORED_COVER_LETTER_GENERATION.md`
+
 ## 🎨 Template System
 
 ### Template Architecture
@@ -263,7 +298,10 @@ PATCH  /job-application/:id               # Update application
 DELETE /job-application/:id               # Delete application
 POST   /job-application/analyze           # Analyze job posting URL
 POST   /job-application/create-from-analysis # Create from analysis
-POST   /job-application/generate-resume   # Generate tailored resume
+POST   /job-application/generate-resume           # Generate tailored resume
+POST   /job-application/:id/generate-enhanced-cover-letter    # Generate enhanced cover letter
+POST   /job-application/:id/generate-tailored-cover-letter    # ✨ Generate tailored cover letter
+POST   /job-application/:id/conduct-interview                 # Conduct story extraction interview
 ```
 
 #### LLM Endpoints
@@ -285,6 +323,16 @@ GET    /content-library/search            # Search content
 PATCH  /content-library/:id               # Update content
 DELETE /content-library/:id               # Delete content
 POST   /content-library/batch             # Bulk operations
+```
+
+#### Cover Letter Content Endpoints
+```
+POST   /cover-letter-content              # Create cover letter story
+GET    /cover-letter-content              # List cover letter stories  
+GET    /cover-letter-content/:id          # Get story details
+PATCH  /cover-letter-content/:id          # Update story
+DELETE /cover-letter-content/:id          # Delete story
+POST   /cover-letter-content/search       # Search stories by content
 ```
 
 #### Embedding Endpoints

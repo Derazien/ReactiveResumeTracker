@@ -48,6 +48,9 @@ ReactiveResumeTracker/
 **Key Methods**:
 - `tailorSection()` - Tailors resume sections using LLM
 - `editResume()` - AI-powered resume editing
+- `extractCompanyThemes()` - ✨ NEW: Extracts themes from job descriptions
+- `selectBestCoverLetterParagraphs()` - ✨ NEW: Smart content selection for cover letters
+- `generateTailoredCoverLetterFromTemplate()` - ✨ NEW: Token-based cover letter generation
 - `extractCV()` - Extracts content from uploaded CVs
 
 ### 4. Content Library Service (`apps/server/src/content-library/`)
@@ -55,6 +58,14 @@ ReactiveResumeTracker/
 **Key Methods**:
 - `saveExtractedContent()` - Saves extracted content to library
 - `getUserContent()` - Retrieves user's content library
+
+### 5. ✨ Cover Letter Content Service (`apps/server/src/cover-letter-content/`)
+**Purpose**: Manages cover letter stories and paragraph blocks
+**Key Methods**:
+- `create()` - Creates new cover letter story with embedding
+- `findByType()` - Retrieves content by paragraph type
+- `selectBestStoriesForJob()` - Selects best stories for job application
+- `findSimilarStories()` - Semantic search for similar stories
 
 ## 📊 Database Schema
 
@@ -65,6 +76,12 @@ Content {
   id, title, description, data, sectionId, userId
   sourceContentId, // For variants
   tags[], // For matching
+}
+
+-- Cover Letter Content
+CoverLetterContent {
+  id, contentType, contentId, storyText, skillTheme
+  tone, tags, embedding, embeddingHash, userId
 }
 
 -- Job Applications
@@ -86,6 +103,7 @@ JobApplication {
 - `useResumeStore` - Resume data and editing state
 - `useJobApplicationStore` - Job application management
 - `useContentLibraryStore` - Content library state
+- `useCoverLetterBuilderStore` - ✨ NEW: Cover letter builder state and panels
 
 ### Key Components
 - `Builder` - Main resume editing interface
@@ -119,7 +137,12 @@ Job Description → Content Matching → Score & Rank → User Selection
 Selected Content → Resume Builder → LLM Tailoring → Final Resume
 ```
 
-### 4. Content Tracking
+### 4. ✨ Cover Letter Generation
+```
+Job Description → Company Theme Analysis → Content Selection → Token Template → Final Cover Letter
+```
+
+### 5. Content Tracking
 ```
 Library Item → Resume Item (contentId) → Modified (sourceContentId) → New Library Item
 ```

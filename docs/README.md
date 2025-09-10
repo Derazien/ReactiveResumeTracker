@@ -20,6 +20,7 @@ Welcome to the ReactiveResumeTracker documentation! This folder contains compreh
 - **[RESUME_SECTIONS_DATA_STRUCTURE_REFERENCE.md](./RESUME_SECTIONS_DATA_STRUCTURE_REFERENCE.md)** - Complete resume data structure reference
 - **[TEMPLATE_CREATION_GUIDE.md](./TEMPLATE_CREATION_GUIDE.md)** - Template creation guidelines and best practices
 - **[REACTIVE_RESUME_TRACKER_DOCS.md](./REACTIVE_RESUME_TRACKER_DOCS.md)** - Additional technical documentation and implementation details
+- **[PDF_SIZE_OPTIMIZATION_GUIDE.md](./PDF_SIZE_OPTIMIZATION_GUIDE.md)** - PDF generation optimization and file size reduction
 
 ## 🎯 **Quick Start Guide**
 
@@ -58,6 +59,7 @@ Welcome to the ReactiveResumeTracker documentation! This folder contains compreh
 - Content matching algorithms
 - RAG system architecture
 - Data structures and schemas
+- PDF generation optimization
 
 ### **Development Guidelines**
 - Code patterns and best practices
