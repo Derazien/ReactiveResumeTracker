@@ -19,7 +19,7 @@ export const InterviewSection = () => {
     if (!jobApplication) return;
 
     try {
-      const response = await fetch(`/api/job-applications/${jobApplication.id}/conduct-interview`, {
+      const response = await fetch(`/api/cover-letter-content/conduct-interview-for-job/${jobApplication.id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -5,6 +5,7 @@ import { PrismaService } from "nestjs-prisma";
 
 import { EmbeddingService } from "@/server/embedding/embedding.service";
 import { LLMService } from "@/server/llm/llm.service";
+import { InterviewService } from "@/server/interview/interview.service";
 
 @Injectable()
 export class CoverLetterContentService {
@@ -14,6 +15,7 @@ export class CoverLetterContentService {
     private readonly prisma: PrismaService,
     private readonly embeddingService: EmbeddingService,
     private readonly llmService: LLMService,
+    private readonly interviewService: InterviewService,
   ) {}
 
   /**
@@ -457,5 +459,67 @@ export class CoverLetterContentService {
         isCustomizable: true,
       },
     });
+  }
+
+  /**
+   * Conduct interview for story extraction using job application context
+   */
+  async conductInterviewForJob(
+    jobApplicationId: string,
+    userId: string,
+    interviewType: "cover_letter" | "q&a" = "cover_letter",
+  ): Promise<{
+    interviewQuestions: string[];
+    suggestedStoryTypes: string[];
+    followUpQuestions: string[];
+  }> {
+    this.logger.debug(`Conducting interview for job application ${jobApplicationId}`);
+
+    // Get job application context
+    const jobApplication = await this.prisma.jobApplication.findFirst({
+      where: { id: jobApplicationId, userId },
+    });
+
+    if (!jobApplication) {
+      throw new Error("Job application not found");
+    }
+
+    // Get company information if available
+    const companyInfo = jobApplication.companyId
+      ? await this.prisma.company.findUnique({ where: { id: jobApplication.companyId } })
+      : null;
+
+    // Delegate to InterviewService
+    return this.interviewService.conductInterviewForStories(
+      jobApplication.description ?? "",
+      userId,
+      companyInfo,
+      interviewType,
+    );
+  }
+
+  /**
+   * Generate interview questions for job application
+   */
+  async generateInterviewQuestionsForJob(
+    jobApplicationId: string,
+    userId: string,
+  ): Promise<string[]> {
+    this.logger.debug(`Generating interview questions for job application ${jobApplicationId}`);
+
+    // Get job application context
+    const jobApplication = await this.prisma.jobApplication.findFirst({
+      where: { id: jobApplicationId, userId },
+    });
+
+    if (!jobApplication) {
+      throw new Error("Job application not found");
+    }
+
+    // Delegate to InterviewService
+    return this.interviewService.generateInterviewQuestions(
+      jobApplication.description ?? "",
+      userId,
+    );
   }
 }

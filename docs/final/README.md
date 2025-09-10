@@ -107,3 +107,4 @@ When refactoring or adding new services:
 ---
 
 **⚠️ Important**: This documentation is the **source of truth** for the project architecture and should always be kept current during development.
+

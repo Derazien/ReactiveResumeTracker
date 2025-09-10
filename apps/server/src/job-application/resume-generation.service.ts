@@ -158,11 +158,11 @@ export class ResumeGenerationService {
       `Content breakdown: ${structuredSelection.experiences.length} experiences, ${structuredSelection.projects.length} projects, ${structuredSelection.skills.length} skills, ${structuredSelection.education.length} education items`,
     );
 
-    // ==================== SECTION 3: RESUME DATA CONSTRUCTION ====================  
-    // Build structured resume data from selected content (delegate to ResumeGenerationService)
-    const resumeData = await this.resumeGenerationService.buildResumeFromContent(user, selectedContent, jobApplication);
+    // ==================== SECTION 2: RESUME DATA CONSTRUCTION ====================
+    // Build structured resume data from selected content
+    const resumeData = await this.buildResumeFromContent(user, selectedContent, jobApplication);
 
-    // ==================== SECTION 4: LLM-POWERED TAILORING OPTIMIZATION ====================
+    // ==================== SECTION 3: LLM-POWERED TAILORING OPTIMIZATION ====================
     // Apply sophisticated LLM tailoring to optimize resume for the specific job
     let tailoringResult: any = null;
     let finalResumeData = resumeData;
@@ -193,8 +193,8 @@ export class ResumeGenerationService {
       if (tailoringResponse.success && tailoringResponse.data) {
         tailoringResult = tailoringResponse.data;
 
-        // Apply LLM recommendations to the resume data (delegate to ResumeGenerationService)
-        finalResumeData = this.resumeGenerationService.applyTailoringToResume(resumeData, tailoringResult);
+        // Apply LLM recommendations to the resume data
+        finalResumeData = this.applyTailoringToResume(resumeData, tailoringResult);
 
         // CRITICAL DEBUG: Log the final layout structure to help debug frontend issues
         this.logger.log(
@@ -233,9 +233,9 @@ export class ResumeGenerationService {
       finalResumeData = resumeData;
     }
 
-    // ==================== SECTION 5: RESUME PERSISTENCE & METADATA ====================
-    // Create resume record with comprehensive metadata (delegate to ResumeGenerationService)
-    const { resumeTitle, resumeSlug, resumeNotes } = this.resumeGenerationService.createResumeMetadata(
+    // ==================== SECTION 4: RESUME PERSISTENCE & METADATA ====================
+    // Create resume record with comprehensive metadata
+    const { resumeTitle, resumeSlug, resumeNotes } = this.createResumeMetadata(
       jobApplication,
       selectedContent,
       tailoringResult,
@@ -254,9 +254,9 @@ export class ResumeGenerationService {
       },
     });
 
-    // ==================== SECTION 6: RESPONSE FORMATTING ====================
-    // Generate comprehensive suggestions and format response (delegate to ResumeGenerationService)
-    const finalSuggestions = this.resumeGenerationService.generateResumeSuggestions(selectedContent, tailoringResult, enhancedSuggestions);
+    // ==================== SECTION 5: RESPONSE FORMATTING ====================
+    // Generate comprehensive suggestions and format response
+    const finalSuggestions = this.generateResumeSuggestions(selectedContent, tailoringResult, enhancedSuggestions);
 
     const result = {
       resume,
@@ -267,7 +267,7 @@ export class ResumeGenerationService {
 
     // Log debug information if enabled
     await this.debugLogger.logResumeGeneration(
-      jobApplicationId,
+      jobApplication.id,
       userId,
       llmInput,
       tailoringResponse,

@@ -214,3 +214,4 @@ POST /api/job-applications/{id}/generate-cover-letter
 **🎯 Primary Goal: Verify the consolidated system generates authentic, company-tailored cover letters following your blueprint using your actual stories and company data.**
 
 
+

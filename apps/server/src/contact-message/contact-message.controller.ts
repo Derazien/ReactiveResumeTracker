@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Request, UseGuards } from "@nestjs/common";
 import { CreateContactMessageDto, UpdateContactMessageDto } from "@reactive-resume/dto";
 
 import { JwtGuard } from "../auth/guards/jwt.guard";
@@ -36,10 +36,11 @@ export class ContactMessageController {
 
   @Post("contact/:contactId/generate")
   generateMessage(
+    @Request() req: any,
     @Param("contactId") contactId: string,
-    @Body() body: { type: string; instructions?: string },
+    @Body() body: { type: "email" | "linkedin" | "general"; instructions?: string },
   ) {
-    return this.messageService.generateMessage(contactId, body.type, body.instructions);
+    return this.messageService.generateMessage(req.user.id, contactId, body.type, body.instructions);
   }
 
   @Patch(":id")

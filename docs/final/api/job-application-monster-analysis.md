@@ -283,3 +283,4 @@ class ResumeConfigurationService {  // NEW
 ---
 
 **📋 Root Cause**: The service grew organically without architectural oversight, accumulating technical debt until it became unmaintainable.**
+
