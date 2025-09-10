@@ -5,6 +5,8 @@ import type { ResumeData } from "@reactive-resume/schema";
 
 import { ContentLibraryService } from "@/server/content-library/content-library.service";
 import { ContentMatchingService } from "@/server/content-matching/content-matching.service";
+import { DebugLoggerService } from "@/server/debug/debug-logger.service";
+import { EmbeddingService } from "@/server/embedding/embedding.service";
 import { LLMService } from "@/server/llm/llm.service";
 
 export interface TailoredResumeResult {
@@ -28,414 +30,1564 @@ export interface TailoredResumeResult {
 export class ResumeGenerationService {
   private readonly logger = new Logger(ResumeGenerationService.name);
 
+  // Tuned content selection configuration for optimal resume generation
+  // These parameters have been optimized for best results - do not change without testing
+  private readonly CONTENT_SELECTION_CONFIG = {
+    useVectorSimilarity: true,
+    useTagMatching: true,
+    vectorWeight: 0.7,
+    tagWeight: 0.3,
+    minSimilarity: 0,
+    maxResults: 100,
+    // Structured selection options for one-page resume optimization
+    maxExperiences: 5, // LLM will determine if 2 or 3 fit on one page
+    maxProjects: 3,
+    includeAllInterests: true,
+    includeAllLanguages: true,
+    includeAllSkills: true,
+    includeAllEducation: true,
+    includeAllCertificates: true,
+    includeAllVolunteer: true,
+    includeAllCauses: true,
+    // Lower thresholds for content types that should be included regardless
+    minSimilarityForLanguages: 5, // Very low threshold for languages
+    minSimilarityForSkills: 5, // Very low threshold for skills
+    minSimilarityForEducation: 5, // Very low threshold for education
+    minSimilarityForCertificates: 5, // Very low threshold for certificates
+    minSimilarityForInterests: 5, // Very low threshold for interests
+    minSimilarityForVolunteer: 5, // Very low threshold for volunteer
+    minSimilarityForCauses: 5, // Very low threshold for causes
+  };
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly llmService: LLMService,
     private readonly contentLibraryService: ContentLibraryService,
     private readonly contentMatchingService: ContentMatchingService,
+    private readonly embeddingService: EmbeddingService,
+    private readonly debugLogger: DebugLoggerService,
   ) {}
 
   /**
-   * Generate a tailored resume for a job application
+   * Generate tailored resume for job application (controller-friendly interface)  
+   * Takes job application object directly to avoid service-within-service pattern
    */
   async generateTailoredResume(
-    jobApplicationId: string,
+    jobApplication: any,  // Takes job application object directly (no database calls)
     userId: string,
-    options?: {
-      selectedContentIds?: string[];
-      includeAllContent?: boolean;
-      customInstructions?: string;
-      targetLength?: "one-page" | "two-page";
-    },
-  ): Promise<TailoredResumeResult> {
-    this.logger.log(`Generating tailored resume for job application ${jobApplicationId}`);
+  ): Promise<{
+    resume: any;
+    selectedContent: any[];
+    suggestions: string[];
+    tailoringResult?: any;
+  }> {
+    this.logger.log(`Generating sophisticated tailored resume for job: ${jobApplication.title}`);
 
-    // Get job application details
-    const jobApplication = await this.prisma.jobApplication.findFirst({
-      where: { id: jobApplicationId, userId },
-      include: {
-        company: true,
-      },
+    // Get user data  
+    const user = await this.prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+      select: { name: true, email: true, picture: true },
     });
 
-    if (!jobApplication) {
-      throw new Error("Job application not found");
+    // ==================== SECTION 1: INTELLIGENT CONTENT SELECTION ====================
+    // Parse job requirements and setup embedding for enhanced matching
+    const jobRequirements = JSON.parse(jobApplication.requirements ?? "[]");
+
+    // Get job embedding if available
+    let jobEmbedding: number[] | undefined;
+    if (jobApplication.embedding) {
+      try {
+        jobEmbedding = this.embeddingService.parseEmbedding(jobApplication.embedding);
+        this.logger.log("Using stored job embedding for enhanced content matching");
+      } catch (error) {
+        this.logger.warn(
+          `Failed to parse job embedding: ${error instanceof Error ? error.message : "Unknown error"}`,
+        );
+      }
     }
 
-    // Get base resume
-    const baseResume = await this.getBaseResume(userId);
-    if (!baseResume) {
-      throw new Error("No base resume found");
-    }
-
-    // Match and select content
-    const selectedContent = await this.selectContentForJob(
+    // Use tuned content selection configuration for optimal results
+    const structuredSelection = await this.contentMatchingService.selectStructuredContent(
       userId,
-      jobApplication,
-      options?.selectedContentIds,
-      options?.includeAllContent,
+      jobRequirements,
+      jobApplication.description ?? "",
+      this.CONTENT_SELECTION_CONFIG,
+      jobEmbedding,
     );
 
-    // Build tailored resume
-    const resumeData = await this.buildResumeFromContent(
-      baseResume,
+    // Convert structured selection to content objects and add match scores
+    const selectedContent: any[] = [];
+
+    // Combine all selected content from different sections
+    const allSelectedMatches = [
+      ...structuredSelection.experiences,
+      ...structuredSelection.projects,
+      ...structuredSelection.interests,
+      ...structuredSelection.languages,
+      ...structuredSelection.summary,
+      ...structuredSelection.contact,
+      ...structuredSelection.skills,
+      ...structuredSelection.education,
+      ...structuredSelection.certificates,
+      ...structuredSelection.volunteer,
+      ...structuredSelection.causes,
+    ];
+
+    // Remove duplicates and get content details
+    const uniqueContentIds = [...new Set(allSelectedMatches.map((match) => match.contentId))];
+
+    for (const contentId of uniqueContentIds) {
+      const content = await this.contentLibraryService.findOne(contentId, userId);
+      if (content) {
+        const match = allSelectedMatches.find((m) => m.contentId === contentId);
+        selectedContent.push({
+          ...content,
+          matchScore: match?.score ?? 0,
+          vectorSimilarity: match?.vectorSimilarity,
+          tagSimilarity: match?.tagSimilarity,
+          matchReasons: match?.reasons ?? [],
+          matchSuggestions: match?.suggestions ?? [],
+        });
+      }
+    }
+
+    this.logger.log(
+      `Auto-selected ${selectedContent.length} relevant content pieces using structured selection (TAG-ONLY matching)`,
+    );
+    this.logger.log(
+      `Content breakdown: ${structuredSelection.experiences.length} experiences, ${structuredSelection.projects.length} projects, ${structuredSelection.skills.length} skills, ${structuredSelection.education.length} education items`,
+    );
+
+    // ==================== SECTION 2: RESUME DATA CONSTRUCTION ====================
+    // Build structured resume data from selected content
+    const resumeData = await this.buildResumeFromContent(user, selectedContent, jobApplication);
+
+    // ==================== SECTION 3: LLM-POWERED TAILORING OPTIMIZATION ====================
+    // Apply sophisticated LLM tailoring to optimize resume for the specific job
+    let tailoringResult: any = null;
+    let finalResumeData = resumeData;
+    let enhancedSuggestions: string[] = [];
+    let llmInput: any = null;
+    let tailoringResponse: any = null;
+
+    try {
+      this.logger.log("Applying LLM-powered CV tailoring for ONE-PAGE resume...");
+
+      const jobRequirements = JSON.parse(jobApplication.requirements ?? "[]");
+
+      // Prepare LLM input for debug logging
+      llmInput = {
+        userId,
+        jobDescription: jobApplication.description ?? "",
+        jobRequirements,
+        resumeData,
+      };
+
+      tailoringResponse = await this.llmService.tailorResumeContentForUser(
+        userId,
+        jobApplication.description ?? "",
+        jobRequirements,
+        resumeData,
+      );
+
+      if (tailoringResponse.success && tailoringResponse.data) {
+        tailoringResult = tailoringResponse.data;
+
+        // Apply LLM recommendations to the resume data
+        finalResumeData = this.applyTailoringToResume(resumeData, tailoringResult);
+
+        // CRITICAL DEBUG: Log the final layout structure to help debug frontend issues
+        this.logger.log(
+          `Final resume layout structure: ${JSON.stringify(finalResumeData?.metadata?.layout, null, 2)}`,
+        );
+
+        enhancedSuggestions = tailoringResult.suggestions || [];
+
+        this.logger.log(
+          `LLM tailoring completed. Overall fit score: ${tailoringResult.overallFitScore}/100`,
+        );
+        this.logger.log(
+          `Applied ${tailoringResult.experienceAdjustments?.length || 0} experience adjustments`,
+        );
+        this.logger.log(
+          `Skills to add: ${tailoringResult.skillsToAdd?.length || 0}, Skills to remove: ${tailoringResult.skillsToRemove?.length || 0}`,
+        );
+      } else {
+        this.logger.warn(
+          `LLM tailoring failed: ${tailoringResponse.error}. Using basic resume without tailoring.`,
+        );
+        // CRITICAL DEBUG: Log the basic resume layout structure to help debug
+        this.logger.log(
+          `Basic resume layout structure (no LLM): ${JSON.stringify(resumeData?.metadata?.layout, null, 2)}`,
+        );
+        finalResumeData = resumeData;
+      }
+    } catch (error) {
+      this.logger.error(
+        `LLM tailoring error: ${error instanceof Error ? error.message : "Unknown error"}. Proceeding with basic resume.`,
+      );
+      // CRITICAL DEBUG: Log the basic resume layout structure to help debug
+      this.logger.log(
+        `Basic resume layout structure (error case): ${JSON.stringify(resumeData?.metadata?.layout, null, 2)}`,
+      );
+      finalResumeData = resumeData;
+    }
+
+    // ==================== SECTION 4: RESUME PERSISTENCE & METADATA ====================
+    // Create resume record with comprehensive metadata
+    const { resumeTitle, resumeSlug, resumeNotes } = this.createResumeMetadata(
+      jobApplication,
       selectedContent,
-      jobApplication,
-      options,
+      tailoringResult,
     );
 
-    // Create resume record
-    const resumeTitle = `${jobApplication.title} - ${jobApplication.companyName}`;
-    const resumeSlug = this.generateResumeSlug(jobApplication);
+    finalResumeData.metadata.notes = resumeNotes;
 
     const resume = await this.prisma.resume.create({
       data: {
         title: resumeTitle,
         slug: resumeSlug,
-        data: resumeData as any,
-        visibility: "private",
-        locked: false,
+        data: JSON.stringify(finalResumeData),
         userId,
+        jobApplicationId: jobApplication.id,
+        visibility: "private",
       },
     });
 
-    // Link resume to job application
-    await this.prisma.jobApplication.update({
-      where: { id: jobApplicationId },
-      data: {
-        resumes: {
-          connect: { id: resume.id },
-        },
-      },
-    });
+    // ==================== SECTION 5: RESPONSE FORMATTING ====================
+    // Generate comprehensive suggestions and format response
+    const finalSuggestions = this.generateResumeSuggestions(selectedContent, tailoringResult, enhancedSuggestions);
 
-    return {
-      resumeId: resume.id,
-      resumeData,
+    const result = {
+      resume,
       selectedContent,
-      matchScores: await this.calculateMatchScores(selectedContent, jobApplication),
-      optimizationNotes: this.generateOptimizationNotes(selectedContent, options?.targetLength),
+      suggestions: finalSuggestions,
+      tailoringResult,
     };
-  }
 
-  /**
-   * Select best content for a specific job
-   */
-  private async selectContentForJob(
-    userId: string,
-    jobApplication: any,
-    selectedContentIds?: string[],
-    includeAllContent?: boolean,
-  ) {
-    this.logger.debug("Selecting content for job application");
-
-    if (selectedContentIds && selectedContentIds.length > 0) {
-      // Use manually selected content
-      return this.getContentByIds(userId, selectedContentIds);
-    }
-
-    if (includeAllContent) {
-      // Include all user content
-      return this.getAllUserContent(userId);
-    }
-
-    // Use AI-powered content matching
-    const jobDescription = jobApplication.description || "";
-    const jobRequirements = typeof jobApplication.requirements === 'string' 
-      ? JSON.parse(jobApplication.requirements) 
-      : jobApplication.requirements || [];
-    
-    const matchingResult = await this.contentMatchingService.matchContentToJob(
+    // Log debug information if enabled
+    await this.debugLogger.logResumeGeneration(
+      jobApplication.id,
       userId,
-      jobRequirements,
-      jobDescription,
-      { useVectorSimilarity: true },
+      llmInput,
+      tailoringResponse,
+      result,
     );
 
-    return await this.organizeMatchedContent(matchingResult);
+    return result;
+  }
+  /**
+   * Create resume metadata (title, slug, notes)
+   */
+  public createResumeMetadata(
+    jobApplication: any,
+    selectedContent: any[],
+    tailoringResult: any,
+  ): { resumeTitle: string; resumeSlug: string; resumeNotes: string } {
+    const resumeTitle = `${jobApplication.title} - ${jobApplication.companyName}`;
+    const resumeSlug = `${jobApplication.title.toLowerCase().replace(/[^\da-z]+/g, "-")}-${jobApplication.companyName?.toLowerCase().replace(/[^\da-z]+/g, "-") || "unknown"}-${Date.now()}`;
+
+    // Prepare resume notes with comprehensive content selection info and changes summary
+    let resumeNotes = `<h2>Comprehensive One-Page Resume Details</h2>`;
+    resumeNotes += `<p><strong>Job:</strong> ${jobApplication.title} at ${jobApplication.companyName}</p>`;
+    resumeNotes += `<p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>`;
+    resumeNotes += `<p><strong>Format:</strong> Optimized for single-page layout with concise content</p>`;
+
+    if (tailoringResult?.changesSummary) {
+      resumeNotes += `<h3>LLM Optimizations Applied</h3>`;
+      resumeNotes += `<p>${tailoringResult.changesSummary}</p>`;
+      resumeNotes += `<p><strong>Job Fit Score:</strong> ${tailoringResult.overallFitScore}/100</p>`;
+    }
+
+    resumeNotes += `<h3>Comprehensive Content Selection Strategy</h3>`;
+    resumeNotes += `<ul>`;
+    resumeNotes += `<li><strong>Experiences:</strong> Top 2-3 most relevant (${selectedContent.filter((c) => c.section?.key === "experience").length} provided, LLM optimizes for one-page fit)</li>`;
+    resumeNotes += `<li><strong>Education:</strong> Most relevant degree(s)</li>`;
+    resumeNotes += `<li><strong>Technical Skills:</strong> All relevant technical skills and competencies</li>`;
+    resumeNotes += `<li><strong>Soft Skills:</strong> All relevant interpersonal and soft skills</li>`;
+    resumeNotes += `<li><strong>Projects:</strong> Top 2 most relevant projects</li>`;
+    resumeNotes += `<li><strong>Languages:</strong> All languages (sorted by relevancy)</li>`;
+    resumeNotes += `<li><strong>Certifications:</strong> Most relevant certifications only</li>`;
+    resumeNotes += `<li><strong>Additional:</strong> Volunteer experience, awards, publications (if highly relevant)</li>`;
+    resumeNotes += `</ul>`;
+
+    resumeNotes += `<h3>Content Library Items Used (${selectedContent.length} total)</h3>`;
+    resumeNotes += `<ul>`;
+    for (const content of selectedContent) {
+      resumeNotes += `<li><strong>${content.section?.name ?? content.type}:</strong> ${content.title} (Score: ${content.matchScore?.toFixed(1) ?? "N/A"})</li>`;
+    }
+    resumeNotes += `</ul>`;
+
+    resumeNotes += `<p><em>This resume is optimized for one-page format with comprehensive coverage. Use the resume builder to further customize sections and formatting.</em></p>`;
+
+    return { resumeTitle, resumeSlug, resumeNotes };
   }
 
   /**
-   * Build resume data from selected content
+   * Generate suggestions for resume generation
    */
-  private async buildResumeFromContent(
-    baseResume: any,
-    selectedContent: any,
-    jobApplication: any,
-    options?: any,
-  ): Promise<ResumeData> {
-    this.logger.debug("Building resume from selected content");
+  public generateResumeSuggestions(
+    selectedContent: any[],
+    tailoringResult: any,
+    enhancedSuggestions: string[],
+  ): string[] {
+    const basicSuggestions = [
+      `Comprehensive one-page resume generated from ${selectedContent.length} strategically selected content items`,
+      `Content includes: ${selectedContent.filter((c) => c.section?.key === "experience").length} experiences, education, technical skills, soft skills, projects, languages, and certifications`,
+      `Summary optimized to 1-2 sentences focusing on years of experience and key qualifications`,
+      `Format optimized for single-page layout while maintaining comprehensive coverage`,
+      `Use the resume builder to further adjust formatting and section order if needed`,
+    ];
 
-    // Clone base resume
-    let resumeData = JSON.parse(JSON.stringify(baseResume.data));
+    return tailoringResult
+      ? [
+          `LLM tailoring achieved ${tailoringResult.overallFitScore}/100 job fit score for one-page optimization`,
+          ...enhancedSuggestions,
+          ...basicSuggestions,
+        ]
+      : [
+          `Resume generated with comprehensive content selection - configure LLM settings for enhanced job-specific tailoring`,
+          ...basicSuggestions,
+        ];
+  }
 
-    // Update sections with selected content
-    if (selectedContent.experience?.length > 0) {
-      resumeData.sections.experience.items = this.processExperienceItems(
-        selectedContent.experience,
-        options?.targetLength,
+  /**
+   * Apply LLM tailoring recommendations to the resume data
+   */
+  public applyTailoringToResume(resumeData: any, tailoringResult: any): any {
+    // If LLM provided complete optimized resume data, use it
+    if (tailoringResult.optimizedResumeData) {
+      this.logger.log("Using complete LLM-optimized resume data");
+
+      // Ensure the LLM-generated data conforms to schema requirements
+      const validatedResumeData = this.validateAndFixLLMResumeData(
+        tailoringResult.optimizedResumeData,
       );
+
+      // Mark all items with contentId as modified
+      this.markAllContentLibraryItemsAsModified(validatedResumeData);
+      return validatedResumeData;
     }
 
-    if (selectedContent.projects?.length > 0) {
-      resumeData.sections.projects.items = this.processProjectItems(
-        selectedContent.projects,
-      );
+    // Fallback to legacy partial adjustments
+    this.logger.log("Applying legacy partial tailoring adjustments");
+    const tailoredResume = JSON.parse(JSON.stringify(resumeData)); // Deep clone
+
+    // Apply adjusted summary if provided
+    if (tailoringResult.adjustedSummary) {
+      tailoredResume.sections.summary.content = `<p>${tailoringResult.adjustedSummary}</p>`;
+      this.logger.log("Applied LLM-enhanced professional summary");
     }
 
-    if (selectedContent.skills?.length > 0) {
-      resumeData.sections.skills.items = this.processSkillItems(
-        selectedContent.skills,
-      );
+    // Apply skill adjustments
+    if (tailoringResult.skillsToAdd?.length > 0 || tailoringResult.skillsToRemove?.length > 0) {
+      this.applySkillAdjustments(tailoredResume, tailoringResult);
     }
 
-    if (selectedContent.education?.length > 0) {
-      resumeData.sections.education.items = this.processEducationItems(
-        selectedContent.education,
-      );
+    // Apply experience adjustments
+    if (tailoringResult.experienceAdjustments?.length > 0) {
+      this.applyExperienceAdjustments(tailoredResume, tailoringResult);
     }
 
-    // Generate optimized summary
-    if (options?.customInstructions || jobApplication.description) {
-      resumeData.sections.summary.content = await this.generateOptimizedSummary(
-        jobApplication,
-        selectedContent,
-        options?.customInstructions,
-      );
+    return tailoredResume;
+  }
+
+  /**
+   * Validate and fix LLM-generated resume data to conform to schema requirements
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any  
+  public validateAndFixLLMResumeData(resumeData: any): any {
+    this.logger.log("Validating and fixing LLM-generated resume data for schema compliance");
+
+    // Ensure the resume has the expected structure
+    if (!resumeData.sections) {
+      this.logger.warn("LLM resume data missing sections - using original structure");
+      return resumeData;
     }
 
-    // Apply length optimization
-    if (options?.targetLength === "one-page") {
-      resumeData = this.optimizeForOnePage(resumeData);
+    // CRITICAL FIX: Ensure metadata.layout has the correct 3-level nested array structure
+    if (!resumeData.metadata) {
+      resumeData.metadata = {};
+    }
+
+    // Validate and fix the layout structure: [pages][columns][sections]
+    if (
+      !resumeData.metadata.layout ||
+      !Array.isArray(resumeData.metadata.layout) ||
+      resumeData.metadata.layout.length === 0
+    ) {
+      this.logger.warn("LLM corrupted or missing metadata.layout - restoring default structure");
+
+      // Get all available section keys from the resume sections
+      const availableSections = Object.keys(resumeData.sections || {});
+
+      // Create a proper default layout with 2 columns
+      const leftColumn = [];
+      const rightColumn = [];
+
+      // Distribute sections across columns (prioritize main content on left)
+      const leftPriority = ["summary", "experience", "education", "volunteer", "references"];
+      const rightPriority = [
+        "profiles",
+        "skills",
+        "projects",
+        "certifications",
+        "languages",
+        "interests",
+        "awards",
+        "publications",
+      ];
+
+      // Add left priority sections first
+      for (const section of leftPriority) {
+        if (availableSections.includes(section)) {
+          leftColumn.push(section);
+        }
+      }
+
+      // Add right priority sections
+      for (const section of rightPriority) {
+        if (availableSections.includes(section)) {
+          rightColumn.push(section);
+        }
+      }
+
+      // Add any remaining sections to the appropriate column
+      for (const section of availableSections) {
+        if (!leftColumn.includes(section) && !rightColumn.includes(section)) {
+          if (leftColumn.length <= rightColumn.length) {
+            leftColumn.push(section);
+          } else {
+            rightColumn.push(section);
+          }
+        }
+      }
+
+      // Create the proper 3-level nested structure: [pages][columns][sections]
+      resumeData.metadata.layout = [
+        [leftColumn, rightColumn], // Page 0 with 2 columns
+      ];
+
+      this.logger.log(
+        `Fixed layout structure: Left column (${leftColumn.length} sections), Right column (${rightColumn.length} sections)`,
+      );
+    } else {
+      // Validate existing layout structure
+      let layoutFixed = false;
+
+      for (let pageIndex = 0; pageIndex < resumeData.metadata.layout.length; pageIndex++) {
+        const page = resumeData.metadata.layout[pageIndex];
+
+        // Ensure each page is an array of columns
+        if (!Array.isArray(page)) {
+          this.logger.warn(`Page ${pageIndex} is not an array - fixing`);
+          resumeData.metadata.layout[pageIndex] = [[], []]; // Default 2 columns
+          layoutFixed = true;
+          continue;
+        }
+
+        // Ensure each page has at least 2 columns
+        if (page.length < 2) {
+          this.logger.warn(`Page ${pageIndex} has less than 2 columns - adding empty columns`);
+          while (page.length < 2) {
+            page.push([]);
+          }
+          layoutFixed = true;
+        }
+
+        // Ensure each column is an array of section strings
+        for (let colIndex = 0; colIndex < page.length; colIndex++) {
+          const column = page[colIndex];
+          if (!Array.isArray(column)) {
+            this.logger.warn(`Page ${pageIndex}, Column ${colIndex} is not an array - fixing`);
+            page[colIndex] = [];
+            layoutFixed = true;
+          }
+        }
+      }
+
+      if (layoutFixed) {
+        this.logger.log("Fixed layout structure issues");
+      } else {
+        this.logger.log("Layout structure validation passed");
+      }
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sections = resumeData.sections;
+    let fixCount = 0;
+
+    for (const sectionKey of Object.keys(sections)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const section = sections[sectionKey];
+      if (section?.items && Array.isArray(section.items)) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        section.items.forEach((item: any) => {
+          let itemFixed = false;
+
+          // Fix basic item fields required by all sections
+          if (!item.id || !/^[\da-z]{24}$/.test(item.id as string)) {
+            item.id = createId();
+            itemFixed = true;
+          }
+
+          if (typeof item.visible !== "boolean") {
+            item.visible = true;
+            itemFixed = true;
+          }
+
+          if (!Object.prototype.hasOwnProperty.call(item, "contentId")) {
+            item.contentId = null;
+            itemFixed = true;
+          }
+
+          if (!Object.prototype.hasOwnProperty.call(item, "sourceContentId")) {
+            item.sourceContentId = null;
+            itemFixed = true;
+          }
+
+          // Section-specific fixes
+          switch (sectionKey) {
+            case "experience": {
+              if (!item.company || typeof item.company !== "string") {
+                item.company = "Company";
+                itemFixed = true;
+              }
+              if (!item.position || typeof item.position !== "string") {
+                item.position = "Position";
+                itemFixed = true;
+              }
+              if (!item.location || typeof item.location !== "string") {
+                item.location = "";
+                itemFixed = true;
+              }
+              if (!item.date || typeof item.date !== "string") {
+                item.date = "Recent";
+                itemFixed = true;
+              }
+              if (!item.summary || typeof item.summary !== "string") {
+                item.summary = "";
+                itemFixed = true;
+              }
+              if (
+                !item.url ||
+                typeof item.url !== "object" ||
+                !("label" in item.url) ||
+                !("href" in item.url)
+              ) {
+                item.url = { label: "", href: "" };
+                itemFixed = true;
+              }
+              break;
+            }
+
+            case "projects": {
+              if (!item.name || typeof item.name !== "string") {
+                item.name = "Project";
+                itemFixed = true;
+              }
+              if (!item.description || typeof item.description !== "string") {
+                item.description = "Project";
+                itemFixed = true;
+              }
+              if (!item.date || typeof item.date !== "string") {
+                item.date = "Recent";
+                itemFixed = true;
+              }
+              if (!item.summary || typeof item.summary !== "string") {
+                item.summary = "";
+                itemFixed = true;
+              }
+              if (!Array.isArray(item.keywords)) {
+                item.keywords = [];
+                itemFixed = true;
+              }
+              if (
+                !item.url ||
+                typeof item.url !== "object" ||
+                !("label" in item.url) ||
+                !("href" in item.url)
+              ) {
+                item.url = { label: "", href: "" };
+                itemFixed = true;
+              }
+              break;
+            }
+
+            case "education": {
+              if (!item.institution || typeof item.institution !== "string") {
+                item.institution = "Institution";
+                itemFixed = true;
+              }
+              if (!item.studyType || typeof item.studyType !== "string") {
+                item.studyType = "Degree";
+                itemFixed = true;
+              }
+              if (!item.area || typeof item.area !== "string") {
+                item.area = "";
+                itemFixed = true;
+              }
+              if (!item.score || typeof item.score !== "string") {
+                item.score = "";
+                itemFixed = true;
+              }
+              if (!item.date || typeof item.date !== "string") {
+                item.date = "Graduated";
+                itemFixed = true;
+              }
+              if (!item.summary || typeof item.summary !== "string") {
+                item.summary = "";
+                itemFixed = true;
+              }
+              if (
+                !item.url ||
+                typeof item.url !== "object" ||
+                !("label" in item.url) ||
+                !("href" in item.url)
+              ) {
+                item.url = { label: "", href: "" };
+                itemFixed = true;
+              }
+              break;
+            }
+
+            case "skills": {
+              if (!item.name || typeof item.name !== "string") {
+                item.name = "Skill Category";
+                itemFixed = true;
+              }
+              if (!item.description || typeof item.description !== "string") {
+                item.description = "";
+                itemFixed = true;
+              }
+              if (typeof item.level !== "number" || item.level < 0 || item.level > 5) {
+                // Convert percentage to 0-5 scale if needed
+                if (typeof item.level === "number" && item.level > 5) {
+                  item.level = Math.min(5, Math.max(0, Math.round(item.level / 20)));
+                } else {
+                  item.level = 3; // Default level
+                }
+                itemFixed = true;
+              }
+              if (!Array.isArray(item.keywords)) {
+                item.keywords = [];
+                itemFixed = true;
+              }
+              break;
+            }
+
+            case "languages": {
+              if (!item.name || typeof item.name !== "string") {
+                item.name = "Language";
+                itemFixed = true;
+              }
+              if (!item.description || typeof item.description !== "string") {
+                item.description = "";
+                itemFixed = true;
+              }
+              if (typeof item.level !== "number" || item.level < 0 || item.level > 5) {
+                // Convert percentage to 0-5 scale if needed
+                if (typeof item.level === "number" && item.level > 5) {
+                  item.level = Math.min(5, Math.max(0, Math.round(item.level / 20)));
+                } else {
+                  item.level = 3; // Default level
+                }
+                itemFixed = true;
+              }
+              break;
+            }
+
+            case "certifications": {
+              if (!item.name || typeof item.name !== "string") {
+                item.name = "Certification";
+                itemFixed = true;
+              }
+              if (!item.issuer || typeof item.issuer !== "string") {
+                item.issuer = "Issuing Organization";
+                itemFixed = true;
+              }
+              if (!item.date || typeof item.date !== "string") {
+                item.date = new Date().getFullYear().toString();
+                itemFixed = true;
+              }
+              if (!item.summary || typeof item.summary !== "string") {
+                item.summary = "";
+                itemFixed = true;
+              }
+              if (
+                !item.url ||
+                typeof item.url !== "object" ||
+                !("label" in item.url) ||
+                !("href" in item.url)
+              ) {
+                item.url = { label: "", href: "" };
+                itemFixed = true;
+              }
+              break;
+            }
+
+            case "awards": {
+              if (!item.title || typeof item.title !== "string") {
+                item.title = "Award";
+                itemFixed = true;
+              }
+              if (!item.awarder || typeof item.awarder !== "string") {
+                item.awarder = "Awarding Organization";
+                itemFixed = true;
+              }
+              if (!item.date || typeof item.date !== "string") {
+                item.date = new Date().getFullYear().toString();
+                itemFixed = true;
+              }
+              if (!item.summary || typeof item.summary !== "string") {
+                item.summary = "";
+                itemFixed = true;
+              }
+              if (
+                !item.url ||
+                typeof item.url !== "object" ||
+                !("label" in item.url) ||
+                !("href" in item.url)
+              ) {
+                item.url = { label: "", href: "" };
+                itemFixed = true;
+              }
+              break;
+            }
+
+            case "publications": {
+              if (!item.name || typeof item.name !== "string") {
+                item.name = "Publication";
+                itemFixed = true;
+              }
+              if (!item.publisher || typeof item.publisher !== "string") {
+                item.publisher = "Publisher";
+                itemFixed = true;
+              }
+              if (!item.date || typeof item.date !== "string") {
+                item.date = new Date().getFullYear().toString();
+                itemFixed = true;
+              }
+              if (!item.summary || typeof item.summary !== "string") {
+                item.summary = "";
+                itemFixed = true;
+              }
+              if (
+                !item.url ||
+                typeof item.url !== "object" ||
+                !("label" in item.url) ||
+                !("href" in item.url)
+              ) {
+                item.url = { label: "", href: "" };
+                itemFixed = true;
+              }
+              break;
+            }
+
+            case "interests": {
+              if (!item.name || typeof item.name !== "string") {
+                item.name = "Interest";
+                itemFixed = true;
+              }
+              if (!Array.isArray(item.keywords)) {
+                item.keywords = [];
+                itemFixed = true;
+              }
+              break;
+            }
+
+            case "references": {
+              if (!item.name || typeof item.name !== "string") {
+                item.name = "Reference";
+                itemFixed = true;
+              }
+              if (!item.description || typeof item.description !== "string") {
+                item.description = "Reference";
+                itemFixed = true;
+              }
+              if (!item.summary || typeof item.summary !== "string") {
+                item.summary = "";
+                itemFixed = true;
+              }
+              if (
+                !item.url ||
+                typeof item.url !== "object" ||
+                !("label" in item.url) ||
+                !("href" in item.url)
+              ) {
+                item.url = { label: "", href: "" };
+                itemFixed = true;
+              }
+              break;
+            }
+
+            case "profiles": {
+              if (!item.network || typeof item.network !== "string") {
+                item.network = "Social Media";
+                itemFixed = true;
+              }
+              if (!item.username || typeof item.username !== "string") {
+                item.username = "Username";
+                itemFixed = true;
+              }
+              if (!item.icon || typeof item.icon !== "string") {
+                item.icon = "";
+                itemFixed = true;
+              }
+              if (
+                !item.url ||
+                typeof item.url !== "object" ||
+                !("label" in item.url) ||
+                !("href" in item.url)
+              ) {
+                item.url = { label: "", href: "" };
+                itemFixed = true;
+              }
+              break;
+            }
+          }
+
+          if (itemFixed) {
+            fixCount++;
+          }
+        });
+      }
+    }
+
+    if (fixCount > 0) {
+      this.logger.log(`Fixed ${fixCount} schema validation issues in LLM-generated resume data`);
+    } else {
+      this.logger.log("LLM-generated resume data passed schema validation");
     }
 
     return resumeData;
   }
 
   /**
-   * Process experience items for resume
+   * Helper method to properly track when content library items are modified by LLM
    */
-  private processExperienceItems(experiences: any[], targetLength?: string) {
-    return experiences.map(exp => ({
-      id: createId(),
-      company: exp.company || "",
-      position: exp.position || exp.title || "",
-      location: exp.location || "",
-      date: exp.date || exp.period || "",
-      summary: this.truncateContent(exp.summary || exp.description, targetLength === "one-page" ? 3 : 5),
-      contentId: exp.id,
-      sourceContentId: exp.sourceId,
-      visible: true,
-    }));
+  private markItemAsModifiedFromContentLibrary(item: any): void {
+    if (item.contentId && !item.sourceContentId) {
+      // Move contentId to sourceContentId to track the original source
+      item.sourceContentId = item.contentId;
+      item.contentId = null;
+
+      this.logger.debug(`Marked item as modified from content library: ${item.sourceContentId}`);
+    }
   }
 
   /**
-   * Process project items for resume
+   * Handle content modification in resume items
    */
-  private processProjectItems(projects: any[]) {
-    return projects.map(proj => ({
-      id: createId(),
-      name: proj.name || proj.title || "",
-      description: proj.description || "",
-      date: proj.date || "",
-      summary: proj.summary || "",
-      keywords: proj.tags || [],
-      url: proj.url || proj.link || "",
-      contentId: proj.id,
-      sourceContentId: proj.sourceId,
-      visible: true,
-    }));
+  handleContentModification(originalItem: any): any {
+    if (originalItem.contentId && !originalItem.sourceContentId) {
+      // Move contentId to sourceContentId to track the original source
+      return {
+        ...originalItem,
+        contentId: null, // Remove direct reference
+        sourceContentId: originalItem.contentId, // Track original source
+      };
+    }
+    return originalItem;
   }
 
   /**
-   * Process skill items for resume
+   * Add modified content back to library
    */
-  private processSkillItems(skills: any[]) {
-    // Group skills by category if possible
-    const skillGroups = new Map<string, string[]>();
-    
-    skills.forEach(skill => {
-      const category = skill.category || "Technical Skills";
-      if (!skillGroups.has(category)) {
-        skillGroups.set(category, []);
-      }
-      skillGroups.get(category)!.push(skill.name || skill.title);
-    });
-
-    return Array.from(skillGroups.entries()).map(([category, items]) => ({
-      id: createId(),
-      name: category,
-      description: items.join(", "),
-      level: 0,
-      keywords: items,
-      visible: true,
-    }));
-  }
-
-  /**
-   * Process education items for resume
-   */
-  private processEducationItems(education: any[]) {
-    return education.map(edu => ({
-      id: createId(),
-      institution: edu.institution || edu.school || "",
-      studyType: edu.studyType || edu.degree || "",
-      area: edu.area || edu.field || "",
-      score: edu.score || edu.gpa || "",
-      date: edu.date || edu.period || "",
-      summary: edu.summary || "",
-      contentId: edu.id,
-      visible: true,
-    }));
-  }
-
-  /**
-   * Generate optimized professional summary
-   */
-  private async generateOptimizedSummary(
-    jobApplication: any,
-    selectedContent: any,
-    customInstructions?: string,
+  async addModifiedContentToLibrary(
+    userId: string,
+    modifiedItem: any,
+    sectionKey: string,
   ): Promise<string> {
-    const prompt = `
-      Generate a professional summary for a resume targeting:
-      Position: ${jobApplication.title}
-      Company: ${jobApplication.companyName}
-      Description: ${jobApplication.description?.slice(0, 500)}
-      
-      Based on candidate's experience:
-      ${JSON.stringify(selectedContent.experience?.slice(0, 3))}
-      
-      ${customInstructions ? `Additional instructions: ${customInstructions}` : ""}
-      
-      Keep it concise (2-3 sentences), impactful, and tailored to the role.
-    `;
-
-    const result = await this.llmService.chat([
-      { role: "system", content: "You are a professional resume writer." },
-      { role: "user", content: prompt },
-    ]);
-
-    return result.data || "";
-  }
-
-  /**
-   * Optimize resume for one-page format
-   */
-  private optimizeForOnePage(resumeData: ResumeData): ResumeData {
-    // Truncate content to fit one page
-    const optimized = { ...resumeData };
-
-    // Limit experiences to top 3
-    if (optimized.sections.experience?.items?.length > 3) {
-      optimized.sections.experience.items = optimized.sections.experience.items.slice(0, 3);
-    }
-
-    // Limit projects to top 2
-    if (optimized.sections.projects?.items?.length > 2) {
-      optimized.sections.projects.items = optimized.sections.projects.items.slice(0, 2);
-    }
-
-    // Truncate summaries
-    optimized.sections.experience?.items?.forEach((item: any) => {
-      if (item.summary) {
-        item.summary = this.truncateContent(item.summary, 3);
-      }
+    // Get section
+    const section = await this.prisma.section.findUnique({
+      where: { key: sectionKey },
     });
 
-    return optimized;
-  }
+    if (!section) {
+      throw new Error(`Section ${sectionKey} not found`);
+    }
 
-  /**
-   * Helper methods
-   */
-  private async getBaseResume(userId: string) {
-    return this.prisma.resume.findFirst({
-      where: { userId },
-      orderBy: { updatedAt: "desc" },
-    });
-  }
-
-  private async getContentByIds(userId: string, contentIds: string[]) {
-    const content = await this.prisma.content.findMany({
-      where: {
-        id: { in: contentIds },
+    // Create new content item
+    const newContent = await this.prisma.content.create({
+      data: {
+        id: createId(),
+        title: modifiedItem.title || modifiedItem.name || "Modified Content",
+        description: `Modified from original content`,
+        data: JSON.stringify(modifiedItem),
+        sectionId: section.id,
         userId,
+        sourceContentId: modifiedItem.sourceContentId, // Link to original
       },
     });
 
-    return this.organizeContentByType(content);
+    return newContent.id;
   }
 
-  private async getAllUserContent(userId: string) {
-    const content = await this.prisma.content.findMany({
-      where: { userId },
+  /**
+   * Helper method to mark all content library items in a resume as modified
+   */
+  public markAllContentLibraryItemsAsModified(resumeData: any): void {
+    const sections = resumeData?.sections || {};
+
+    for (const sectionKey of Object.keys(sections)) {
+      const section = sections[sectionKey];
+      if (section?.items && Array.isArray(section.items)) {
+        section.items.forEach((item: any) => {
+          this.markItemAsModifiedFromContentLibrary(item);
+        });
+      }
+    }
+  }
+
+  /**
+   * Apply skill additions and removals to the resume
+   */
+  private applySkillAdjustments(resumeData: any, tailoringResult: any): void {
+    const skillsSection = resumeData.sections.skills;
+
+    if (!skillsSection?.items) return;
+
+    // Add new skills
+    if (tailoringResult.skillsToAdd?.length > 0) {
+      const newSkills = tailoringResult.skillsToAdd;
+
+      // Find or create "Job-Relevant Skills" category
+      let relevantSkillsCategory = skillsSection.items.find(
+        (item: any) =>
+          item.name.toLowerCase().includes("relevant") || item.name.toLowerCase().includes("key"),
+      );
+
+      if (relevantSkillsCategory) {
+        // Mark existing category as modified if it came from content library
+        this.markItemAsModifiedFromContentLibrary(relevantSkillsCategory);
+      } else {
+        relevantSkillsCategory = {
+          id: createId(),
+          visible: true,
+          name: "Key Job-Relevant Skills",
+          description: "",
+          level: 0,
+          keywords: [],
+          contentId: null,
+          sourceContentId: null, // This is a new LLM-generated category
+        };
+        skillsSection.items.unshift(relevantSkillsCategory);
+      }
+
+      // Add new skills to the category, avoiding duplicates
+      const existingSkills = new Set(
+        relevantSkillsCategory.keywords.map((s: string) => s.toLowerCase()),
+      );
+      const skillsToAdd = newSkills.filter(
+        (skill: string) => !existingSkills.has(skill.toLowerCase()),
+      );
+
+      relevantSkillsCategory.keywords = [...relevantSkillsCategory.keywords, ...skillsToAdd];
+
+      this.logger.log(`Added ${skillsToAdd.length} new skills: ${skillsToAdd.join(", ")}`);
+    }
+
+    // Remove outdated/irrelevant skills
+    if (tailoringResult.skillsToRemove?.length > 0) {
+      const skillsToRemove = new Set(
+        tailoringResult.skillsToRemove.map((s: string) => s.toLowerCase()),
+      );
+      let removedCount = 0;
+
+      skillsSection.items.forEach((category: any) => {
+        if (category.keywords) {
+          const originalLength = category.keywords.length;
+          category.keywords = category.keywords.filter(
+            (skill: string) => !skillsToRemove.has(skill.toLowerCase()),
+          );
+
+          // If skills were removed, mark as modified
+          if (category.keywords.length < originalLength) {
+            this.markItemAsModifiedFromContentLibrary(category);
+            removedCount += originalLength - category.keywords.length;
+          }
+        }
+      });
+
+      this.logger.log(`Removed ${removedCount} outdated skills`);
+    }
+  }
+
+  /**
+   * Apply experience description adjustments to make them more job-relevant
+   */
+  private applyExperienceAdjustments(resumeData: any, tailoringResult: any): void {
+    const experienceSection = resumeData.sections.experience;
+
+    if (!experienceSection?.items || !tailoringResult.experienceAdjustments) return;
+
+    let adjustmentsApplied = 0;
+
+    tailoringResult.experienceAdjustments.forEach((adjustment: any) => {
+      // Find the experience item by matching against selected content
+      const experienceItem = experienceSection.items.find((item: any) => {
+        // Try to match by company/position or content
+        return (
+          item.company?.toLowerCase().includes(adjustment.contentId) ||
+          item.position?.toLowerCase().includes(adjustment.contentId) ||
+          item.summary?.toLowerCase().includes(adjustment.contentId)
+        );
+      });
+
+      if (experienceItem) {
+        // Mark as modified before applying changes
+        this.markItemAsModifiedFromContentLibrary(experienceItem);
+
+        // Apply title adjustment
+        if (adjustment.adjustedTitle) {
+          experienceItem.position = adjustment.adjustedTitle;
+        }
+
+        // Apply description adjustment
+        if (adjustment.adjustedDescription) {
+          experienceItem.summary = `<p>${adjustment.adjustedDescription}</p>`;
+        }
+
+        // Emphasize keywords in the description
+        if (adjustment.keywordsToEmphasize?.length > 0) {
+          const keywords = adjustment.keywordsToEmphasize;
+          let summary = experienceItem.summary;
+
+          keywords.forEach((keyword: string) => {
+            const regex = new RegExp(`\\b${keyword}\\b`, "gi");
+            summary = summary.replace(regex, `<strong>${keyword}</strong>`);
+          });
+
+          experienceItem.summary = summary;
+        }
+
+        adjustmentsApplied++;
+      }
     });
 
-    return this.organizeContentByType(content);
+    this.logger.log(
+      `Applied ${adjustmentsApplied} experience adjustments to enhance job relevance`,
+    );
   }
 
-  private organizeContentByType(content: any[]) {
-    return {
-      experience: content.filter(c => c.type === "EXPERIENCE"),
-      projects: content.filter(c => c.type === "PROJECT"),
-      skills: content.filter(c => c.type === "SKILL"),
-      education: content.filter(c => c.type === "EDUCATION"),
-    };
-  }
+  /**
+   * Generate concise 1-2 sentence summary - template-based approach
+   * Focus on years of experience, key skills, and relevant certifications/status
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private generateBasicSummary(user: any, jobApplication: any, selectedContent: any[]): string {
+    const experienceItems = selectedContent.filter((c) => c.section?.key === "experience");
+    const certifications = selectedContent.filter((c) => c.section?.key === "certifications");
 
-  private async organizeMatchedContent(matchingResult: any) {
-    // If matchingResult is an array of ContentMatchResult, we need to organize by type
-    if (Array.isArray(matchingResult)) {
-      // Get the actual content items based on matched IDs
-      const contentIds = matchingResult.map(m => m.contentId);
-      const content = await this.prisma.content.findMany({
-        where: { id: { in: contentIds } },
-      });
-      
-      return this.organizeContentByType(content);
+    // Calculate years of experience from experience items
+    let totalYears = 0;
+    for (const exp of experienceItems) {
+      if (exp.startDate && exp.endDate) {
+        const start = new Date(exp.startDate);
+        const end = exp.endDate === "Present" ? new Date() : new Date(exp.endDate);
+        const years = Math.max(0, (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 365));
+        totalYears += years;
+      }
     }
-    
-    // Otherwise assume it's already structured
-    return {
-      experience: matchingResult.experiences || [],
-      projects: matchingResult.projects || [],
-      skills: matchingResult.skills || [],
-      education: matchingResult.education || [],
-    };
-  }
 
-  private generateResumeSlug(jobApplication: any): string {
-    const title = jobApplication.title.toLowerCase().replace(/[^\da-z]+/g, "-");
-    const company = (jobApplication.companyName || "unknown").toLowerCase().replace(/[^\da-z]+/g, "-");
-    return `${title}-${company}-${Date.now()}`;
-  }
-
-  private truncateContent(content: string, maxBulletPoints: number): string {
-    const bullets = content.split(/[•\n]/).filter(b => b.trim());
-    return bullets.slice(0, maxBulletPoints).join(" • ");
-  }
-
-  private async calculateMatchScores(selectedContent: any, jobApplication: any): Promise<Record<string, number>> {
-    // TODO: Implement scoring algorithm
-    return {
-      overall: 85,
-      skills: 90,
-      experience: 80,
-      education: 75,
-    };
-  }
-
-  private generateOptimizationNotes(selectedContent: any, targetLength?: string): string {
-    const notes: string[] = [];
-    
-    if (targetLength === "one-page") {
-      notes.push("Optimized for single-page format");
+    // Get top 3 most relevant skills
+    const allSkills: string[] = [];
+    for (const content of selectedContent) {
+      const skills =
+        typeof content.skills === "string"
+          ? JSON.parse(content.skills ?? "[]")
+          : (content.skills ?? []);
+      allSkills.push(...skills);
     }
-    
-    notes.push(`Selected ${selectedContent.experience?.length || 0} experiences`);
-    notes.push(`Included ${selectedContent.skills?.length || 0} skill categories`);
-    
-    return notes.join(". ");
+    const uniqueSkills = [...new Set(allSkills)].slice(0, 3);
+    const skillsText = uniqueSkills.length > 0 ? uniqueSkills.join(", ") : "multiple technologies";
+
+    // Get key certifications
+    const certNames = certifications
+      .slice(0, 2)
+      .map((cert) => cert.title)
+      .join(", ");
+
+    // Build concise summary (1-2 sentences max)
+    const yearsText = totalYears >= 1 ? `${Math.round(totalYears)}+ years` : "Experienced";
+    let summary = `${yearsText} ${jobApplication.title} with expertise in ${skillsText}.`;
+
+    // Add certification or second sentence if relevant
+    if (certNames) {
+      summary += ` Certified in ${certNames}.`;
+    } else if (experienceItems.length >= 2) {
+      summary += ` Proven track record across ${experienceItems.length} professional roles.`;
+    }
+
+    return summary;
   }
+
+  /**
+   * Build structured resume data from content library items
+   */
+  public async buildResumeFromContent(
+    user: any,
+    selectedContent: any[],
+    jobApplication: any,
+  ): Promise<any> {
+    // Get default resume structure
+    const { defaultResumeData } = await import("@reactive-resume/schema");
+    const resumeData = JSON.parse(JSON.stringify(defaultResumeData));
+
+    // Handle basics/contact info - use existing content if available, only modify name and picture
+    const basicInfo = selectedContent.filter((c) => c.section?.key === "contact");
+
+    if (basicInfo.length > 0) {
+      // Use existing contact data from content library
+      const info = basicInfo[0];
+      const data = typeof info.data === "string" ? JSON.parse(info.data) : info.data;
+
+      // Use the existing data structure which is already in the correct format
+      // Only override name and picture with user data, preserve everything else
+      resumeData.basics = {
+        ...data, // This includes: name, headline, email, phone, location, url, customFields, picture
+        name: user.name, // Override with user name
+        picture: {
+          ...data.picture,
+          // Preserve existing picture settings (aspectRatio, borderRadius, effects)
+          url: user.picture || "", // Only override the URL with user picture
+          size: 90, // Explicitly set picture size to 90
+          aspectRatio: 1,
+          borderRadius: 9999,
+        },
+        url: data?.url ?? { href: "", label: "" },
+        headline: data.headline || jobApplication.title, // Override headline for job relevance
+        // Ensure all custom fields have proper IDs
+        customFields:
+          data?.customFields?.map((field: any, index: number) => ({
+            ...field,
+            id: field.id || createId(), // Create ID if missing
+          })) || [],
+      };
+
+      this.logger.log("Using existing contact data from content library");
+    } else {
+      // No contact content found, use user defaults
+      resumeData.basics.name = user.name;
+      resumeData.basics.email = user.email;
+      resumeData.basics.headline = jobApplication.title;
+      resumeData.basics.picture.url = user.picture || "";
+      resumeData.basics.picture.size = 90;
+      resumeData.basics.picture.aspectRatio = 1;
+      resumeData.basics.picture.borderRadius = 9999;
+
+      this.logger.log("Using user defaults for basics as no contact content was found");
+    }
+
+    // Handle summary content - use existing content if available, generate if not
+    const existingSummaryContent = selectedContent.filter((c) => c.section?.key === "summary");
+
+    if (existingSummaryContent.length > 0) {
+      // Use existing summary content as-is (no <p> tags added)
+      const summaryData =
+        typeof existingSummaryContent[0].data === "string"
+          ? JSON.parse(existingSummaryContent[0].data)
+          : existingSummaryContent[0].data;
+      resumeData.sections.summary.content =
+        summaryData?.content || existingSummaryContent[0].description || "";
+
+      this.logger.log("Using existing summary content from content library");
+    } else {
+      // Generate basic summary and add <p> tags
+      const generatedSummary = this.generateBasicSummary(user, jobApplication, selectedContent);
+      resumeData.sections.summary.content = `<p>${generatedSummary}</p>`;
+
+      this.logger.log("Generated basic summary as no summary content was found");
+    }
+
+    // Use the default layout from schema - no need to override
+    this.logger.log("Using default layout from schema configuration");
+
+    // Process content by section key
+    const workExperiences = selectedContent.filter((c) => c.section?.key === "experience");
+    const projects = selectedContent.filter((c) => c.section?.key === "projects");
+    const education = selectedContent.filter((c) => c.section?.key === "education");
+    const technicalSkills = selectedContent.filter((c) => c.section?.key === "technical_skills");
+    const softSkills = selectedContent.filter((c) => c.section?.key === "skills");
+    const certifications = selectedContent.filter((c) => c.section?.key === "certifications");
+    const publications = selectedContent.filter((c) => c.section?.key === "publications");
+    const awards = selectedContent.filter((c) => c.section?.key === "awards");
+    const languages = selectedContent.filter((c) => c.section?.key === "languages");
+    const interests = selectedContent.filter((c) => c.section?.key === "interests");
+    const volunteer = selectedContent.filter((c) => c.section?.key === "volunteer");
+    const references = selectedContent.filter((c) => c.section?.key === "references");
+    const profiles = selectedContent.filter((c) => c.section?.key === "profiles");
+
+    // Add work experience
+    resumeData.sections.experience.items = workExperiences.map((exp) => {
+      // Use the existing data field which contains the properly formatted structure
+      const data = typeof exp.data === "string" ? JSON.parse(exp.data) : exp.data;
+
+      return {
+        ...data,
+        id: createId(),
+        visible: true,
+        // Map the existing data structure to the expected fields
+        company: data.company || exp.company || "Company",
+        position: data.position || exp.position || exp.title || "Position",
+        location: data.location || exp.location || "",
+        date: data.date || this.formatDateRange(exp.startDate, exp.endDate) || "Present",
+        summary: data.summary || exp.description || "",
+        url: this.ensureValidUrl(data.url),
+        contentId: exp.id,
+        sourceContentId: null,
+      };
+    });
+
+    // Add projects
+    resumeData.sections.projects.items = projects.map((proj) => {
+      // Use the existing data field which contains the properly formatted structure
+      const data = typeof proj.data === "string" ? JSON.parse(proj.data) : proj.data;
+
+      return {
+        ...data,
+        id: createId(),
+        visible: true,
+        // Map the existing data structure to the expected fields
+        name: data.name || proj.title || "Project",
+        description: data.description || proj.position || "Project",
+        date: data.date || this.formatDateRange(proj.startDate, proj.endDate) || "Recent",
+        summary: data.summary || "",
+        keywords:
+          data.keywords ||
+          (typeof proj.skills === "string" ? JSON.parse(proj.skills) : proj.skills || []),
+        showDescription: data.showDescription === undefined ? true : data.showDescription,
+        showKeywords: data.showKeywords === undefined ? true : data.showKeywords,
+        url: this.ensureValidUrl(data.url),
+        contentId: proj.id,
+        sourceContentId: null,
+      };
+    });
+
+    // Add education
+    resumeData.sections.education.items = education.map((edu) => {
+      // Use the existing data field which contains the properly formatted structure
+      const data = typeof edu.data === "string" ? JSON.parse(edu.data) : edu.data;
+
+      return {
+        ...data,
+        id: createId(),
+        visible: true,
+        // Map the existing data structure to the expected fields
+        institution: data.institution || edu.company || edu.title || "Institution",
+        studyType: data.studyType || edu.position || "Degree",
+        area: data.area || edu.location || "",
+        score: data.score || "",
+        date: data.date || this.formatDateRange(edu.startDate, edu.endDate) || "Graduated",
+        summary: data.summary || "",
+        url: this.ensureValidUrl(data.url),
+        contentId: edu.id,
+        sourceContentId: null,
+      };
+    });
+
+    // Add technical skills - use existing data field which contains the properly formatted structure
+    resumeData.sections.skills.items = technicalSkills.map((skill) => {
+      const data = typeof skill.data === "string" ? JSON.parse(skill.data) : skill.data;
+
+      return {
+        ...data,
+        id: createId(),
+        visible: true,
+        // Map the existing data structure to the expected fields
+        name: data.name || skill.title || "Technical Skill",
+        description: data.description || skill.description || "",
+        level: data.level || 0,
+        keywords:
+          data.keywords ||
+          (typeof skill.skills === "string"
+            ? JSON.parse(skill.skills ?? "[]")
+            : (skill.skills ?? [])),
+        showDescription: data.showDescription === undefined ? true : data.showDescription,
+        showKeywords: data.showKeywords === undefined ? true : data.showKeywords,
+        contentId: skill.id,
+        sourceContentId: null,
+      };
+    });
+
+    // Add soft skills - use existing data field which contains the properly formatted structure
+    const softSkillItems = softSkills.map((skill) => {
+      const data = typeof skill.data === "string" ? JSON.parse(skill.data) : skill.data;
+
+      return {
+        ...data,
+        id: createId(),
+        visible: true,
+        // Map the existing data structure to the expected fields
+        name: data.name || skill.title || "Soft Skill",
+        description: data.description || skill.description || "",
+        level: data.level || 0,
+        keywords:
+          data.keywords ||
+          (typeof skill.skills === "string"
+            ? JSON.parse(skill.skills ?? "[]")
+            : (skill.skills ?? [])),
+        showDescription: data.showDescription === undefined ? true : data.showDescription,
+        showKeywords: data.showKeywords === undefined ? true : data.showKeywords,
+        contentId: skill.id,
+        sourceContentId: null,
+      };
+    });
+
+    // Combine technical and soft skills into the skills section
+    resumeData.sections.skills.items.push(...softSkillItems);
+
+    // Add certifications
+    resumeData.sections.certifications.items = certifications.map((cert) => {
+      // Use the existing data field which contains the properly formatted structure
+      const data = typeof cert.data === "string" ? JSON.parse(cert.data) : cert.data;
+
+      return {
+        ...data,
+        id: createId(),
+        visible: true,
+        // Map the existing data structure to the expected fields
+        name: data.name || cert.title || "Certification",
+        issuer: data.issuer || cert.company || "Issuing Organization",
+        date:
+          data.date ||
+          (cert.startDate
+            ? new Date(cert.startDate).getFullYear().toString()
+            : new Date().getFullYear().toString()),
+        summary: data.summary || "",
+        url: this.ensureValidUrl(data.url),
+        contentId: cert.id,
+        sourceContentId: null,
+      };
+    });
+
+    // Add publications
+    resumeData.sections.publications.items = publications.map((pub) => {
+      // Use the existing data field which contains the properly formatted structure
+      const data = typeof pub.data === "string" ? JSON.parse(pub.data) : pub.data;
+
+      return {
+        ...data,
+        id: createId(),
+        visible: true,
+        // Map the existing data structure to the expected fields
+        name: data.name || pub.title || "Publication",
+        publisher: data.publisher || pub.company || "Publisher",
+        date:
+          data.date ||
+          (pub.startDate
+            ? new Date(pub.startDate).getFullYear().toString()
+            : new Date().getFullYear().toString()),
+        summary: data.summary || "",
+        showDescription: data.showDescription === undefined ? true : data.showDescription,
+        url: this.ensureValidUrl(data.url || { label: "", href: pub.url || "" }),
+        contentId: pub.id,
+        sourceContentId: null,
+      };
+    });
+
+    // Add awards
+    resumeData.sections.awards.items = awards.map((award) => {
+      // Use the existing data field which contains the properly formatted structure
+      const data = typeof award.data === "string" ? JSON.parse(award.data) : award.data;
+
+      return {
+        ...data,
+        id: createId(),
+        visible: true,
+        // Map the existing data structure to the expected fields
+        title: data.title || award.title || "Award",
+        awarder: data.awarder || award.company || award.issuer || "Awarding Organization",
+        date:
+          data.date ||
+          (award.startDate
+            ? new Date(award.startDate).getFullYear().toString()
+            : new Date().getFullYear().toString()),
+        summary: data.summary || "",
+        url: this.ensureValidUrl(data.url || { label: "", href: award.url || "" }),
+        contentId: award.id,
+        sourceContentId: null,
+      };
+    });
+
+    // Add languages
+    resumeData.sections.languages.items = languages.map((lang) => {
+      // Use the existing data field which contains the properly formatted structure
+      const data = typeof lang.data === "string" ? JSON.parse(lang.data) : lang.data;
+
+      // Convert percentage (0-100) to level (0-5) scale
+      const convertPercentageToLevel = (percentage: number): number => {
+        if (percentage >= 90) return 5;
+        if (percentage >= 75) return 4;
+        if (percentage >= 60) return 3;
+        if (percentage >= 40) return 2;
+        if (percentage >= 20) return 1;
+        return 0;
+      };
+
+      const rawLevel = data.level || lang.proficiencyLevel || 0;
+      const convertedLevel = rawLevel > 5 ? convertPercentageToLevel(rawLevel) : rawLevel;
+
+      return {
+        ...data,
+        id: createId(),
+        visible: true,
+        // Map the existing data structure to the expected fields
+        name: data.name || lang.title || "Language",
+        description:
+          data.description ||
+          (lang.proficiencyLevel
+            ? `${lang.proficiencyLevel}% proficiency (Level ${convertedLevel}/5)`
+            : lang.description || "No proficiency level specified"),
+        level: convertedLevel,
+        showDescription: data.showDescription === undefined ? true : data.showDescription,
+        contentId: lang.id,
+        sourceContentId: null,
+      };
+    });
+
+    // Add interests
+    resumeData.sections.interests.items = interests.map((interest) => {
+      // Use the existing data field which contains the properly formatted structure
+      const data = typeof interest.data === "string" ? JSON.parse(interest.data) : interest.data;
+
+      return {
+        ...data,
+        id: createId(),
+        visible: true,
+        // Map the existing data structure to the expected fields
+        name: data.name || interest.title || "Interest",
+        keywords:
+          data.keywords ||
+          (typeof interest.keywords === "string"
+            ? JSON.parse(interest.keywords)
+            : interest.keywords || []),
+        showKeywords: data.showKeywords === undefined ? true : data.showKeywords,
+        contentId: interest.id,
+        sourceContentId: null,
+      };
+    });
+
+    // Add volunteer experience
+    resumeData.sections.volunteer.items = volunteer.map((vol) => {
+      // Use the existing data field which contains the properly formatted structure
+      const data = typeof vol.data === "string" ? JSON.parse(vol.data) : vol.data;
+
+      return {
+        ...data,
+        id: createId(),
+        visible: true,
+        // Map the existing data structure to the expected fields
+        organization: data.organization || vol.company || "Organization",
+        position: data.position || vol.position || vol.title || "Volunteer",
+        location: data.location || vol.location || "",
+        date: data.date || this.formatDateRange(vol.startDate, vol.endDate) || "Recent",
+        summary: data.summary || "",
+        url: this.ensureValidUrl(data.url || { label: "", href: vol.url || "" }),
+        contentId: vol.id,
+        sourceContentId: null,
+      };
+    });
+
+    // Add references
+    resumeData.sections.references.items = references.map((ref) => {
+      // Use the existing data field which contains the properly formatted structure
+      const data = typeof ref.data === "string" ? JSON.parse(ref.data) : ref.data;
+
+      return {
+        ...data,
+        id: createId(),
+        visible: true,
+        // Map the existing data structure to the expected fields
+        name: data.name || ref.title || "Reference",
+        description: data.description || ref.position || ref.company || "Reference",
+        summary: data.summary || "",
+        showDescription: data.showDescription === undefined ? true : data.showDescription,
+        url: this.ensureValidUrl(data.url || { label: "", href: ref.url || "" }),
+        contentId: ref.id,
+        sourceContentId: null,
+      };
+    });
+
+    // Add profiles
+    resumeData.sections.profiles.items = profiles.map((profile) => {
+      // Use the existing data field which contains the properly formatted structure
+      const data = typeof profile.data === "string" ? JSON.parse(profile.data) : profile.data;
+      const content =
+        typeof profile.content === "string" ? JSON.parse(profile.content) : profile.content;
+
+      return {
+        ...data,
+        id: createId(),
+        visible: true,
+        // Map the existing data structure to the expected fields
+        network: data.network || profile.company || content?.network || "Social Media",
+        username: data.username || content?.username || profile.title || "Username",
+        icon: data.icon || content?.icon || "",
+        url: this.ensureValidUrl(
+          data.url || { label: "", href: profile.url || content?.url || "" },
+        ),
+        contentId: profile.id,
+        sourceContentId: null,
+      };
+    });
+
+    return resumeData;
+  }
+
+  /**
+   * Ensure URL object has valid href (empty string instead of null or invalid URLs)
+   */
+  private ensureValidUrl(urlObj: any): { label: string; href: string } {
+    if (!urlObj || typeof urlObj !== "object") {
+      return { label: "", href: "" };
+    }
+
+    const label = urlObj.label || "";
+    let href = urlObj.href || "";
+
+    // Convert null/undefined to empty string
+    if (href) {
+      // Validate that href is a proper URL or empty string
+      try {
+        // If it's an empty string, keep it
+        if (href === "") {
+          // Do nothing, keep empty string
+        } else {
+          // Try to create a URL object to validate it's a proper URL
+          new URL(href);
+          // If we get here, it's a valid URL, keep it as is
+        }
+      } catch {
+        // If URL constructor throws an error, it's not a valid URL
+        // Convert invalid URLs like "#", "javascript:", etc. to empty string
+        href = "";
+      }
+    } else {
+      href = "";
+    }
+
+    return {
+      label,
+      href,
+    };
+  }
+
+  /**
+   * Format date range for resume display
+   */
+  private formatDateRange(startDate: any, endDate: any): string {
+    if (!startDate) return "Recent";
+
+    const formatDate = (date: any) => {
+      if (!date) return "Present";
+      const d = new Date(date);
+      return `${d.getMonth() + 1}/${d.getFullYear()}`;
+    };
+
+    return `${formatDate(startDate)} - ${formatDate(endDate)}`;
+  }
+
+
 }

@@ -6,6 +6,7 @@ import { ContentLibraryModule } from "@/server/content-library/content-library.m
 import { ContentMatchingModule } from "@/server/content-matching/content-matching.module";
 import { CoverLetterContentModule } from "@/server/cover-letter-content/cover-letter-content.module";
 import { CoverLetterModule } from "@/server/cover-letter/cover-letter.module";
+import { DebugModule } from "@/server/debug/debug.module";
 import { EmbeddingModule } from "@/server/embedding/embedding.module";
 import { LLMModule } from "@/server/llm/llm.module";
 
@@ -22,8 +23,11 @@ import { ResumeGenerationService } from "./resume-generation.service";
     forwardRef(() => ContentMatchingModule),
     forwardRef(() => CoverLetterContentModule),
     forwardRef(() => CoverLetterModule),
+    DebugModule,
     EmbeddingModule,
     forwardRef(() => LLMModule),
+    // Note: AutomationClientModule disabled to prevent startup issues
+    // Enable automation by importing JobApplicationWithAutomationModule instead
   ],
   controllers: [JobApplicationController],
   providers: [
