@@ -9,6 +9,7 @@ import { CoverLetterModule } from "@/server/cover-letter/cover-letter.module";
 import { DebugModule } from "@/server/debug/debug.module";
 import { EmbeddingModule } from "@/server/embedding/embedding.module";
 import { LLMModule } from "@/server/llm/llm.module";
+import { ContactMessageModule } from "@/server/contact-message/contact-message.module";
 
 import { JobAnalysisService } from "./job-analysis.service";
 import { JobApplicationController } from "./job-application.controller";
@@ -26,19 +27,12 @@ import { ResumeGenerationService } from "./resume-generation.service";
     DebugModule,
     EmbeddingModule,
     forwardRef(() => LLMModule),
+    ContactMessageModule,
     // Note: AutomationClientModule disabled to prevent startup issues
     // Enable automation by importing JobApplicationWithAutomationModule instead
   ],
   controllers: [JobApplicationController],
-  providers: [
-    JobApplicationService,
-    JobAnalysisService,
-    ResumeGenerationService,
-  ],
-  exports: [
-    JobApplicationService,
-    JobAnalysisService,
-    ResumeGenerationService,
-  ],
+  providers: [JobApplicationService, JobAnalysisService, ResumeGenerationService],
+  exports: [JobApplicationService, JobAnalysisService, ResumeGenerationService],
 })
 export class JobApplicationModule {}

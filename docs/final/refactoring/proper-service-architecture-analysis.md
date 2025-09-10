@@ -215,3 +215,4 @@ async generateTailoredResume(jobApplicationId, userId) {
 
 **Should I proceed with Phase 1 - moving the resume logic to ResumeGenerationService?**
 
+

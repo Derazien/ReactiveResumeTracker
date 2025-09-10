@@ -103,27 +103,6 @@ export class JobApplicationController {
     );
   }
 
-  @Post(":id/generate-interview-questions")
-  @ApiOperation({ summary: "Generate interview practice questions" })
-  async generateInterviewQuestions(@User("id") userId: string, @Param("id") id: string) {
-    const questions = await this.jobApplicationService.generateInterviewQuestions(id, userId);
-    return { questions };
-  }
-
-
-  @Post(":id/conduct-interview")
-  @ApiOperation({ summary: "Conduct LLM interview for story extraction" })
-  async conductInterviewForStories(
-    @User("id") userId: string,
-    @Param("id") id: string,
-    @Body() body: { interviewType?: "cover_letter" | "q&a" },
-  ) {
-    return this.jobApplicationService.conductInterviewForStories(
-      id,
-      userId,
-      body.interviewType || "cover_letter",
-    );
-  }
 
   @Post(":id/generate-contact-message")
   @ApiOperation({ summary: "Generate contact message for job application" })

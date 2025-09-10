@@ -1,18 +1,19 @@
-import * as fs from "node:fs";
-import * as path from "node:path";
+// import * as fs from "node:fs";
+// import path from "node:path";
 
 import { Injectable, Logger } from "@nestjs/common";
-import { createId } from "@paralleldrive/cuid2";
+// import { createId } from "@paralleldrive/cuid2";
 import { JobApplication } from "@prisma/client";
 import { CreateJobApplicationDto, UpdateJobApplicationDto } from "@reactive-resume/dto";
 import { PrismaService } from "nestjs-prisma";
 
 import { CompanyService } from "@/server/company/company.service";
 import { CompanyResearchService } from "@/server/company/company-research.service";
+import { ContactMessageService } from "@/server/contact-message/contact-message.service";
 import { ContentLibraryService } from "@/server/content-library/content-library.service";
-import { ContentMatchingService } from "@/server/content-matching/content-matching.service";
+// import { ContentMatchingService } from "@/server/content-matching/content-matching.service";
 import { CoverLetterService } from "@/server/cover-letter/cover-letter.service";
-import { DebugLoggerService } from "@/server/debug/debug-logger.service";
+// import { DebugLoggerService } from "@/server/debug/debug-logger.service";
 import { EmbeddingService } from "@/server/embedding/embedding.service";
 import { LLMService } from "@/server/llm/llm.service";
 
@@ -31,6 +32,7 @@ export class JobApplicationService {
     private readonly embeddingService: EmbeddingService,
     private readonly companyService: CompanyService,
     private readonly companyResearchService: CompanyResearchService,
+    private readonly contactMessageService: ContactMessageService,
     private readonly jobAnalysisService: JobAnalysisService,
     private readonly resumeGenerationService: ResumeGenerationService,
   ) {}
@@ -402,30 +404,6 @@ export class JobApplicationService {
     return this.resumeGenerationService.generateTailoredResume(jobApplication, userId);
   }
 
-  /**
-   * Generate interview questions for practice
-   */
-  async generateInterviewQuestions(jobApplicationId: string, userId: string): Promise<string[]> {
-    this.logger.log(`Generating interview questions for job application ${jobApplicationId}`);
-
-    const jobApplication = await this.findOne(jobApplicationId, userId);
-    if (!jobApplication) {
-      throw new Error("Job application not found");
-    }
-
-    const userContent = await this.contentLibraryService.findAll(userId);
-
-    const questionsResult = await this.llmService.generateInterviewQuestions(
-      jobApplication.description || "",
-      userContent,
-    );
-
-    if (!questionsResult.success) {
-      throw new Error(`Interview questions generation failed: ${questionsResult.error}`);
-    }
-
-    return questionsResult.data!;
-  }
 
   /**
    * Create consistent embedding text from job data
@@ -499,57 +477,6 @@ export class JobApplicationService {
 
 
 
-  /**
-   * Conduct Interview for Story Extraction
-   */
-  async conductInterviewForStories(
-    jobApplicationId: string,
-    userId: string,
-    interviewType: "cover_letter" | "q&a" = "cover_letter",
-  ): Promise<{
-    interviewQuestions: string[];
-    suggestedStoryTypes: string[];
-    followUpQuestions: string[];
-  }> {
-    this.logger.debug(`Conducting interview for job application ${jobApplicationId}`);
-
-    try {
-      const jobApplication = await this.findOne(jobApplicationId, userId);
-      if (!jobApplication) {
-        throw new Error("Job application not found");
-      }
-
-      // Get company information if available
-      let companyInfo = null;
-      if (jobApplication.companyId) {
-        companyInfo = await this.prisma.company.findUnique({
-          where: { id: jobApplication.companyId },
-        });
-      }
-
-      const result = await this.llmService.conductInterviewForStories(
-        userId,
-        jobApplication.description || "",
-        companyInfo,
-        interviewType,
-      );
-
-      if (result.success && result.data) {
-        return {
-          interviewQuestions: result.data.interviewQuestions,
-          suggestedStoryTypes: result.data.suggestedStoryTypes,
-          followUpQuestions: result.data.followUpQuestions,
-        };
-      } else {
-        throw new Error("Failed to conduct interview");
-      }
-    } catch (error) {
-      this.logger.error(
-        `Interview conduction failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-      );
-      throw error;
-    }
-  }
 
   /**
    * Generate Contact Messages for Job Application
@@ -573,34 +500,21 @@ export class JobApplicationService {
         throw new Error("Job application not found");
       }
 
-      const contact = await this.prisma.contact.findFirst({
-        where: { id: contactId, userId },
-        include: {
-          company: true,
-        },
-      });
-
-      if (!contact) {
-        throw new Error("Contact not found");
-      }
-
-      const result = await this.llmService.generateContactMessage(
+      // Delegate to ContactMessageService which owns LLM generation and persistence
+      const created = await this.contactMessageService.generateMessage(
         userId,
-        contact,
+        contactId,
         messageType,
-        jobApplication,
         customInstructions,
       );
 
-      if (result.success && result.data) {
-        return {
-          message: result.data.message,
-          type: result.data.type,
-          contactInfo: result.data.contactInfo,
-        };
-      } else {
-        throw new Error("Failed to generate contact message");
-      }
+      return {
+        message: created.content,
+        type: created.type,
+        contactInfo: created.contact
+          ? { name: created.contact.name, email: created.contact.email }
+          : null,
+      };
     } catch (error) {
       this.logger.error(
         `Contact message generation failed: ${error instanceof Error ? error.message : "Unknown error"}`,

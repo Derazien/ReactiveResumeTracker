@@ -43,7 +43,7 @@ export const conductInterview = async ({
   id: string;
   interviewType: string;
 }): Promise<{ questions: string[] }> => {
-  const response = await axios.post(`/job-applications/${id}/conduct-interview`, {
+  const response = await axios.post(`/cover-letter-content/conduct-interview-for-job/${id}`, {
     interviewType,
   });
   return response.data;

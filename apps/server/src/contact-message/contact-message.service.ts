@@ -1,10 +1,14 @@
 import { Injectable } from "@nestjs/common";
 import { CreateContactMessageDto, UpdateContactMessageDto } from "@reactive-resume/dto";
+import { LLMService } from "@/server/llm/llm.service";
 import { PrismaService } from "nestjs-prisma";
 
 @Injectable()
 export class ContactMessageService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly llmService: LLMService,
+  ) {}
 
   async create(createMessageDto: CreateContactMessageDto) {
     return this.prisma.contactMessage.create({
@@ -75,8 +79,12 @@ export class ContactMessageService {
     });
   }
 
-  async generateMessage(contactId: string, type: string, instructions?: string) {
-    // This will be enhanced with LLM integration later
+  async generateMessage(
+    userId: string,
+    contactId: string,
+    type: "email" | "linkedin" | "general",
+    instructions?: string,
+  ) {
     const contact = await this.prisma.contact.findUnique({
       where: { id: contactId },
       include: {
@@ -89,17 +97,28 @@ export class ContactMessageService {
       throw new Error("Contact not found");
     }
 
-    // For now, return a placeholder message
-    // TODO: Integrate with LLM service for message generation
-    const placeholderMessage = `Generated ${type} message for ${contact.name} at ${contact.company?.name || "Unknown Company"}`;
+    const result = await this.llmService.generateContactMessage(
+      userId,
+      contact,
+      type,
+      contact.jobApplicationId
+        ? await this.prisma.jobApplication.findUnique({ where: { id: contact.jobApplicationId } })
+        : null,
+      instructions,
+    );
+
+    const content =
+      result?.success && result.data
+        ? result.data.message
+        : `Generated ${type} message for ${contact.name}`;
 
     return this.create({
       type,
-      content: placeholderMessage,
-      instructions: instructions || "",
+      content,
+      instructions: instructions ?? "",
       status: "DRAFT",
       contactId,
-      jobApplicationId: contact.jobApplicationId || undefined,
+      jobApplicationId: contact.jobApplicationId ?? undefined,
     });
   }
 }

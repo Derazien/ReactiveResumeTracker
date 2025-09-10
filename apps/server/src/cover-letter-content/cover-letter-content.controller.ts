@@ -91,12 +91,39 @@ export class CoverLetterContentController {
     @User("id") userId: string,
     @Body()
     body: {
-      responses: Array<{ question: string; answer: string }>;
+      responses: { question: string; answer: string }[];
     },
   ) {
     return this.coverLetterContentService.extractStoriesFromInterview(
       body.responses,
       userId,
     );
+  }
+
+  @Post("conduct-interview-for-job/:jobApplicationId")
+  @ApiOperation({ summary: "Conduct LLM interview for story extraction from job context" })
+  async conductInterviewForJob(
+    @User("id") userId: string,
+    @Param("jobApplicationId") jobApplicationId: string,
+    @Body() body: { interviewType?: "cover_letter" | "q&a" },
+  ) {
+    return await this.coverLetterContentService.conductInterviewForJob(
+      jobApplicationId,
+      userId,
+      body.interviewType ?? "cover_letter",
+    );
+  }
+
+  @Post("generate-interview-questions-for-job/:jobApplicationId")
+  @ApiOperation({ summary: "Generate interview questions for job application" })
+  async generateInterviewQuestionsForJob(
+    @User("id") userId: string,
+    @Param("jobApplicationId") jobApplicationId: string,
+  ) {
+    const questions = await this.coverLetterContentService.generateInterviewQuestionsForJob(
+      jobApplicationId,
+      userId,
+    );
+    return { questions };
   }
 }
