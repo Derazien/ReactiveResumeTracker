@@ -7,6 +7,7 @@ import {
   FileText,
   Microphone,
   Notebook,
+  Robot,
 } from "@phosphor-icons/react";
 import { Button, KeyboardShortcut, Separator } from "@reactive-resume/ui";
 import { cn } from "@reactive-resume/utils";
@@ -102,6 +103,10 @@ export const Sidebar = ({ setOpen }: SidebarProps) => {
     setOpen?.(false);
   });
 
+  useKeyboardShortcut(["shift", "a"], () => {
+    void navigate("/dashboard/automation");
+    setOpen?.(false);
+  });
 
   useKeyboardShortcut(["shift", "s"], () => {
     void navigate("/dashboard/settings");
@@ -138,6 +143,12 @@ export const Sidebar = ({ setOpen }: SidebarProps) => {
       name: t`Companies`,
       shortcut: "⇧B",
       icon: <Building />,
+    },
+    {
+      path: "/dashboard/automation",
+      name: t`Job Automation`,
+      shortcut: "⇧A",
+      icon: <Robot />,
     },
     {
       path: "/dashboard/settings",

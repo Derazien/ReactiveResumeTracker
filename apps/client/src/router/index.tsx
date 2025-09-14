@@ -24,6 +24,7 @@ import { JobApplicationEditPage } from "../pages/dashboard/job-applications/[id]
 import { JobApplicationDetailPage } from "../pages/dashboard/job-applications/[id]/page";
 import { NewJobApplicationPage } from "../pages/dashboard/job-applications/new/page";
 import { JobApplicationsPage } from "../pages/dashboard/job-applications/page";
+import { AutomationPage } from "../pages/dashboard/automation/page";
 import { DashboardLayout } from "../pages/dashboard/layout";
 import { ResumesPage } from "../pages/dashboard/resumes/page";
 import { SettingsPage } from "../pages/dashboard/settings/page";
@@ -87,6 +88,7 @@ export const routes = createRoutesFromElements(
             <Route path="companies" element={<CompaniesPage />} />
             <Route path="companies/:id" element={<CompanyDetailPage />} />
             <Route path="companies/:id/edit" element={<CompanyEditPage />} />
+            <Route path="automation" element={<AutomationPage />} />
             <Route path="settings" element={<SettingsPage />} />
 
             <Route index element={<Navigate replace to="/dashboard/resumes" />} />

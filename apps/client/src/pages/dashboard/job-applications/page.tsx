@@ -8,6 +8,7 @@ import { Link } from "react-router";
 
 import { useJobApplications } from "@/client/services/job-application/job-applications";
 
+import { AutomationToolbar } from "./_components/automation-toolbar";
 import { JobApplicationCard } from "./_components/job-application-card";
 import { JobApplicationsFilter } from "./_components/job-applications-filter";
 import { JobApplicationsTable } from "./_components/job-applications-table";
@@ -64,6 +65,9 @@ export const JobApplicationsPage = () => {
             </Button>
           </div>
         </div>
+
+        {/* Job Automation Toolbar */}
+        <AutomationToolbar />
 
         {/* Filters */}
         <JobApplicationsFilter />
