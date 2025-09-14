@@ -7,6 +7,7 @@ import { ServeStaticModule } from "@nestjs/serve-static";
 import { ZodValidationPipe } from "nestjs-zod";
 
 import { AuthModule } from "./auth/auth.module";
+import { AutomationIntegrationController } from "./automation-integration.controller";
 import { CompanyModule } from "./company/company.module";
 import { ConfigModule } from "./config/config.module";
 import { ContactModule } from "./contact/contact.module";
@@ -71,6 +72,7 @@ import { UserModule } from "./user/user.module";
       rootPath: path.join(__dirname, "..", "client"),
     }),
   ],
+  controllers: [AutomationIntegrationController],
   providers: [
     {
       provide: APP_PIPE,
