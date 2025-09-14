@@ -1,0 +1,20 @@
+# Ignore services directory - contains external projects not managed by Nx
+services/
+services/**
+
+# Ignore automation setup files that aren't part of the main project
+docker-compose.automation.yml
+scripts/test-automation.sh
+.env.automation
+
+# Temporary files
+temp-*.js
+temp-*.json
+
+
+
+
+
+
+
+

@@ -1,0 +1,93 @@
+# Docker Compose for Skyvern Automation Engine
+
+services:
+  # PostgreSQL for Skyvern
+  skyvern-postgres:
+    image: postgres:14-alpine
+    container_name: skyvern-postgres
+    environment:
+      POSTGRES_USER: skyvern
+      POSTGRES_PASSWORD: skyvern
+      POSTGRES_DB: skyvern
+    ports:
+      - "5433:5432"  # Different port to avoid conflicts with your main DB
+    volumes:
+      - skyvern_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U skyvern"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis for Skyvern
+  skyvern-redis:
+    image: redis:alpine
+    container_name: skyvern-redis
+    ports:
+      - "6380:6379"  # Different port to avoid conflicts
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Skyvern API
+  skyvern:
+    image: public.ecr.aws/skyvern/skyvern:latest
+    container_name: skyvern-api
+    environment:
+      - DATABASE_STRING=postgresql+psycopg://skyvern:skyvern@skyvern-postgres:5432/skyvern
+      - REDIS_URL=redis://skyvern-redis:6379
+      - BROWSER_TYPE=chromium-headful
+      - ENABLE_CODE_BLOCK=true
+      - ENABLE_ANTHROPIC=true
+      - LLM_KEY=ANTHROPIC_CLAUDE3.5_SONNET
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - SKYVERN_API_KEY=${SKYVERN_API_KEY}
+      - SKYVERN_TELEMETRY=false
+      - ALLOWED_HOSTS=["localhost", "127.0.0.1"]
+      - BLOCKED_HOSTS=[]
+      - API_PORT=8000
+    ports:
+      - "8000:8000"  # Skyvern API
+      - "9222:9222"  # Chrome debugging port
+    volumes:
+      - ./services/skyvern/automation-data/artifacts:/data/artifacts
+      - ./services/skyvern/automation-data/videos:/data/videos
+      - ./services/skyvern/automation-data/har:/data/har
+      - ./services/skyvern/automation-data/log:/data/log
+      - ./services/skyvern/.streamlit:/app/.streamlit
+    depends_on:
+      skyvern-postgres:
+        condition: service_healthy
+      skyvern-redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8000/docs"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Skyvern UI
+  skyvern-ui:
+    image: public.ecr.aws/skyvern/skyvern-ui:latest
+    container_name: skyvern-ui
+    ports:
+      - "8081:8080"  # Skyvern UI (using 8081 to avoid conflicts)
+      - "9091:9090"  # Artifact server (using 9091 to avoid conflicts)
+    volumes:
+      - ./services/skyvern/automation-data/artifacts:/data/artifacts
+      - ./services/skyvern/automation-data/videos:/data/videos
+      - ./services/skyvern/automation-data/har:/data/har
+      - ./services/skyvern/.streamlit:/app/.streamlit
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000/api/v1
+      - VITE_WSS_BASE_URL=ws://localhost:8000/api/v1
+      - VITE_ARTIFACT_API_BASE_URL=http://localhost:9091
+      - VITE_SKYVERN_API_KEY=${SKYVERN_API_KEY}
+    depends_on:
+      - skyvern
+    restart: unless-stopped
+
+volumes:
+  skyvern_postgres_data:
