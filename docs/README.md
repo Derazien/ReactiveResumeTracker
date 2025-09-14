@@ -16,6 +16,12 @@ Welcome to the ReactiveResumeTracker documentation! This folder contains compreh
 - **[RAG_SYSTEM_SUMMARY.md](./RAG_SYSTEM_SUMMARY.md)** - RAG system overview and architecture
 - **[FORM_FIELD_EDITING_FIX.md](./FORM_FIELD_EDITING_FIX.md)** - Form synchronization solution for section dialogs
 
+### 🤖 **Automation Integration**
+- **[automation/QUICKSTART.md](./automation/QUICKSTART.md)** - Complete automation setup and usage guide
+- **[automation/LINKEDIN_AUTOMATION.md](./automation/LINKEDIN_AUTOMATION.md)** - Comprehensive LinkedIn workflow guide  
+- **[automation/SETUP_AND_TROUBLESHOOTING.md](./automation/SETUP_AND_TROUBLESHOOTING.md)** - Technical setup and debugging
+- **[automation/SYSTEM_ARCHITECTURE_ANALYSIS.md](./automation/SYSTEM_ARCHITECTURE_ANALYSIS.md)** - Complete technical analysis
+
 ### 🔧 **Technical Reference**
 - **[RESUME_SECTIONS_DATA_STRUCTURE_REFERENCE.md](./RESUME_SECTIONS_DATA_STRUCTURE_REFERENCE.md)** - Complete resume data structure reference
 - **[TEMPLATE_CREATION_GUIDE.md](./TEMPLATE_CREATION_GUIDE.md)** - Template creation guidelines and best practices
