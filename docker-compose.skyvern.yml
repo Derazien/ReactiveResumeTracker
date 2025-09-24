@@ -39,9 +39,10 @@ services:
       - DATABASE_STRING=postgresql+psycopg://skyvern:skyvern@skyvern-postgres:5432/skyvern
       - REDIS_URL=redis://skyvern-redis:6379
       - BROWSER_TYPE=chromium-headful
+      - CHROME_USER_DATA_DIR=/tmp/chrome-user-data
       - ENABLE_CODE_BLOCK=true
       - ENABLE_ANTHROPIC=true
-      - LLM_KEY=ANTHROPIC_CLAUDE3.5_SONNET
+      - LLM_KEY=ANTHROPIC_CLAUDE3.5_HAIKU
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - SKYVERN_API_KEY=${SKYVERN_API_KEY}
       - SKYVERN_TELEMETRY=false
@@ -51,12 +52,17 @@ services:
     ports:
       - "8000:8000"  # Skyvern API
       - "9222:9222"  # Chrome debugging port
+      - "5900:5900"  # VNC access port (add this for direct access)
     volumes:
       - ./services/skyvern/automation-data/artifacts:/data/artifacts
       - ./services/skyvern/automation-data/videos:/data/videos
       - ./services/skyvern/automation-data/har:/data/har
       - ./services/skyvern/automation-data/log:/data/log
       - ./services/skyvern/.streamlit:/app/.streamlit
+      # ✅ PERSISTENT CHROME DATA - No more losing sessions!
+      - skyvern_chrome_data:/home/skyvern/.config/google-chrome
+      - skyvern_chrome_data:/tmp/.com.google.Chrome.plist
+      - skyvern_chrome_data:/tmp/chrome-user-data
     depends_on:
       skyvern-postgres:
         condition: service_healthy
@@ -91,3 +97,4 @@ services:
 
 volumes:
   skyvern_postgres_data:
+  skyvern_chrome_data:

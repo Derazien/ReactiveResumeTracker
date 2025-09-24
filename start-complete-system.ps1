@@ -4,7 +4,8 @@
 param(
     [switch]$Help,
     [switch]$SkipAutomation,
-    [switch]$OnlySetup
+    [switch]$OnlySetup,
+    [switch]$RestartSkyvern
 )
 
 if ($Help) {
@@ -12,9 +13,10 @@ if ($Help) {
     Write-Host "ReactiveResumeTracker + Automation Startup" -ForegroundColor Cyan
     Write-Host "=========================================" -ForegroundColor Cyan
     Write-Host ""
-    Write-Host "This script starts your complete system:" -ForegroundColor White
-    Write-Host "  1. ReactiveResumeTracker webapp" -ForegroundColor Green
-    Write-Host "  2. Job automation engine (Skyvern)" -ForegroundColor Green
+    Write-Host "This script intelligently starts your complete system:" -ForegroundColor White
+    Write-Host "  1. ReactiveResumeTracker webapp (always restarted)" -ForegroundColor Green
+    Write-Host "  2. Job automation engine (keeps running unless forced)" -ForegroundColor Green
+    Write-Host "  3. Smart resource management for development" -ForegroundColor Green
     Write-Host ""
     Write-Host "Usage: .\start-complete-system.ps1 [OPTIONS]" -ForegroundColor White
     Write-Host ""
@@ -22,6 +24,16 @@ if ($Help) {
     Write-Host "  -Help            Show this help" -ForegroundColor White
     Write-Host "  -SkipAutomation  Start regular app only" -ForegroundColor White
     Write-Host "  -OnlySetup       Setup only, don't start" -ForegroundColor White
+    Write-Host "  -RestartSkyvern  Force restart Skyvern (otherwise keeps running)" -ForegroundColor White
+    Write-Host ""
+    Write-Host "Examples:" -ForegroundColor Yellow
+    Write-Host "  .\start-complete-system.ps1                  # Normal dev restart" -ForegroundColor White
+    Write-Host "  .\start-complete-system.ps1 -RestartSkyvern  # Force restart all" -ForegroundColor White
+    Write-Host "  .\start-complete-system.ps1 -SkipAutomation  # App only" -ForegroundColor White
+    Write-Host ""
+    Write-Host "🎯 Development Tip:" -ForegroundColor Cyan
+    Write-Host "  Skyvern stays running between restarts to save compute resources." -ForegroundColor White
+    Write-Host "  Only your ReactiveResumeTracker code gets restarted for fast iteration." -ForegroundColor White
     Write-Host ""
     exit 0
 }
@@ -63,39 +75,130 @@ Get-Process -Name "node" -ErrorAction SilentlyContinue | Stop-Process -Force -Er
 Start-Sleep -Seconds 2
 Write-Host "OK: Cleaned up existing processes" -ForegroundColor Green
 
-# Step 3: Start automation services (if enabled)
+# Step 3: Check and start automation services (if enabled)
 if (!$SkipAutomation -and $dockerAvailable) {
     Write-Host ""
-    Write-Host "Starting automation services..." -ForegroundColor Yellow
+    Write-Host "Checking automation services..." -ForegroundColor Yellow
     
-    # Get API keys from main app
-    $envContent = Get-Content ".env" -Raw
-    if ($envContent -match "ANTHROPIC_API_KEY=(.+)") {
-        $env:ANTHROPIC_API_KEY = $matches[1].Trim()
-        Write-Host "OK: Anthropic API key configured" -ForegroundColor Green
-    } else {
-        Write-Host "WARNING: No Anthropic API key found - automation may not work" -ForegroundColor Yellow
-    }
+    # Check if Skyvern containers are already running
+    $runningContainers = docker ps --format "table {{.Names}}" 2>$null | Select-String "skyvern-"
+    $skyvernRunning = ($runningContainers | Measure-Object).Count -ge 3  # API, UI, Postgres, Redis
     
-    if ($envContent -match "SKYVERN_API_KEY=(.+)") {
-        $env:SKYVERN_API_KEY = $matches[1].Trim()
-        Write-Host "OK: Skyvern API key configured" -ForegroundColor Green
-    } else {
-        Write-Host "WARNING: No Skyvern API key found - get it from http://localhost:8081" -ForegroundColor Yellow
-    }
-    
-    # Start Skyvern
-    docker-compose -f docker-compose.skyvern.yml up -d
-    
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "OK: Automation services starting..." -ForegroundColor Green
+    if ($skyvernRunning -and !$RestartSkyvern) {
+        Write-Host "✅ Skyvern automation already running - keeping it up!" -ForegroundColor Green
         Write-Host "   PostgreSQL: localhost:5433" -ForegroundColor Green
         Write-Host "   Redis: localhost:6380" -ForegroundColor Green  
         Write-Host "   Skyvern API: localhost:8000" -ForegroundColor Green
         Write-Host "   Skyvern UI: localhost:8081" -ForegroundColor Green
+        Write-Host "   Chrome Debug: localhost:9222" -ForegroundColor Green
+        Write-Host "   VNC Access: localhost:5900 (no password)" -ForegroundColor Cyan
+        Write-Host ""
+        Write-Host "💡 TIP: Use -RestartSkyvern to force restart if needed" -ForegroundColor Cyan
     } else {
-        Write-Host "ERROR: Automation services failed to start" -ForegroundColor Red
-        $SkipAutomation = $true
+        if ($RestartSkyvern) {
+            Write-Host "🔄 Force restarting Skyvern automation..." -ForegroundColor Yellow
+            docker-compose -f docker-compose.skyvern.yml down 2>$null
+            Start-Sleep -Seconds 3
+        } else {
+            Write-Host "🚀 Starting Skyvern automation..." -ForegroundColor Yellow
+        }
+        
+        # Get API keys from main app
+        $envContent = Get-Content ".env" -Raw
+        if ($envContent -match "ANTHROPIC_API_KEY=(.+)") {
+            $env:ANTHROPIC_API_KEY = $matches[1].Trim()
+            Write-Host "OK: Anthropic API key configured" -ForegroundColor Green
+        } else {
+            Write-Host "WARNING: No Anthropic API key found - automation may not work" -ForegroundColor Yellow
+        }
+        
+        if ($envContent -match "SKYVERN_API_KEY=(.+)") {
+            $env:SKYVERN_API_KEY = $matches[1].Trim()
+            Write-Host "OK: Skyvern API key configured" -ForegroundColor Green
+        } else {
+            Write-Host "WARNING: No Skyvern API key found - get it from http://localhost:8081" -ForegroundColor Yellow
+        }
+        
+        # Start Skyvern with enhanced configuration
+        docker-compose -f docker-compose.skyvern.yml up -d
+        
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "OK: Automation services starting..." -ForegroundColor Green
+            Write-Host "   PostgreSQL: localhost:5433" -ForegroundColor Green
+            Write-Host "   Redis: localhost:6380" -ForegroundColor Green  
+            Write-Host "   Skyvern API: localhost:8000" -ForegroundColor Green
+            Write-Host "   Skyvern UI: localhost:8081" -ForegroundColor Green
+            Write-Host "   Chrome Debug: localhost:9222" -ForegroundColor Green
+            Write-Host "   VNC Access: localhost:5900 (no password)" -ForegroundColor Cyan
+            
+            # Setup VNC access for manual Chrome control (only on fresh start)
+            Write-Host ""
+            Write-Host "Setting up VNC access to Chrome..." -ForegroundColor Yellow
+            
+            # Wait for container to be fully ready
+            Write-Host "   Waiting for container to be ready..." -ForegroundColor White
+            Start-Sleep -Seconds 15
+            
+            # Enhanced VNC setup with proper error handling
+            Write-Host "   Installing VNC server..." -ForegroundColor White
+            $vncSetup = @"
+echo 'Starting VNC setup...'
+apt-get update -qq > /dev/null 2>&1
+apt-get install -y x11vnc fluxbox xvfb > /dev/null 2>&1
+
+# Start Xvfb for display :99 if not running
+if ! pgrep -f "Xvfb :99" > /dev/null; then
+    echo 'Starting Xvfb display server...'
+    Xvfb :99 -screen 0 1920x1080x24 -ac +extension GLX +render -noreset &
+    sleep 3
+fi
+
+# Set up VNC (no password for reliability)
+mkdir -p ~/.vnc
+
+# Kill existing VNC servers
+pkill x11vnc 2>/dev/null || true
+
+# Start VNC server with proper configuration (no password)
+echo 'Starting VNC server...'
+x11vnc -display :99 -forever -nopw -shared -rfbport 5900 \
+    -noxdamage -noxfixes -noxrandr -wait 50 -nap \
+    -desktop skyvern-chrome -bg -o /tmp/vnc.log
+
+# Wait and verify VNC is running
+sleep 2
+if pgrep x11vnc > /dev/null; then
+    echo 'VNC server started successfully on :5900'
+    echo 'Display :99 ready'
+    ps aux | grep x11vnc | head -1
+else
+    echo 'ERROR: VNC server failed to start'
+    cat /tmp/vnc.log || true
+fi
+"@
+            
+            Write-Host "   Configuring VNC server..." -ForegroundColor White
+            $vncResult = $vncSetup | docker exec -i skyvern-api bash
+            
+            # Verify VNC is running
+            Write-Host "   Verifying VNC server..." -ForegroundColor White
+            $vncCheck = docker exec skyvern-api bash -c "pgrep x11vnc && echo 'VNC_RUNNING' || echo 'VNC_FAILED'"
+            
+            if ($vncCheck -contains "VNC_RUNNING") {
+                Write-Host "✅ VNC access configured successfully!" -ForegroundColor Green
+                Write-Host "   Connect with VNC Viewer to: localhost:5900" -ForegroundColor Cyan
+                Write-Host "   No password required" -ForegroundColor Cyan
+                Write-Host "   Display: Chrome will appear in VNC window" -ForegroundColor Cyan
+            } else {
+                Write-Host "❌ VNC setup failed - manual browser control unavailable" -ForegroundColor Red
+                Write-Host "   You can still use automation without manual control" -ForegroundColor Yellow
+                Write-Host "   Check container logs: docker logs skyvern-api" -ForegroundColor Yellow
+            }
+            
+        } else {
+            Write-Host "ERROR: Automation services failed to start" -ForegroundColor Red
+            $SkipAutomation = $true
+        }
     }
 } else {
     Write-Host ""
@@ -182,11 +285,20 @@ Write-Host "  Minio Storage: http://localhost:9000" -ForegroundColor Green
 if (!$SkipAutomation) {
     Write-Host "  Automation API: http://localhost:8000" -ForegroundColor Green
     Write-Host "  Automation UI: http://localhost:8081" -ForegroundColor Green
+    Write-Host "  VNC Chrome Access: localhost:5900 (no password)" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "Automation Features:" -ForegroundColor Cyan
-    Write-Host "  Universal job board automation" -ForegroundColor Green
-    Write-Host "  Natural language instructions" -ForegroundColor Green
-    Write-Host "  Intelligent resume generation" -ForegroundColor Green
+    Write-Host "  LinkedIn workflow automation with manual login support" -ForegroundColor Green
+    Write-Host "  AI-powered dynamic prompting and obstacle handling" -ForegroundColor Green
+    Write-Host "  Direct Chrome access via VNC for manual intervention" -ForegroundColor Green
+    Write-Host "  Complete job extraction with company and contact data" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "Manual Browser Control:" -ForegroundColor Yellow
+    Write-Host "  1. Install VNC Viewer (RealVNC, TigerVNC, or similar)" -ForegroundColor White
+    Write-Host "  2. Connect to localhost:5900 when login needed" -ForegroundColor White
+    Write-Host "  3. No password required - connect directly" -ForegroundColor White
+    Write-Host "  4. Login manually in VNC Chrome window" -ForegroundColor White
+    Write-Host "  5. Automation continues automatically" -ForegroundColor White
 }
 
 Write-Host ""
