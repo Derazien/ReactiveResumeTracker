@@ -22,6 +22,7 @@ import { AnthropicProvider } from "./providers/anthropic.provider";
 import { LocalLLMProvider } from "./providers/local.provider";
 import { OpenAIProvider } from "./providers/openai.provider";
 import { TagExtractionService } from "./tag-extraction.service";
+import { LlmOptimizationService, OptimizationMetrics } from "./llm-optimization.service";
 
 @Injectable()
 export class LLMService {
@@ -53,6 +54,7 @@ export class LLMService {
     private readonly contentMatchingService: ContentMatchingService,
     private readonly prisma: PrismaService,
     private readonly embeddingService: EmbeddingService,
+    private readonly optimizationService: LlmOptimizationService,
   ) {
     // Initialize with default provider (fallback)
     this.initializeProvider();
@@ -71,6 +73,14 @@ export class LLMService {
       }
       case LLMProviderType.OPENAI: {
         this.provider = this.openaiProvider;
+        break;
+      }
+      case LLMProviderType.LOCAL: {
+        this.provider = this.localLLMProvider;
+        break;
+      }
+      case LLMProviderType.OLLAMA: {
+        this.provider = this.localLLMProvider;
         break;
       }
       default: {

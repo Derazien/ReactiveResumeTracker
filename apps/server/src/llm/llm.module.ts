@@ -12,6 +12,7 @@ import { AnthropicProvider } from "./providers/anthropic.provider";
 import { LocalLLMProvider } from "./providers/local.provider";
 import { OpenAIProvider } from "./providers/openai.provider";
 import { TagExtractionService } from "./tag-extraction.service";
+import { LlmOptimizationService } from "./llm-optimization.service";
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { TagExtractionService } from "./tag-extraction.service";
     OpenAIProvider,
     LocalLLMProvider,
     TagExtractionService,
+    LlmOptimizationService,
   ],
   exports: [LLMService, TagExtractionService],
 })
