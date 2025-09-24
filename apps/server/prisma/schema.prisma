@@ -116,6 +116,11 @@ model UserLLMSettings {
   ollamaBaseUrl   String?  @default("http://localhost:11434/v1")
   ollamaModel     String?  @default("llama3:8b")
   
+  // Skyvern Automation Settings
+  skyvernApiKey   String?  // User's Skyvern API key from their Skyvern UI settings
+  skyvernBaseUrl  String?  @default("http://localhost:8000") // Skyvern API URL
+  skyvernEnabled  Boolean  @default(false) // Whether user has enabled Skyvern automation
+  
   // Common Settings
   maxTokens       Int      @default(4000)
   temperature     Float    @default(0.1)
@@ -245,6 +250,7 @@ model JobApplication {
   status            ApplicationStatus @default(DRAFT)
   appliedDate       DateTime?
   notes             String?
+  createdViaAutomation Boolean         @default(false)  // Flag to track automation-created job applications
   // --- RAG fields start ---
   embedding           String?   // Vector embeddings for content matching
   embeddingHash       String?   // Embedding cache hash (for caching)

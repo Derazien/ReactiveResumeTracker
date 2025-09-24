@@ -26,6 +26,11 @@ export const userLLMSettingsSchema = z.object({
   ollamaBaseUrl: z.string().default("http://localhost:11434/v1").nullable(),
   ollamaModel: z.string().default("llama3:8b").nullable(),
 
+  // Skyvern Automation Settings
+  skyvernApiKey: z.string().nullable(),
+  skyvernBaseUrl: z.string().url().default("http://localhost:8000").nullable(),
+  skyvernEnabled: z.boolean().default(false),
+
   // Common Settings
   maxTokens: z.number().default(4000),
   temperature: z.number().default(0.1),
