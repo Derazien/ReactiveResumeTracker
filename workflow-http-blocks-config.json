@@ -1,0 +1,61 @@
+{
+  "job_application_http_block": {
+    "label": "create_job_application",
+    "block_type": "http_request",
+    "method": "POST",
+    "url": "http://host.docker.internal:3000/api/automation/job-application",
+    "headers": {
+      "Content-Type": "application/json",
+      "x-automation-api-key": "{{user_api_token}}"
+    },
+    "body": {
+      "title": "{{extract_job_data.title}}",
+      "companyName": "{{extract_job_data.companyName}}",
+      "description": "{{extract_job_data.description}}",
+      "requirements": "{{extract_job_data.requirements}}",
+      "extractedTags": "{{extract_job_data.extractedTags}}",
+      "url": "{{extract_job_data.url}}",
+      "status": "DRAFT",
+      "location": "{{extract_job_data.location}}",
+      "salary": "{{extract_job_data.salary}}",
+      "industry": "{{extract_job_data.industry}}",
+      "notes": "Created via automation",
+      "userId": "{{user_id}}"
+    },
+    "timeout": 30,
+    "follow_redirects": true,
+    "parameter_keys": ["user_api_token", "user_id"],
+    "cache_actions": false
+  },
+  "company_contacts_http_block": {
+    "label": "create_company_contacts",
+    "block_type": "http_request",
+    "method": "POST", 
+    "url": "http://host.docker.internal:3000/api/automation/company-contacts",
+    "headers": {
+      "Content-Type": "application/json",
+      "x-automation-api-key": "{{user_api_token}}"
+    },
+    "body": {
+      "companyName": "{{extract_job_data.companyName}}",
+      "companyDescription": "{{extract_company_data.description}}",
+      "industry": "{{extract_company_data.industry}}",
+      "website": "{{extract_company_data.website}}",
+      "location": "{{extract_company_data.location}}",
+      "contacts": "{{extract_contacts_data}}",
+      "userId": "{{user_id}}"
+    },
+    "timeout": 30,
+    "follow_redirects": true,
+    "parameter_keys": ["user_api_token", "user_id"],
+    "cache_actions": false
+  }
+}
+
+
+
+
+
+
+
+

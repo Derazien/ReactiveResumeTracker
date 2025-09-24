@@ -1,0 +1,68 @@
+{
+  "type": "object", 
+  "properties": {
+    "companyName": {
+      "type": "string",
+      "description": "Company name (must match job application)"
+    },
+    "companyDescription": {
+      "type": "string",
+      "description": "Company description from LinkedIn page"
+    },
+    "industry": {
+      "type": "string",
+      "description": "Company industry/sector"
+    },
+    "website": {
+      "type": "string",
+      "description": "Company website URL"
+    },
+    "location": {
+      "type": "string",
+      "description": "Company headquarters location"
+    },
+    "contacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Contact full name"
+          },
+          "title": {
+            "type": "string", 
+            "description": "Job title/position"
+          },
+          "email": {
+            "type": "string",
+            "description": "Email address if available"
+          },
+          "linkedinUrl": {
+            "type": "string",
+            "description": "LinkedIn profile URL"
+          },
+          "phone": {
+            "type": "string",
+            "description": "Phone number if available"
+          }
+        },
+        "required": ["name"]
+      },
+      "description": "List of relevant contacts"
+    },
+    "userId": {
+      "type": "string",
+      "description": "User ID (will be passed as parameter)"
+    }
+  },
+  "required": ["companyName", "userId"]
+}
+
+
+
+
+
+
+
+

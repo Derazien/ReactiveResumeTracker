@@ -1,0 +1,65 @@
+{
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Job title from the posting"
+    },
+    "companyName": {
+      "type": "string", 
+      "description": "Company name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Complete job description text"
+    },
+    "requirements": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "List of job requirements"
+    },
+    "extractedTags": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Technical skills and keywords"
+    },
+    "url": {
+      "type": "string",
+      "description": "Direct URL to job posting (from Share button)"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["DRAFT", "APPLIED", "INTERVIEW_SCHEDULED", "INTERVIEWED", "OFFER_RECEIVED", "REJECTED", "ACCEPTED", "WITHDRAWN"],
+      "default": "DRAFT"
+    },
+    "location": {
+      "type": "string",
+      "description": "Job location or Remote"
+    },
+    "salary": {
+      "type": "string", 
+      "description": "Salary range if available"
+    },
+    "industry": {
+      "type": "string",
+      "description": "Company industry"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes about the job"
+    },
+    "userId": {
+      "type": "string",
+      "description": "User ID (will be passed as parameter)"
+    }
+  },
+  "required": ["title", "companyName", "userId"]
+}
+
+
+
+
+
+
+
+
