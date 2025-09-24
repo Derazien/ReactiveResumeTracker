@@ -179,3 +179,14 @@ POST /api/job-applications/{existing_id}/generate-cover-letter
 
 The system is now **clean, consolidated, and ready for testing** with your existing data!
 
+
+
+
+
+
+
+
+
+
+
+

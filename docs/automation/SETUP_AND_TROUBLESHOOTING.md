@@ -302,7 +302,7 @@ environment:
 # Anthropic (default)
 environment:
   - ENABLE_ANTHROPIC=true
-  - LLM_KEY=ANTHROPIC_CLAUDE3.5_SONNET
+  - LLM_KEY=ANTHROPIC_CLAUDE3.5_HAIKU
   - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
 
 # OpenAI (alternative)

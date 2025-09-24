@@ -17,6 +17,7 @@ Welcome to the ReactiveResumeTracker documentation! This folder contains compreh
 - **[FORM_FIELD_EDITING_FIX.md](./FORM_FIELD_EDITING_FIX.md)** - Form synchronization solution for section dialogs
 
 ### 🤖 **Automation Integration**
+- **[AUTOMATION_INTEGRATION_SUMMARY.md](./AUTOMATION_INTEGRATION_SUMMARY.md)** - Complete implementation summary and architecture
 - **[automation/QUICKSTART.md](./automation/QUICKSTART.md)** - Complete automation setup and usage guide
 - **[automation/LINKEDIN_AUTOMATION.md](./automation/LINKEDIN_AUTOMATION.md)** - Comprehensive LinkedIn workflow guide  
 - **[automation/SETUP_AND_TROUBLESHOOTING.md](./automation/SETUP_AND_TROUBLESHOOTING.md)** - Technical setup and debugging

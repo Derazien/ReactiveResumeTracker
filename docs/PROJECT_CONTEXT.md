@@ -36,6 +36,20 @@ ReactiveResumeTracker/
 - `sourceContentId`: Original content reference (modified from library)
 - `null/null`: Manually created content
 
+### 1.1. Automation Integration Service (`apps/server/src/automation-integration.controller.ts`)
+**Purpose**: Integrates Skyvern AI automation engine for job application automation
+**Key Methods**:
+- `getAutomationStatus()` - Checks Skyvern engine health and availability
+- `executeLinkedInWorkflow()` - Initiates LinkedIn job search automation
+- `handleLinkedInJobSearchCallback()` - Processes job data from automation webhooks
+- `handleCompanyResearchCallback()` - Processes company data from automation webhooks
+
+**Integration Features**:
+- LinkedIn job search automation with filters (remote, location, time period)
+- Company research and contact extraction
+- Webhook-based data flow to existing ReactiveResumeTracker APIs
+- Real-time status monitoring and progress tracking
+
 ### 2. Job Application Service (`apps/server/src/job-application/`)
 **Purpose**: Manages job applications and resume generation
 **Key Methods**:
