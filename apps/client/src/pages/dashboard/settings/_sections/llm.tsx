@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { t, Trans } from "@lingui/macro";
-import { FloppyDisk, TrashSimple } from "@phosphor-icons/react";
+import { FloppyDisk, TrashSimple, Robot, Lightning } from "@phosphor-icons/react";
 import {
   Alert,
   Button,
@@ -24,6 +24,7 @@ import { z } from "zod";
 
 import { useToast } from "@/client/hooks/use-toast";
 import { useDeleteLLMSettings, useLLMSettings, useUpdateLLMSettings } from "@/client/services/user";
+import { useState } from "react";
 
 const formSchema = z.object({
   provider: z.enum(["OPENAI", "ANTHROPIC", "OLLAMA"]).default("OPENAI"),
@@ -36,6 +37,10 @@ const formSchema = z.object({
   ollamaApiKey: z.string().default("sk-1234567890abcdef"),
   ollamaBaseUrl: z.string().default("http://localhost:11434/v1"),
   ollamaModel: z.string().default("llama3:8b"),
+  // Skyvern Automation Settings
+  skyvernApiKey: z.string().optional(),
+  skyvernBaseUrl: z.string().default("http://localhost:8000"),
+  skyvernEnabled: z.boolean().default(false),
   maxTokens: z.number().min(100).max(8000).default(4000),
   temperature: z.number().min(0).max(2).default(0.1),
 });
@@ -47,6 +52,7 @@ export const LLMSettings = () => {
   const { data: settings, isLoading } = useLLMSettings();
   const { mutateAsync: updateSettings, isPending: isUpdating } = useUpdateLLMSettings();
   const { mutateAsync: deleteSettings, isPending: isDeleting } = useDeleteLLMSettings();
+  const [isGeneratingApiKey, setIsGeneratingApiKey] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -61,6 +67,10 @@ export const LLMSettings = () => {
       ollamaApiKey: "sk-1234567890abcdef",
       ollamaBaseUrl: "http://localhost:11434/v1",
       ollamaModel: "llama3:8b",
+      // Skyvern defaults
+      skyvernApiKey: "",
+      skyvernBaseUrl: "http://localhost:8000",
+      skyvernEnabled: false,
       maxTokens: 4000,
       temperature: 0.1,
     },
@@ -82,6 +92,10 @@ export const LLMSettings = () => {
         ollamaApiKey: settings.ollamaApiKey ?? "sk-1234567890abcdef",
         ollamaBaseUrl: settings.ollamaBaseUrl ?? "http://localhost:11434/v1",
         ollamaModel: settings.ollamaModel,
+        // Skyvern settings
+        skyvernApiKey: settings.skyvernApiKey ?? "",
+        skyvernBaseUrl: settings.skyvernBaseUrl ?? "http://localhost:8000",
+        skyvernEnabled: settings.skyvernEnabled ?? false,
         maxTokens: settings.maxTokens,
         temperature: settings.temperature,
       });
@@ -101,6 +115,10 @@ export const LLMSettings = () => {
         ollamaApiKey: data.ollamaApiKey ?? null,
         ollamaBaseUrl: data.ollamaBaseUrl ?? null,
         ollamaModel: data.ollamaModel,
+        // Skyvern settings
+        skyvernApiKey: data.skyvernApiKey ?? null,
+        skyvernBaseUrl: data.skyvernBaseUrl ?? null,
+        skyvernEnabled: data.skyvernEnabled,
         maxTokens: data.maxTokens,
         temperature: data.temperature,
       };
@@ -135,6 +153,43 @@ export const LLMSettings = () => {
         title: t`Failed to reset LLM settings`,
         description: (error as Error).message,
       });
+    }
+  };
+
+  const generateSkyvernApiKey = async () => {
+    setIsGeneratingApiKey(true);
+    try {
+      const response = await fetch('/api/automation/generate-api-key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Refresh settings to get the new API key
+        window.location.reload();
+        
+        toast({
+          variant: "success",
+          title: t`Skyvern API Key Generated`,
+          description: t`Your personal Skyvern organization has been created and API key configured.`,
+        });
+      } else {
+        toast({
+          variant: "error", 
+          title: t`Failed to Generate API Key`,
+          description: result.message || t`Unable to create Skyvern organization`,
+        });
+      }
+    } catch (error) {
+      toast({
+        variant: "error",
+        title: t`Generation Failed`,
+        description: t`Unable to connect to automation service`,
+      });
+    } finally {
+      setIsGeneratingApiKey(false);
     }
   };
 
@@ -272,6 +327,92 @@ export const LLMSettings = () => {
               />
             </div>
           )}
+
+          {/* Skyvern Automation Settings */}
+          <div className="space-y-4 rounded-md border p-4">
+            <div className="space-y-2">
+              <h4 className="text-lg font-medium">{t`Job Automation (Skyvern)`}</h4>
+              <p className="text-muted-foreground text-sm">
+                {t`Configure Skyvern to automate job searching on LinkedIn and other platforms.`}
+              </p>
+            </div>
+            
+            <FormField
+              name="skyvernEnabled"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                  <FormControl>
+                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>{t`Enable Job Automation`}</FormLabel>
+                    <p className="text-muted-foreground text-sm">
+                      {t`Allow automated job searching and application creation using Skyvern.`}
+                    </p>
+                  </div>
+                </FormItem>
+              )}
+            />
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <FormField
+                name="skyvernApiKey"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t`Skyvern API Key`}</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="password" 
+                        placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <div className="flex items-center gap-2 text-xs">
+                      <p className="text-muted-foreground">
+                        {t`Get your API key from Skyvern UI at http://localhost:8081`}
+                      </p>
+                      <Button 
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        disabled={isGeneratingApiKey}
+                        onClick={generateSkyvernApiKey}
+                        className="gap-1"
+                      >
+                        {isGeneratingApiKey ? (
+                          <>
+                            <div className="h-3 w-3 animate-spin rounded-full border border-current border-t-transparent" />
+                            {t`Generating...`}
+                          </>
+                        ) : (
+                          <>
+                            <Lightning className="h-3 w-3" />
+                            {t`Auto-Generate`}
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                name="skyvernBaseUrl"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t`Skyvern Server URL`}</FormLabel>
+                    <FormControl>
+                      <Input placeholder="http://localhost:8000" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
 
           {/* System Backup Option */}
           <FormField

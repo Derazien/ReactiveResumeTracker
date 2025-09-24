@@ -20,5 +20,6 @@ export const useSearchCompanies = (query: string) => {
     queryFn: () => searchCompanies(query),
     enabled: query.length >= 3, // Only search if 3+ characters as requested
     staleTime: 30000, // Cache results for 30 seconds
+    initialData: [], // Ensure we always have an array
   });
 };

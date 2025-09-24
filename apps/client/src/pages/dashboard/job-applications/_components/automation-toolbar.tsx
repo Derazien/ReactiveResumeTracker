@@ -42,10 +42,26 @@ export const AutomationToolbar = () => {
   const [automationStatus, setAutomationStatus] = useState<AutomationStatus | null>(null);
   const [isExecuting, setIsExecuting] = useState(false);
   const [activeTask, setActiveTask] = useState<string | null>(null);
+  const [hasExistingTemplate, setHasExistingTemplate] = useState(false);
+  const [existingTemplates, setExistingTemplates] = useState<WorkflowTemplate[]>([]);
 
   useEffect(() => {
     void checkAutomationStatus();
+    void loadWorkflowTemplates();
   }, []);
+
+  const loadWorkflowTemplates = async () => {
+    try {
+      const response = await fetch("/api/automation/list-workflow-templates");
+      if (response.ok) {
+        const data = await response.json();
+        setExistingTemplates(data.workflows || []);
+        setHasExistingTemplate(data.workflows?.length > 0);
+      }
+    } catch (error) {
+      console.error("Failed to load workflow templates:", error);
+    }
+  };
 
   const checkAutomationStatus = async () => {
     try {
@@ -164,89 +180,41 @@ export const AutomationToolbar = () => {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-          {/* LinkedIn Automation */}
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button
-                variant="outline"
-                className="flex h-auto flex-col gap-2 p-3"
-                disabled={!isAutomationAvailable}
-              >
-                <Lightning className="size-5 text-blue-600" />
-                <span className="text-xs font-medium">{t`LinkedIn Jobs`}</span>
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <Lightning className="size-5 text-blue-600" />
-                  {t`LinkedIn Job Automation`}
-                </DialogTitle>
-              </DialogHeader>
-              <AutomationDialog 
-                platform="LinkedIn"
-                defaultUrl="https://linkedin.com/jobs"
-                onExecute={executeJobAutomation}
-                isExecuting={isExecuting}
-              />
-            </DialogContent>
-          </Dialog>
+          {/* LinkedIn Automation - Redirect to Automation Page */}
+          <Button
+            variant="outline"
+            className="flex h-auto flex-col gap-2 p-3"
+            disabled={!isAutomationAvailable}
+            onClick={() => window.location.href = '/dashboard/automation'}
+          >
+            <Lightning className="size-5 text-blue-600" />
+            <span className="text-xs font-medium">{t`LinkedIn Jobs`}</span>
+            <span className="text-[10px] text-muted-foreground">{t`Create workflows`}</span>
+          </Button>
 
-          {/* Indeed Automation */}
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button
-                variant="outline"
-                className="flex h-auto flex-col gap-2 p-3"
-                disabled={!isAutomationAvailable}
-              >
-                <MagicWand className="size-5 text-purple-600" />
-                <span className="text-xs font-medium">{t`Indeed Jobs`}</span>
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <MagicWand className="size-5 text-purple-600" />
-                  {t`Indeed Job Automation`}
-                </DialogTitle>
-              </DialogHeader>
-              <AutomationDialog 
-                platform="Indeed"
-                defaultUrl="https://indeed.com"
-                onExecute={executeJobAutomation}
-                isExecuting={isExecuting}
-              />
-            </DialogContent>
-          </Dialog>
+          {/* Indeed Automation - Redirect to Automation Page */}
+          <Button
+            variant="outline"
+            className="flex h-auto flex-col gap-2 p-3"
+            disabled={!isAutomationAvailable}
+            onClick={() => window.location.href = '/dashboard/automation'}
+          >
+            <MagicWand className="size-5 text-purple-600" />
+            <span className="text-xs font-medium">{t`Indeed Jobs`}</span>
+            <span className="text-[10px] text-muted-foreground">{t`Create workflows`}</span>
+          </Button>
 
-          {/* Custom Automation */}
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button
-                variant="outline"
-                className="flex h-auto flex-col gap-2 p-3"
-                disabled={!isAutomationAvailable}
-              >
-                <Sparkle className="size-5 text-green-600" />
-                <span className="text-xs font-medium">{t`Custom Jobs`}</span>
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <Sparkle className="size-5 text-green-600" />
-                  {t`Custom Job Automation`}
-                </DialogTitle>
-              </DialogHeader>
-              <AutomationDialog 
-                platform="Custom"
-                defaultUrl=""
-                onExecute={executeJobAutomation}
-                isExecuting={isExecuting}
-              />
-            </DialogContent>
-          </Dialog>
+          {/* Custom Automation - Redirect to Automation Page */}
+          <Button
+            variant="outline"
+            className="flex h-auto flex-col gap-2 p-3"
+            disabled={!isAutomationAvailable}
+            onClick={() => window.location.href = '/dashboard/automation'}
+          >
+            <Sparkle className="size-5 text-green-600" />
+            <span className="text-xs font-medium">{t`Custom Jobs`}</span>
+            <span className="text-[10px] text-muted-foreground">{t`Create workflows`}</span>
+          </Button>
         </div>
 
         {/* Active Task Status */}
@@ -275,6 +243,14 @@ export const AutomationToolbar = () => {
   );
 };
 
+// Workflow template type
+type WorkflowTemplate = {
+  workflowId: string;
+  title: string;
+  description?: string;
+  workflowName?: string;
+};
+
 // Reusable automation dialog component
 type AutomationDialogProps = {
   platform: "LinkedIn" | "Indeed" | "Custom";
@@ -283,7 +259,21 @@ type AutomationDialogProps = {
   isExecuting: boolean;
 };
 
-const AutomationDialog = ({ platform, defaultUrl, onExecute, isExecuting }: AutomationDialogProps) => {
+const AutomationDialog = ({ 
+  platform, 
+  defaultUrl, 
+  onExecute, 
+  isExecuting,
+  toast,
+  setActiveTask,
+  hasExistingTemplate,
+  existingTemplates,
+}: AutomationDialogProps & {
+  toast: any;
+  setActiveTask: (taskId: string) => void;
+  hasExistingTemplate: boolean;
+  existingTemplates: WorkflowTemplate[];
+}) => {
   const [localInstruction, setLocalInstruction] = useState("");
   const [localUrl, setLocalUrl] = useState(defaultUrl);
   
@@ -297,23 +287,135 @@ const AutomationDialog = ({ platform, defaultUrl, onExecute, isExecuting }: Auto
     includeCompanyResearch: true,
     includeContactExtraction: true,
     waitForUserLogin: true,
+    // New workflow template fields
+    linkedinUsername: "",
+    linkedinPassword: "",
+    templateName: "",
+    saveAsTemplate: false,
   });
+
 
   const handleExecute = async () => {
     if (platform === "LinkedIn") {
-      // Create comprehensive LinkedIn workflow instruction
-      const workflowInstruction = `
-        LinkedIn Job Automation Workflow:
-        1. Search for "${workflowConfig.jobKeywords}" jobs in "${workflowConfig.location}"
-        2. Remote status: ${workflowConfig.remoteStatus}
-        3. Time period: ${workflowConfig.timePeriod}
-        4. Extract job details and create job applications
-        5. ${workflowConfig.includeCompanyResearch ? "Research companies and create company records" : ""}
-        6. ${workflowConfig.includeContactExtraction ? "Extract employee contacts and create contact records" : ""}
-        7. ${workflowConfig.waitForUserLogin ? "Wait for user to login to LinkedIn if needed" : ""}
-      `;
-      
-      await onExecute(workflowInstruction, localUrl, workflowConfig);
+      // Check if user wants to save as template or run existing template
+      if (workflowConfig.saveAsTemplate || (!hasExistingTemplate && workflowConfig.linkedinUsername)) {
+        // Create new workflow template
+        try {
+          const templateData = {
+            templateName: workflowConfig.templateName || `LinkedIn Jobs - ${workflowConfig.jobKeywords}`,
+            description: `Automated search for ${workflowConfig.jobKeywords} jobs in ${workflowConfig.location}`,
+            linkedinUsername: workflowConfig.linkedinUsername,
+            linkedinPassword: workflowConfig.linkedinPassword,
+            defaultKeywords: workflowConfig.jobKeywords,
+            defaultLocation: workflowConfig.location,
+          };
+
+          const createResponse = await fetch("/api/automation/create-linkedin-workflow-template", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(templateData),
+          });
+
+          const createResult = await createResponse.json();
+          
+          if (createResult.success) {
+            toast({
+              title: t`Template Created`,
+              description: `Workflow template "${createResult.workflowName}" created successfully`,
+            });
+
+            // Now run the newly created template
+            const runData = {
+              workflowId: createResult.workflowId,
+              parameters: {
+                job_keywords: workflowConfig.jobKeywords,
+                location: workflowConfig.location,
+                max_jobs: workflowConfig.maxJobs,
+              }
+            };
+
+            const runResponse = await fetch("/api/automation/run-workflow-template", {
+              method: "POST", 
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(runData),
+            });
+
+            const runResult = await runResponse.json();
+            
+            if (runResult.success) {
+              setActiveTask(runResult.workflowRunId);
+              toast({
+                title: t`Automation Started`,
+                description: `Workflow execution started. Monitor at Skyvern UI.`,
+                action: (
+                  <Button
+                    size="sm"
+                    onClick={() => window.open(runResult.monitorUrl, "_blank")}
+                  >
+                    {t`Monitor Workflow`}
+                  </Button>
+                ),
+              });
+            }
+          }
+        } catch (error) {
+          toast({
+            title: t`Template Creation Failed`,
+            description: (error as Error)?.message || "Failed to create workflow template",
+            variant: "error",
+          });
+        }
+      } else if (hasExistingTemplate && existingTemplates.length > 0) {
+        // Run existing template with new parameters
+        const selectedTemplate = existingTemplates[0]; // For now, use first template
+        
+        const runData = {
+          workflowId: selectedTemplate.workflowId,
+          parameters: {
+            job_keywords: workflowConfig.jobKeywords,
+            location: workflowConfig.location,
+            max_jobs: workflowConfig.maxJobs,
+          }
+        };
+
+        const response = await fetch("/api/automation/run-workflow-template", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(runData),
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+          setActiveTask(result.workflowRunId);
+          toast({
+            title: t`Workflow Started`,
+            description: `Using existing template: ${selectedTemplate.title}`,
+            action: (
+              <Button
+                size="sm"
+                onClick={() => window.open(result.monitorUrl, "_blank")}
+              >
+                {t`Monitor Workflow`}
+              </Button>
+            ),
+          });
+        }
+      } else {
+        // Fallback to old task-based approach
+        const workflowInstruction = `
+          LinkedIn Job Automation Workflow:
+          1. Search for "${workflowConfig.jobKeywords}" jobs in "${workflowConfig.location}"
+          2. Remote status: ${workflowConfig.remoteStatus}
+          3. Time period: ${workflowConfig.timePeriod}
+          4. Extract job details and create job applications
+          5. ${workflowConfig.includeCompanyResearch ? "Research companies and create company records" : ""}
+          6. ${workflowConfig.includeContactExtraction ? "Extract employee contacts and create contact records" : ""}
+          7. ${workflowConfig.waitForUserLogin ? "Wait for user to login to LinkedIn if needed" : ""}
+        `;
+        
+        await onExecute(workflowInstruction, localUrl, workflowConfig);
+      }
     } else {
       await onExecute(localInstruction, localUrl);
     }
@@ -425,6 +527,75 @@ const AutomationDialog = ({ platform, defaultUrl, onExecute, isExecuting }: Auto
             />
           </div>
 
+          {/* LinkedIn Credentials (for workflow templates) */}
+          {!hasExistingTemplate && (
+            <div className="space-y-3 border rounded-lg p-3 bg-blue-50 dark:bg-blue-950/20">
+              <label className="text-sm font-medium text-blue-700 dark:text-blue-300">{t`LinkedIn Credentials (Save for Future Use)`}</label>
+              
+              <div className="grid grid-cols-1 gap-3">
+                <div>
+                  <label className="text-xs font-medium">{t`LinkedIn Username/Email`}</label>
+                  <Input
+                    type="email"
+                    value={workflowConfig.linkedinUsername}
+                    onChange={(e) => {
+                      setWorkflowConfig((prev) => ({ ...prev, linkedinUsername: e.target.value }));
+                    }}
+                    placeholder="your.email@domain.com"
+                    className="mt-1"
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-xs font-medium">{t`LinkedIn Password`}</label>
+                  <Input
+                    type="password"
+                    value={workflowConfig.linkedinPassword}
+                    onChange={(e) => {
+                      setWorkflowConfig((prev) => ({ ...prev, linkedinPassword: e.target.value }));
+                    }}
+                    placeholder="Your LinkedIn password"
+                    className="mt-1"
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-xs font-medium">{t`Template Name (Optional)`}</label>
+                  <Input
+                    value={workflowConfig.templateName}
+                    onChange={(e) => {
+                      setWorkflowConfig((prev) => ({ ...prev, templateName: e.target.value }));
+                    }}
+                    placeholder="My LinkedIn Job Search"
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+              
+              <div className="text-xs text-blue-600 dark:text-blue-400">
+                {t`💡 Providing credentials creates a reusable workflow template. You can run it multiple times with different search parameters without re-entering login details.`}
+              </div>
+            </div>
+          )}
+          
+          {hasExistingTemplate && (
+            <div className="space-y-3 border rounded-lg p-3 bg-green-50 dark:bg-green-950/20">
+              <label className="text-sm font-medium text-green-700 dark:text-green-300">{t`Using Existing Template`}</label>
+              <div className="text-xs text-green-600 dark:text-green-400">
+                {t`✅ LinkedIn credentials already saved. Just configure search parameters and run!`}
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => window.location.href = '/dashboard/automation'}
+                className="gap-1"
+              >
+                <Robot className="h-3 w-3" />
+                {t`Manage Templates`}
+              </Button>
+            </div>
+          )}
+
           {/* Workflow Options */}
           <div className="space-y-3">
             <label className="text-sm font-medium">{t`Workflow Options`}</label>
@@ -532,7 +703,10 @@ const AutomationDialog = ({ platform, defaultUrl, onExecute, isExecuting }: Auto
         onClick={handleExecute}
         disabled={
           isExecuting ||
-          (platform === "LinkedIn" ? !workflowConfig.jobKeywords.trim() : !localInstruction.trim())
+          (platform === "LinkedIn" ? 
+            !workflowConfig.jobKeywords.trim() || 
+            (!hasExistingTemplate && !workflowConfig.linkedinUsername.trim()) 
+            : !localInstruction.trim())
         }
         className="w-full gap-2"
       >

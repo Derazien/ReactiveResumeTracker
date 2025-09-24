@@ -1,5 +1,5 @@
 import { t } from "@lingui/macro";
-import { FileText, Plus, X } from "@phosphor-icons/react";
+import { FileTextIcon, PlusIcon, XIcon } from "@phosphor-icons/react";
 import {
   Button,
   Card,
@@ -15,10 +15,13 @@ import { useNavigate } from "react-router";
 
 import { useToast } from "@/client/hooks/use-toast";
 import { useCreateJobApplication } from "@/client/services/job-application/create";
+import { useCreateCompany, type Company } from "@/client/services/company";
+import { CompanyAutocomplete } from "@/client/components/company-autocomplete";
 
 type FormData = {
   title: string;
   company: string;
+  companyId?: string;
   location: string;
   url: string;
   description: string;
@@ -30,6 +33,7 @@ export const ManualJobForm = () => {
   const [formData, setFormData] = useState<FormData>({
     title: "",
     company: "",
+    companyId: undefined,
     location: "",
     url: "",
     description: "",
@@ -40,12 +44,58 @@ export const ManualJobForm = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { createJobApplication, loading: isCreating } = useCreateJobApplication();
+  const { createCompany, loading: isCreatingCompany } = useCreateCompany();
 
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
+  };
+
+  // Handle company selection from autocomplete
+  const handleCompanySelect = (company: Company | null) => {
+    if (company) {
+      setFormData((prev) => ({
+        ...prev,
+        company: company.name,
+        companyId: company.id,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        company: "",
+        companyId: undefined,
+      }));
+    }
+  };
+
+  // Handle creating new company
+  const handleCreateNewCompany = async (companyName: string) => {
+    try {
+      const newCompany = await createCompany({
+        name: companyName,
+        description: t`Company created from job application`,
+        values: "[]",
+      });
+
+      setFormData((prev) => ({
+        ...prev,
+        company: newCompany.name,
+        companyId: newCompany.id,
+      }));
+
+      toast({
+        title: t`Company Created`,
+        description: t`${companyName} has been created and will be researched automatically.`,
+      });
+    } catch {
+      toast({
+        variant: "error",
+        title: t`Error`,
+        description: t`Failed to create company. Please try again.`,
+      });
+    }
   };
 
   const handleRequirementChange = (index: number, value: string) => {
@@ -79,9 +129,13 @@ export const ManualJobForm = () => {
       await createJobApplication({
         title: formData.title,
         companyName: formData.company,
+        companyId: formData.companyId,
         description: formData.description,
         url: formData.url,
         notes: formData.notes,
+        requirements: formData.requirements.filter((req) => req.trim()),
+        extractedTags: [], // Initialize as empty array for now
+        status: "DRAFT", // Default status for new applications
       });
 
       toast({
@@ -89,7 +143,7 @@ export const ManualJobForm = () => {
         description: t`Job application created successfully`,
       });
 
-      navigate("/dashboard/job-applications");
+      void navigate("/dashboard/job-applications");
     } catch {
       toast({
         variant: "error",
@@ -105,7 +159,7 @@ export const ManualJobForm = () => {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <FileText size={20} />
+          <FileTextIcon size={20} />
           {t`Job Details`}
         </CardTitle>
       </CardHeader>
@@ -125,14 +179,18 @@ export const ManualJobForm = () => {
           </div>
           <div>
             <Label htmlFor="company">{t`Company`} *</Label>
-            <Input
-              id="company"
+            <CompanyAutocomplete
               value={formData.company}
-              placeholder={t`e.g. TechCorp Inc.`}
-              onChange={(e) => {
-                handleInputChange("company", e.target.value);
-              }}
+              placeholder={t`Search or create company...`}
+              disabled={isCreatingCompany}
+              onSelect={handleCompanySelect}
+              onCreateNew={handleCreateNewCompany}
             />
+            {isCreatingCompany && (
+              <p className="mt-1 text-sm text-muted-foreground">
+                {t`Creating company and researching details...`}
+              </p>
+            )}
           </div>
         </div>
 
@@ -196,12 +254,12 @@ export const ManualJobForm = () => {
                     removeRequirement(index);
                   }}
                 >
-                  <X size={16} />
+                  <XIcon size={16} />
                 </Button>
               </div>
             ))}
             <Button type="button" variant="outline" className="gap-2" onClick={addRequirement}>
-              <Plus size={16} />
+              <PlusIcon size={16} />
               {t`Add Requirement`}
             </Button>
           </div>
@@ -221,7 +279,11 @@ export const ManualJobForm = () => {
 
         {/* Actions */}
         <div className="flex gap-2">
-          <Button disabled={!isFormValid || isCreating} className="flex-1" onClick={handleSave}>
+          <Button
+            disabled={!isFormValid || isCreating || isCreatingCompany}
+            className="flex-1"
+            onClick={handleSave}
+          >
             {isCreating ? t`Creating...` : t`Create Application`}
           </Button>
         </div>

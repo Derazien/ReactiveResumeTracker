@@ -35,7 +35,10 @@ export const CompanyAutocomplete = ({
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { data: companies = [], isLoading } = useSearchCompanies(searchQuery);
+  const { data: companiesData, isLoading } = useSearchCompanies(searchQuery);
+  
+  // Ensure companies is always an array
+  const companies = Array.isArray(companiesData) ? companiesData : [];
 
   const selectedCompany = companies.find(company => company.name === value);
 

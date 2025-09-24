@@ -25,6 +25,11 @@ export type UserLLMSettings = {
   ollamaBaseUrl: string | null;
   ollamaModel: string;
 
+  // Skyvern Automation Settings
+  skyvernApiKey: string | null;
+  skyvernBaseUrl: string | null;
+  skyvernEnabled: boolean;
+
   // Common Settings
   maxTokens: number;
   temperature: number;
