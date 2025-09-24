@@ -1,0 +1,61 @@
+### 🧪 Manual Testing for Automation Endpoints
+### Use this with VS Code REST Client extension or any HTTP client
+
+@baseUrl = http://localhost:3000/api/automation
+@skyvernApiKey = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjQ5MDMwMDc5NDAsInN1YiI6Im9fNDM5NTk3MDE1ODQ1NDI5MTUwIn0.DxeP6hIUAyFwPablP34hMtx7I9eeFVNjuc2A6nTy7sk
+
+### Test 1: Job Application Endpoint
+POST {{baseUrl}}/job-application
+Content-Type: application/json
+x-skyvern-api-key: {{skyvernApiKey}}
+
+{
+  "title": "🧪 TEST: Senior Frontend Developer",
+  "companyName": "🧪 TEST: Acme Corporation",
+  "description": "We are looking for a senior frontend developer to join our growing team. You'll work with React, TypeScript, and modern web technologies.",
+  "requirements": [
+    "5+ years React experience",
+    "TypeScript proficiency", 
+    "REST API integration",
+    "Git/GitHub workflow"
+  ],
+  "extractedTags": ["React", "TypeScript", "JavaScript", "Frontend", "REST API"],
+  "url": "https://example.com/jobs/senior-frontend-developer",
+  "status": "DRAFT",
+  "location": "San Francisco, CA (Remote friendly)",
+  "salary": "$120k - $160k",
+  "industry": "Software Technology",
+  "notes": "This is a test job application created via automation endpoints",
+  "userId": "cmcfcpf8e0000u4lg7u0i3bsh"
+}
+
+### Test 2: Company Contacts Endpoint  
+POST {{baseUrl}}/company-contacts
+Content-Type: application/json
+x-skyvern-api-key: {{skyvernApiKey}}
+
+{
+  "companyName": "🧪 TEST: Acme Corporation",
+  "companyDescription": "Leading software technology company specializing in innovative web solutions and enterprise applications.",
+  "industry": "Software Technology",
+  "website": "https://acme-corp.example.com",
+  "location": "San Francisco, CA",
+  "contacts": [
+    {
+      "name": "🧪 TEST: Sarah Johnson",
+      "title": "Engineering Manager",
+      "email": "sarah.johnson@acme-corp.example.com",
+      "linkedinUrl": "https://linkedin.com/in/sarah-johnson-test",
+      "phone": "+1-555-0123"
+    },
+    {
+      "name": "🧪 TEST: Mike Chen",
+      "title": "Senior Tech Recruiter", 
+      "linkedinUrl": "https://linkedin.com/in/mike-chen-recruiter-test"
+    }
+  ],
+  "userId": "cmcfcpf8e0000u4lg7u0i3bsh"
+}
+
+### Test 3: Check Server Status (existing endpoint)
+GET {{baseUrl}}/status
