@@ -1,7 +1,7 @@
 import path from "node:path";
 
-import { HttpException, Module } from "@nestjs/common";
-import { APP_INTERCEPTOR, APP_PIPE } from "@nestjs/core";
+import { Module } from "@nestjs/common";
+import { APP_PIPE } from "@nestjs/core";
 import { ServeStaticModule } from "@nestjs/serve-static";
 // import { RavenInterceptor, RavenModule } from "nest-raven"; // TODO: Replace with compatible Sentry integration
 import { ZodValidationPipe } from "nestjs-zod";
@@ -9,17 +9,21 @@ import { ZodValidationPipe } from "nestjs-zod";
 import { AuthModule } from "./auth/auth.module";
 import { AutomationIntegrationController } from "./automation-integration.controller";
 import { CompanyModule } from "./company/company.module";
+import { CompanyService } from "./company/company.service";
 import { ConfigModule } from "./config/config.module";
 import { ContactModule } from "./contact/contact.module";
+import { ContactService } from "./contact/contact.service";
 import { ContactMessageModule } from "./contact-message/contact-message.module";
 import { ContentLibraryModule } from "./content-library/content-library.module";
 import { ContributorsModule } from "./contributors/contributors.module";
 import { CoverLetterModule } from "./cover-letter/cover-letter.module";
 import { CoverLetterContentModule } from "./cover-letter-content/cover-letter-content.module";
 import { DatabaseModule } from "./database/database.module";
+import { EmbeddingModule } from "./embedding/embedding.module";
 import { FeatureModule } from "./feature/feature.module";
 import { HealthModule } from "./health/health.module";
 import { JobApplicationModule } from "./job-application/job-application.module";
+import { JobApplicationService } from "./job-application/job-application.service";
 import { JobApplicationQuestionModule } from "./job-application-question/job-application-question.module";
 import { LLMModule } from "./llm/llm.module";
 import { MailModule } from "./mail/mail.module";
@@ -59,6 +63,7 @@ import { UserModule } from "./user/user.module";
     FeatureModule,
     TranslationModule,
     ContributorsModule,
+    EmbeddingModule,
 
     // Static Assets
     ServeStaticModule.forRoot({

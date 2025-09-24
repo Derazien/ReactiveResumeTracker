@@ -15,12 +15,19 @@ export class CompanyService {
   ) {}
 
   /**
-   * Create a new company
+   * Create a new company with name-based deduplication check
    */
   async create(userId: string, createDto: CreateCompanyDto): Promise<Company> {
     this.logger.debug(`Creating company for user ${userId}`);
 
     try {
+      // First check for existing companies with similar names
+      const existingCompany = await this.findExistingCompanyByName(createDto.name);
+      if (existingCompany) {
+        this.logger.log(`Found existing company with similar name: ${existingCompany.name} - returning existing company`);
+        return existingCompany;
+      }
+
       const company = await this.prisma.company.create({
         data: {
           name: createDto.name,
@@ -40,6 +47,13 @@ export class CompanyService {
           youtubeUrl: createDto.youtubeUrl,
           githubUrl: createDto.githubUrl,
         },
+        include: {
+          contacts: {
+            where: {
+              userId: userId  // Only include user's contacts
+            }
+          }
+        }
       });
 
       this.logger.debug(`Company created with ID: ${company.id}`);
@@ -50,6 +64,94 @@ export class CompanyService {
       );
       throw error;
     }
+  }
+
+  /**
+   * Find existing company by name with variations (simple and efficient)
+   */
+  private async findExistingCompanyByName(companyName: string): Promise<Company | null> {
+    const normalizedName = this.normalizeCompanyName(companyName);
+    
+    // Search for exact matches and common variations
+    const searchVariations = this.generateCompanyNameVariations(normalizedName);
+    
+    this.logger.debug(`Searching for existing company with variations: ${searchVariations.join(', ')}`);
+    
+    for (const variation of searchVariations) {
+      const existingCompany = await this.prisma.company.findFirst({
+        where: {
+          name: {
+            equals: variation
+            // Note: SQLite doesn't support case insensitive mode, 
+            // so we rely on exact string matching
+          }
+        }
+      });
+      
+      if (existingCompany) {
+        this.logger.debug(`Found existing company match: "${existingCompany.name}" for search "${variation}"`);
+        return existingCompany;
+      }
+    }
+    
+    return null;
+  }
+  
+  /**
+   * Normalize company name for consistent matching
+   */
+  private normalizeCompanyName(name: string): string {
+    return name
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, ' ') // Normalize whitespace
+      .replace(/[.,]/g, ''); // Remove common punctuation
+  }
+  
+  /**
+   * Generate common company name variations for matching
+   */
+  private generateCompanyNameVariations(normalizedName: string): string[] {
+    const variations = new Set<string>();
+    
+    // Original normalized name
+    variations.add(normalizedName);
+    
+    // Common company suffix variations
+    const suffixMappings = [
+      { from: ' inc', to: ' incorporated' },
+      { from: ' incorporated', to: ' inc' },
+      { from: ' llc', to: ' limited liability company' },
+      { from: ' limited liability company', to: ' llc' },
+      { from: ' corp', to: ' corporation' },
+      { from: ' corporation', to: ' corp' },
+      { from: ' co', to: ' company' },
+      { from: ' company', to: ' co' },
+      { from: ' ltd', to: ' limited' },
+      { from: ' limited', to: ' ltd' },
+    ];
+    
+    for (const mapping of suffixMappings) {
+      if (normalizedName.endsWith(mapping.from)) {
+        const variation = normalizedName.replace(new RegExp(mapping.from + '$'), mapping.to);
+        variations.add(variation);
+      }
+    }
+    
+    // Remove common suffixes entirely for broader matching
+    const suffixesToRemove = [' inc', ' incorporated', ' llc', ' corp', ' corporation', ' co', ' company', ' ltd', ' limited'];
+    for (const suffix of suffixesToRemove) {
+      if (normalizedName.endsWith(suffix)) {
+        variations.add(normalizedName.replace(new RegExp(suffix + '$'), ''));
+      }
+    }
+    
+    // Convert back to proper case for database search
+    return Array.from(variations).map(v => 
+      v.split(' ')
+       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+       .join(' ')
+    );
   }
 
   /**

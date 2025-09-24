@@ -41,17 +41,79 @@ export class JobApplicationService {
   async create(
     userId: string,
     createJobApplicationDto: CreateJobApplicationDto,
+    options?: { skipEmbeddings?: boolean }
   ): Promise<JobApplication> {
-    return this.prisma.jobApplication.create({
+    // Create the job application
+    const jobApplication = await this.prisma.jobApplication.create({
       data: {
         title: createJobApplicationDto.title,
         companyName: createJobApplicationDto.companyName,
+        companyId: createJobApplicationDto.companyId,
         description: createJobApplicationDto.description ?? "",
         url: createJobApplicationDto.url,
+        status: createJobApplicationDto.status ?? "DRAFT",
+        appliedDate: createJobApplicationDto.appliedDate 
+          ? new Date(createJobApplicationDto.appliedDate) 
+          : undefined,
         notes: createJobApplicationDto.notes,
+        requirements: JSON.stringify(createJobApplicationDto.requirements ?? []),
+        extractedTags: JSON.stringify(createJobApplicationDto.extractedTags ?? []),
+        createdViaAutomation: createJobApplicationDto.createdViaAutomation ?? false, // 🎯 AUTOMATION FLAG
         userId,
       },
     });
+
+    // Generate embeddings for RAG system consistency (unless explicitly skipped for automation)
+    if (!options?.skipEmbeddings) {
+      const hasContent = 
+        (createJobApplicationDto.description && createJobApplicationDto.description.trim().length > 10) ||
+        (createJobApplicationDto.requirements && createJobApplicationDto.requirements.length > 0) ||
+        (createJobApplicationDto.extractedTags && createJobApplicationDto.extractedTags.length > 0);
+
+      if (hasContent) {
+        try {
+          const jobEmbeddingText = this.createJobEmbeddingText(
+            jobApplication.title,
+            jobApplication.companyName,
+            jobApplication.description ?? "",
+            createJobApplicationDto.requirements ?? [],
+            createJobApplicationDto.extractedTags ?? [],
+          );
+
+          const embeddingResult = await this.embeddingService.generateEmbedding(jobEmbeddingText);
+          const embedding = this.embeddingService.serializeEmbedding(embeddingResult.embedding);
+          const embeddingHash = embeddingResult.hash;
+
+          // Update the job application with embeddings
+          await this.prisma.jobApplication.update({
+            where: { id: jobApplication.id },
+            data: {
+              embedding,
+              embeddingHash,
+            },
+          });
+
+          this.logger.log(
+            `Generated embedding for job: ${jobApplication.title} at ${jobApplication.companyName} (hash: ${embeddingHash.slice(0, 8)}...)`,
+          );
+
+          // Return the updated job application (with embeddings)
+          return { ...jobApplication, embedding, embeddingHash };
+        } catch (error) {
+          this.logger.warn(
+            `Failed to generate embedding for job application ${jobApplication.id}: ${error instanceof Error ? error.message : "Unknown error"}. Job application created without embeddings.`,
+          );
+        }
+      } else {
+        this.logger.debug(
+          `Skipping embedding generation for job ${jobApplication.id} - insufficient content`,
+        );
+      }
+    } else {
+      this.logger.debug(`Skipping embedding generation for automation job ${jobApplication.id}`);
+    }
+
+    return jobApplication;
   }
 
   async findAll(userId: string): Promise<JobApplication[]> {
