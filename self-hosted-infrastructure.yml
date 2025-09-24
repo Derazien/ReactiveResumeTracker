@@ -1,0 +1,286 @@
+# 🚀 COMPLETE SELF-HOSTED INFRASTRUCTURE
+# Llama 3.1 8B + Skyvern + ReactiveResumeTracker + n8n + Supporting Services
+
+version: '3.8'
+
+services:
+  # 🤖 LLM SERVICE - Ollama with Llama 3.1 8B
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama-llm
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0:11434
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # 🎯 OLLAMA MODEL LOADER - Downloads and loads Llama 3.1 8B
+  ollama-loader:
+    image: curlimages/curl:latest
+    container_name: ollama-model-loader
+    depends_on:
+      ollama:
+        condition: service_healthy
+    entrypoint: |
+      sh -c '
+        echo "🚀 Loading Llama 3.1 8B model..."
+        curl -X POST http://ollama:11434/api/pull -d "{\"name\":\"llama3.1:8b-instruct-q4_K_M\"}"
+        echo "✅ Model loaded successfully"
+      '
+    restart: "no"
+
+  # 🕷️ SKYVERN SERVER - Web Automation Platform
+  skyvern-db:
+    image: postgres:15
+    container_name: skyvern-postgres
+    environment:
+      POSTGRES_DB: skyvern
+      POSTGRES_USER: skyvern
+      POSTGRES_PASSWORD: skyvern_password_change_this
+    volumes:
+      - skyvern_db_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  skyvern-redis:
+    image: redis:7-alpine
+    container_name: skyvern-redis
+    restart: unless-stopped
+
+  skyvern-api:
+    image: skyvern/skyvern:latest
+    container_name: skyvern-api
+    depends_on:
+      - skyvern-db
+      - skyvern-redis
+      - ollama
+    environment:
+      - DATABASE_URL=postgresql://skyvern:skyvern_password_change_this@skyvern-db:5432/skyvern
+      - REDIS_URL=redis://skyvern-redis:6379
+      - LLM_PROVIDER=ollama
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - OLLAMA_MODEL=llama3.1:8b-instruct-q4_K_M
+      - SKYVERN_API_KEY=your-secure-api-key-here
+      - ENABLE_BROWSER_SESSION_PERSISTENCE=true
+    ports:
+      - "8000:8000"
+    volumes:
+      - skyvern_downloads:/app/downloads
+      - /dev/shm:/dev/shm  # Shared memory for browser
+    restart: unless-stopped
+
+  skyvern-ui:
+    image: skyvern/skyvern-ui:latest
+    container_name: skyvern-ui
+    depends_on:
+      - skyvern-api
+    environment:
+      - SKYVERN_API_URL=http://skyvern-api:8000
+    ports:
+      - "8081:80"
+    restart: unless-stopped
+
+  # 📄 REACTIVE RESUME TRACKER - Your Resume App
+  reactive-resume-db:
+    image: postgres:15
+    container_name: reactive-resume-postgres
+    environment:
+      POSTGRES_DB: reactive_resume
+      POSTGRES_USER: reactive_resume
+      POSTGRES_PASSWORD: reactive_resume_password_change_this
+    volumes:
+      - reactive_resume_db_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  reactive-resume-redis:
+    image: redis:7-alpine
+    container_name: reactive-resume-redis
+    restart: unless-stopped
+
+  reactive-resume-server:
+    image: node:18-alpine
+    container_name: reactive-resume-server
+    working_dir: /app
+    depends_on:
+      - reactive-resume-db
+      - reactive-resume-redis
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://reactive_resume:reactive_resume_password_change_this@reactive-resume-db:5432/reactive_resume
+      - REDIS_URL=redis://reactive-resume-redis:6379
+      - JWT_SECRET=your-jwt-secret-change-this
+      - OLLAMA_URL=http://ollama:11434
+    volumes:
+      - ./apps/server:/app
+      - /app/node_modules
+    command: >
+      sh -c "
+        npm install &&
+        npx prisma migrate deploy &&
+        npm run start:prod
+      "
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+  reactive-resume-client:
+    image: node:18-alpine
+    container_name: reactive-resume-client
+    working_dir: /app
+    depends_on:
+      - reactive-resume-server
+    environment:
+      - NODE_ENV=production
+      - VITE_SERVER_URL=http://localhost:3000
+    volumes:
+      - ./apps/client:/app
+      - /app/node_modules
+    command: >
+      sh -c "
+        npm install &&
+        npm run build &&
+        npx serve -s dist -l 5173
+      "
+    ports:
+      - "5173:5173"
+    restart: unless-stopped
+
+  # 🔄 N8N AUTOMATION - Workflow Automation
+  n8n-db:
+    image: postgres:15
+    container_name: n8n-postgres
+    environment:
+      POSTGRES_DB: n8n
+      POSTGRES_USER: n8n
+      POSTGRES_PASSWORD: n8n_password_change_this
+    volumes:
+      - n8n_db_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n-automation
+    depends_on:
+      - n8n-db
+    environment:
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=n8n-db
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=n8n
+      - DB_POSTGRESDB_USER=n8n
+      - DB_POSTGRESDB_PASSWORD=n8n_password_change_this
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=change_this_password
+      - WEBHOOK_URL=http://localhost:5678
+      - GENERIC_TIMEZONE=America/New_York
+    ports:
+      - "5678:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./n8n-workflows:/home/node/.n8n/workflows
+    restart: unless-stopped
+
+  # 📊 MONITORING STACK
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin_password_change_this
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana-dashboards:/etc/grafana/provisioning/dashboards
+    restart: unless-stopped
+
+  # 🌐 REVERSE PROXY - Traefik
+  traefik:
+    image: traefik:v3.0
+    container_name: traefik
+    command:
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"  # Traefik dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik:/etc/traefik
+    restart: unless-stopped
+
+  # 💾 BACKUP SERVICE - Automated backups
+  backup:
+    image: postgres:15
+    container_name: backup-service
+    depends_on:
+      - skyvern-db
+      - reactive-resume-db
+      - n8n-db
+    environment:
+      - BACKUP_SCHEDULE=0 2 * * *  # Daily at 2 AM
+    volumes:
+      - ./backups:/backups
+      - ./backup-scripts:/scripts
+    command: >
+      sh -c "
+        echo '0 2 * * * /scripts/backup-all.sh' | crontab - &&
+        crond -f
+      "
+    restart: unless-stopped
+
+volumes:
+  ollama_data:
+  skyvern_db_data:
+  skyvern_downloads:
+  reactive_resume_db_data:
+  n8n_db_data:
+  n8n_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  default:
+    driver: bridge
+
+
+
+
+
+
+
+
+
+
+
