@@ -98,6 +98,11 @@ export const Sidebar = ({ setOpen }: SidebarProps) => {
     setOpen?.(false);
   });
 
+  useKeyboardShortcut(["shift", "a"], () => {
+    void navigate("/dashboard/automation");
+    setOpen?.(false);
+  });
+
   useKeyboardShortcut(["shift", "b"], () => {
     void navigate("/dashboard/companies");
     setOpen?.(false);
