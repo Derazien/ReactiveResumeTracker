@@ -36,7 +36,7 @@ log_success "Prerequisites verified"
 
 # Stop existing services
 log_info "Stopping existing services..."
-docker-compose down 2>/dev/null || true
+docker-compose -f scripts/docker/docker-compose-reactiveresume-only.yml down 2>/dev/null || true
 pkill -f "npm\|node" 2>/dev/null || true
 
 # Check environment configuration
@@ -56,7 +56,7 @@ pnpm install --frozen-lockfile
 
 # Start ReactiveResume-only Docker services
 log_info "Starting ReactiveResume services..."
-docker-compose -f docker-compose-reactiveresume-only.yml up -d
+docker-compose -f scripts/docker/docker-compose-reactiveresume-only.yml up -d
 
 # Wait for database
 log_info "Waiting for PostgreSQL..."
@@ -72,7 +72,7 @@ npx prisma db push
 cd /opt/reactive-resume
 if [ -f "database-export.json" ]; then
     log_info "Importing database..."
-    node complete-database-import.js
+    node scripts/production/complete-database-import.js
     log_success "Database imported"
 fi
 

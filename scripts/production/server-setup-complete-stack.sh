@@ -43,7 +43,7 @@ log_success "Prerequisites verified"
 
 # Stop existing services
 log_info "Stopping existing services..."
-docker-compose down 2>/dev/null || true
+docker-compose -f scripts/docker/docker-compose-complete-stack.yml down 2>/dev/null || true
 docker stop $(docker ps -q) 2>/dev/null || true
 pkill -f "npm\|node" 2>/dev/null || true
 log_success "Existing services stopped"
@@ -78,7 +78,7 @@ log_success "Dependencies installed"
 
 # Start complete Docker stack
 log_info "Starting complete Docker stack..."
-docker-compose -f docker-compose-complete-stack.yml up -d
+docker-compose -f scripts/docker/docker-compose-complete-stack.yml up -d
 
 # Wait for databases
 log_info "Waiting for databases to initialize..."
@@ -94,7 +94,7 @@ cd ..
 # Import database if export exists
 if [ -f "database-export.json" ]; then
     log_info "Importing database from SQLite export..."
-    node complete-database-import.js
+    node scripts/production/complete-database-import.js
     log_success "Database imported"
 else
     log_warning "No database export found - starting with empty database"
