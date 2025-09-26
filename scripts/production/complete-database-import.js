@@ -3,6 +3,13 @@ const fs = require('fs');
 
 const prisma = new PrismaClient();
 
+// Helper function to safely create Date objects
+function safeDate(dateString) {
+  if (!dateString) return new Date();
+  const date = new Date(dateString);
+  return isNaN(date.getTime()) ? new Date() : date;
+}
+
 async function importData() {
   console.log('🚀 Starting database import...');
   
@@ -42,28 +49,29 @@ async function importData() {
         twoFactorEnabled: user.twoFactorEnabled || false,
         userType: user.userType || 'GENERAL_CONSUMER',
         provider: user.provider,
-        createdAt: new Date(user.createdAt),
-        updatedAt: new Date(user.updatedAt)
+        createdAt: safeDate(user.createdAt),
+        updatedAt: safeDate(user.updatedAt)
       }
     });
 
-    // Import secrets
-    if (user.secrets) {
-      await prisma.secrets.create({
-        data: {
-          id: user.secrets.id,
-          password: user.secrets.password,
-          lastSignedIn: new Date(user.secrets.lastSignedIn),
-          verificationToken: user.secrets.verificationToken,
-          twoFactorSecret: user.secrets.twoFactorSecret,
-          twoFactorBackupCodes: user.secrets.twoFactorBackupCodes || [],
-          refreshTokens: user.secrets.refreshTokens || [],
-          userId: user.id,
-          createdAt: new Date(user.secrets.createdAt),
-          updatedAt: new Date(user.secrets.updatedAt)
+        // Import secrets (with date validation)
+        if (user.secrets) {
+          const now = new Date();
+          await prisma.secrets.create({
+            data: {
+              id: user.secrets.id,
+              password: user.secrets.password,
+              lastSignedIn: safeDate(user.secrets.lastSignedIn),
+              verificationToken: user.secrets.verificationToken,
+              twoFactorSecret: user.secrets.twoFactorSecret,
+              twoFactorBackupCodes: user.secrets.twoFactorBackupCodes || [],
+              refreshTokens: user.secrets.refreshTokens || [],
+              userId: user.id,
+              createdAt: safeDate(user.secrets.createdAt),
+              updatedAt: safeDate(user.secrets.updatedAt)
+            }
+          });
         }
-      });
-    }
 
     // Import resumes
     for (const resume of user.resumes || []) {
@@ -78,8 +86,8 @@ async function importData() {
           locked: resume.locked || false,
           userId: user.id,
           jobApplicationId: resume.jobApplicationId,
-          createdAt: new Date(resume.createdAt),
-          updatedAt: new Date(resume.updatedAt)
+          createdAt: safeDate(resume.createdAt),
+          updatedAt: safeDate(resume.updatedAt)
         }
       });
 
@@ -105,8 +113,8 @@ async function importData() {
           content: content.content,
           tags: content.tags || [],
           userId: user.id,
-          createdAt: new Date(content.createdAt),
-          updatedAt: new Date(content.updatedAt)
+          createdAt: safeDate(content.createdAt),
+          updatedAt: safeDate(content.updatedAt)
         }
       });
     }
@@ -118,8 +126,8 @@ async function importData() {
           id: tag.id,
           name: tag.name,
           userId: user.id,
-          createdAt: new Date(tag.createdAt),
-          updatedAt: new Date(tag.updatedAt)
+          createdAt: safeDate(tag.createdAt),
+          updatedAt: safeDate(tag.updatedAt)
         }
       });
     }
@@ -135,8 +143,8 @@ async function importData() {
           ollamaModel: 'qwen2.5:7b',
           maxTokens: user.llmSettings.maxTokens || 4000,
           temperature: user.llmSettings.temperature || 0.1,
-          createdAt: new Date(user.llmSettings.createdAt),
-          updatedAt: new Date(user.llmSettings.updatedAt)
+          createdAt: safeDate(user.llmSettings.createdAt),
+          updatedAt: safeDate(user.llmSettings.updatedAt)
         }
       });
     }
@@ -154,8 +162,8 @@ async function importData() {
         website: company.website,
         location: company.location,
         values: company.values || '[]',
-        createdAt: new Date(company.createdAt),
-        updatedAt: new Date(company.updatedAt)
+        createdAt: safeDate(company.createdAt),
+        updatedAt: safeDate(company.updatedAt)
       }
     });
   }
@@ -180,8 +188,8 @@ async function importData() {
           status: jobApp.status || 'active',
           userId: user.id,
           createdViaAutomation: jobApp.createdViaAutomation || false,
-          createdAt: new Date(jobApp.createdAt),
-          updatedAt: new Date(jobApp.updatedAt)
+          createdAt: safeDate(jobApp.createdAt),
+          updatedAt: safeDate(jobApp.updatedAt)
         }
       });
     }
