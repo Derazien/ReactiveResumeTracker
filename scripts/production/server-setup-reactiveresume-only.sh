@@ -39,10 +39,16 @@ log_info "Stopping existing services..."
 docker-compose down 2>/dev/null || true
 pkill -f "npm\|node" 2>/dev/null || true
 
-# Configure environment
-log_info "Configuring environment..."
-cp testenv.txt .env
-chmod 600 .env
+# Check environment configuration
+log_info "Checking environment configuration..."
+if [ -f ".env" ]; then
+    chmod 600 .env
+    log_success "Environment found and secured"
+else
+    echo "❌ .env not found - please configure environment manually"
+    echo "Copy your testenv.txt content to .env and run again"
+    exit 1
+fi
 
 # Install dependencies
 log_info "Installing dependencies..."

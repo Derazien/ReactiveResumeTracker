@@ -48,23 +48,27 @@ docker stop $(docker ps -q) 2>/dev/null || true
 pkill -f "npm\|node" 2>/dev/null || true
 log_success "Existing services stopped"
 
-# Copy environment files
-log_info "Configuring environment..."
-if [ -f "testenv.txt" ]; then
-    cp testenv.txt .env
+# Check environment files (should already be configured manually)
+log_info "Checking environment configuration..."
+if [ -f ".env" ]; then
     chmod 600 .env
-    log_success "Main environment configured"
+    log_success "Main environment found and secured"
 else
-    log_error "testenv.txt not found"
+    log_error ".env not found - please configure environment manually"
+    log_info "Copy your testenv.txt content to .env and run again"
     exit 1
 fi
 
-if [ -f "services/skyvern/testenv.txt" ]; then
-    cp services/skyvern/testenv.txt services/skyvern/.env
+if [ -f "services/skyvern/.env" ]; then
     chmod 600 services/skyvern/.env
-    log_success "Skyvern environment configured"
+    log_success "Skyvern environment found and secured"
 else
-    log_warning "Skyvern testenv.txt not found - using defaults"
+    log_warning "Skyvern .env not found - creating basic configuration"
+    mkdir -p services/skyvern
+    echo "ENV=production" > services/skyvern/.env
+    echo "DATABASE_STRING=postgresql+psycopg://skyvern:skyvern123@localhost:5433/skyvern" >> services/skyvern/.env
+    echo "REDIS_URL=redis://localhost:6380" >> services/skyvern/.env
+    chmod 600 services/skyvern/.env
 fi
 
 # Install dependencies
