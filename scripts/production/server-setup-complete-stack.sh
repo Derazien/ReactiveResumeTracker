@@ -273,7 +273,7 @@ log_success "Dependencies installed"
 
 # Start complete Docker stack
 log_info "Starting complete Docker stack..."
-docker-compose -f scripts/docker/docker-compose-complete-stack.yml up -d
+docker-compose -f scripts/docker/docker-compose-complete-stack.yml --env-file .env up -d
 
 # Wait for databases
 log_info "Waiting for databases to initialize..."
