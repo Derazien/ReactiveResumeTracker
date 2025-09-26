@@ -1,0 +1,160 @@
+version: '3.8'
+
+services:
+  # ReactiveResume PostgreSQL Database
+  postgres-main:
+    image: postgres:16-alpine
+    container_name: reactive-resume-postgres
+    environment:
+      POSTGRES_DB: reactive_resume
+      POSTGRES_USER: reactive_resume
+      POSTGRES_PASSWORD: reactive_resume_2024
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_main_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U reactive_resume -d reactive_resume"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Redis Cache for ReactiveResume
+  redis:
+    image: redis:7-alpine
+    container_name: reactive-resume-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # MinIO Object Storage
+  minio:
+    image: minio/minio:latest
+    container_name: reactive-resume-minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Chrome for PDF Generation
+  chrome:
+    image: browserless/chrome:latest
+    container_name: reactive-resume-chrome
+    environment:
+      TOKEN: chrome-token-12345
+      CONCURRENT: 10
+      ENABLE_DEBUGGER: false
+    ports:
+      - "3001:3000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/json/version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Skyvern PostgreSQL (Existing)
+  skyvern-postgres:
+    image: postgres:14-alpine
+    container_name: skyvern-postgres
+    environment:
+      POSTGRES_USER: skyvern
+      POSTGRES_PASSWORD: skyvern123
+      POSTGRES_DB: skyvern
+    ports:
+      - "5433:5432"
+    volumes:
+      - skyvern_postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U skyvern -d skyvern"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Skyvern Redis (Existing)
+  skyvern-redis:
+    image: redis:alpine
+    container_name: skyvern-redis
+    ports:
+      - "6380:6379"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Skyvern API (Existing)
+  skyvern:
+    image: public.ecr.aws/skyvern/skyvern:latest
+    container_name: skyvern-api
+    environment:
+      DATABASE_STRING: postgresql+psycopg://skyvern:skyvern123@skyvern-postgres:5432/skyvern
+      REDIS_URL: redis://skyvern-redis:6379
+      BROWSER_TYPE: chromium-headful
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      SKYVERN_API_KEY: ${SKYVERN_API_KEY}
+      SKYVERN_TELEMETRY: false
+      ALLOWED_HOSTS: '["66.96.83.44", "localhost", "127.0.0.1"]'
+    ports:
+      - "8000:8000"
+    depends_on:
+      - skyvern-postgres
+      - skyvern-redis
+    volumes:
+      - skyvern_data:/app/data
+    restart: unless-stopped
+
+  # Skyvern UI (Existing)
+  skyvern-ui:
+    image: skyvern/skyvern-ui:latest
+    container_name: skyvern-ui
+    ports:
+      - "8081:8080"
+    environment:
+      SKYVERN_API_URL: http://skyvern:8000
+    depends_on:
+      - skyvern
+    restart: unless-stopped
+
+  # Ollama LLM Service
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+
+volumes:
+  postgres_main_data:
+  redis_data:
+  minio_data:
+  skyvern_postgres_data:
+  skyvern_data:
+  ollama_data:
+
+networks:
+  default:
+    name: reactive_resume_network
