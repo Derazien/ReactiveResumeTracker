@@ -219,7 +219,7 @@ const Header = () => {
               if (!href) return null;
               return (
                 <div key={item.id} className="flex items-center justify-end gap-2">
-                  {isUrl(item.url.href) ? (
+                  {item.url && isUrl(item.url.href) ? (
                     <Link
                       url={item.url}
                       label={item.username}
@@ -295,7 +295,7 @@ const Link = ({
 }: LinkProps & { underlineLinks?: boolean }) => {
   const primaryColor = useArtboardStore((state) => state.resume.metadata.theme.primary);
   const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
-  if (!isUrl(url.href)) return null;
+  if (!url || !isUrl(url.href)) return null;
 
   return (
     <div className="flex items-center gap-x-2">
@@ -334,7 +334,7 @@ const LinkedEntity = ({
 }: LinkedEntityProps & { underlineLinks?: boolean }) => {
   const primaryColor = useArtboardStore((state) => state.resume.metadata.theme.primary);
   const textColor = useArtboardStore((state) => state.resume.metadata.theme.text);
-  return !separateLinks && isUrl(url.href) ? (
+  return !separateLinks && url && isUrl(url.href) ? (
     <Link
       url={url}
       label={name}
