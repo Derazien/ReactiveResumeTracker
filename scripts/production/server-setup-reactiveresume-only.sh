@@ -235,6 +235,7 @@ log_info "Setting up database schema..."
 cd apps/server
 npx prisma generate
 npx prisma db push
+cd ../..
 
 # Import data if available
 cd /opt/reactive-resume

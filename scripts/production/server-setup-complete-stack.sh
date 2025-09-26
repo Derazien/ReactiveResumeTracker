@@ -284,7 +284,7 @@ log_info "Setting up database schema..."
 cd apps/server
 npx prisma generate
 npx prisma db push --accept-data-loss
-cd ..
+cd ../..
 
 # Import database if export exists
 if [ -f "database-export.json" ]; then
