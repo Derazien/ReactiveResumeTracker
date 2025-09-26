@@ -4,6 +4,7 @@
 # ===========================================
 # ReactiveResume + Skyvern + Ollama - All Docker containerized
 # Production deployment with background processes
+# Enhanced with conflict resolution and update logic
 
 set -e
 
@@ -19,11 +20,189 @@ NC='\033[0m'
 SERVER_IP="66.96.83.44"
 PROJECT_DIR="/opt/reactive-resume"
 
+# Parse command line arguments
+HARD_RESET=false
+UPDATE_IMAGES=false
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --hard-reset)
+      HARD_RESET=true
+      shift
+      ;;
+    --update)
+      UPDATE_IMAGES=true
+      shift
+      ;;
+    --help)
+      echo "Usage: $0 [--hard-reset] [--update]"
+      echo "  --hard-reset: Complete cleanup of all containers, images, and volumes"
+      echo "  --update: Pull latest images for Skyvern and other services"
+      exit 0
+      ;;
+    *)
+      echo "Unknown option $1"
+      exit 1
+      ;;
+  esac
+done
+
 # Functions
 log_info() { echo -e "${BLUE}ℹ️  $1${NC}"; }
 log_success() { echo -e "${GREEN}✅ $1${NC}"; }
 log_warning() { echo -e "${YELLOW}⚠️  $1${NC}"; }
 log_error() { echo -e "${RED}❌ $1${NC}"; }
+
+# Docker conflict resolution functions
+resolve_port_conflicts() {
+    log_info "Resolving port conflicts..."
+    
+    # Check and resolve port 11434 (Ollama)
+    if lsof -i :11434 >/dev/null 2>&1; then
+        log_warning "Port 11434 is in use, resolving conflict..."
+        PID=$(lsof -ti :11434)
+        if [ ! -z "$PID" ]; then
+            kill -9 $PID 2>/dev/null || true
+            log_success "Freed port 11434"
+        fi
+    fi
+    
+    # Check and resolve port 5432 (PostgreSQL)
+    if lsof -i :5432 >/dev/null 2>&1; then
+        log_warning "Port 5432 is in use, resolving conflict..."
+        PID=$(lsof -ti :5432)
+        if [ ! -z "$PID" ]; then
+            kill -9 $PID 2>/dev/null || true
+            log_success "Freed port 5432"
+        fi
+    fi
+    
+    # Check and resolve port 5433 (Skyvern PostgreSQL)
+    if lsof -i :5433 >/dev/null 2>&1; then
+        log_warning "Port 5433 is in use, resolving conflict..."
+        PID=$(lsof -ti :5433)
+        if [ ! -z "$PID" ]; then
+            kill -9 $PID 2>/dev/null || true
+            log_success "Freed port 5433"
+        fi
+    fi
+    
+    # Check and resolve port 6379 (Redis)
+    if lsof -i :6379 >/dev/null 2>&1; then
+        log_warning "Port 6379 is in use, resolving conflict..."
+        PID=$(lsof -ti :6379)
+        if [ ! -z "$PID" ]; then
+            kill -9 $PID 2>/dev/null || true
+            log_success "Freed port 6379"
+        fi
+    fi
+    
+    # Check and resolve port 6380 (Skyvern Redis)
+    if lsof -i :6380 >/dev/null 2>&1; then
+        log_warning "Port 6380 is in use, resolving conflict..."
+        PID=$(lsof -ti :6380)
+        if [ ! -z "$PID" ]; then
+            kill -9 $PID 2>/dev/null || true
+            log_success "Freed port 6380"
+        fi
+    fi
+    
+    # Check and resolve port 8000 (Skyvern API)
+    if lsof -i :8000 >/dev/null 2>&1; then
+        log_warning "Port 8000 is in use, resolving conflict..."
+        PID=$(lsof -ti :8000)
+        if [ ! -z "$PID" ]; then
+            kill -9 $PID 2>/dev/null || true
+            log_success "Freed port 8000"
+        fi
+    fi
+    
+    # Check and resolve port 8081 (Skyvern UI)
+    if lsof -i :8081 >/dev/null 2>&1; then
+        log_warning "Port 8081 is in use, resolving conflict..."
+        PID=$(lsof -ti :8081)
+        if [ ! -z "$PID" ]; then
+            kill -9 $PID 2>/dev/null || true
+            log_success "Freed port 8081"
+        fi
+    fi
+    
+    log_success "Port conflicts resolved"
+}
+
+resolve_container_conflicts() {
+    log_info "Resolving container conflicts..."
+    
+    # List of containers that might conflict
+    CONTAINERS=("skyvern-postgres" "reactive-resume-postgres" "reactive-resume-redis" "skyvern-redis" "reactive-resume-minio" "reactive-resume-chrome" "skyvern-api" "skyvern-ui" "ollama")
+    
+    for container in "${CONTAINERS[@]}"; do
+        if docker ps -a --format "table {{.Names}}" | grep -q "^${container}$"; then
+            log_warning "Container ${container} exists, removing..."
+            docker rm -f ${container} 2>/dev/null || true
+            log_success "Removed container ${container}"
+        fi
+    done
+    
+    log_success "Container conflicts resolved"
+}
+
+hard_reset() {
+    log_warning "Performing hard reset - this will remove ALL containers, images, and volumes!"
+    
+    # Stop all containers
+    docker stop $(docker ps -aq) 2>/dev/null || true
+    
+    # Remove all containers
+    docker rm -f $(docker ps -aq) 2>/dev/null || true
+    
+    # Remove all images
+    docker rmi -f $(docker images -aq) 2>/dev/null || true
+    
+    # Remove all volumes
+    docker volume rm -f $(docker volume ls -q) 2>/dev/null || true
+    
+    # Remove all networks
+    docker network rm $(docker network ls -q) 2>/dev/null || true
+    
+    # Clean up system
+    docker system prune -a --volumes -f
+    
+    log_success "Hard reset completed"
+}
+
+update_images() {
+    log_info "Updating Docker images..."
+    
+    # Pull latest Skyvern images
+    log_info "Pulling latest Skyvern images..."
+    docker pull public.ecr.aws/skyvern/skyvern:latest
+    docker pull public.ecr.aws/skyvern/skyvern-ui:latest
+    
+    # Pull latest Ollama image
+    log_info "Pulling latest Ollama image..."
+    docker pull ollama/ollama:latest
+    
+    # Pull latest PostgreSQL images
+    log_info "Pulling latest PostgreSQL images..."
+    docker pull postgres:16-alpine
+    docker pull postgres:14-alpine
+    
+    # Pull latest Redis images
+    log_info "Pulling latest Redis images..."
+    docker pull redis:7-alpine
+    docker pull redis:alpine
+    
+    # Pull latest MinIO image
+    log_info "Pulling latest MinIO image..."
+    docker pull minio/minio:latest
+    
+    # Pull latest Chrome image
+    log_info "Pulling latest Chrome image..."
+    docker pull browserless/chrome:latest
+    
+    log_success "All images updated"
+}
 
 echo -e "${BLUE}🚀 Complete Automation Stack Deployment${NC}"
 echo -e "${BLUE}=======================================${NC}"
@@ -39,12 +218,28 @@ command -v docker >/dev/null 2>&1 || { log_error "Docker not found"; exit 1; }
 command -v docker-compose >/dev/null 2>&1 || { log_error "Docker Compose not found"; exit 1; }
 command -v node >/dev/null 2>&1 || { log_error "Node.js not found"; exit 1; }
 command -v pnpm >/dev/null 2>&1 || { log_error "pnpm not found"; exit 1; }
+command -v lsof >/dev/null 2>&1 || { log_error "lsof not found (needed for port conflict resolution)"; exit 1; }
 log_success "Prerequisites verified"
 
-# Stop existing services
+# Handle hard reset if requested
+if [ "$HARD_RESET" = true ]; then
+    hard_reset
+fi
+
+# Update images if requested
+if [ "$UPDATE_IMAGES" = true ]; then
+    update_images
+fi
+
+# Resolve conflicts (always run unless hard reset was performed)
+if [ "$HARD_RESET" = false ]; then
+    resolve_port_conflicts
+    resolve_container_conflicts
+fi
+
+# Stop existing services (gentle approach)
 log_info "Stopping existing services..."
 docker-compose -f scripts/docker/docker-compose-complete-stack.yml down 2>/dev/null || true
-docker stop $(docker ps -q) 2>/dev/null || true
 pkill -f "npm\|node" 2>/dev/null || true
 log_success "Existing services stopped"
 
@@ -182,6 +377,12 @@ echo -e "   PM2 Status: ${GREEN}pm2 status${NC}"
 echo -e "   PM2 Logs: ${GREEN}pm2 logs${NC}"
 echo -e "   Docker Status: ${GREEN}docker ps${NC}"
 echo -e "   Restart Backend: ${GREEN}pm2 restart reactive-resume-backend${NC}"
+echo ""
+echo -e "${CYAN}🔧 Script Options:${NC}"
+echo -e "   Normal run: ${GREEN}./server-setup-complete-stack.sh${NC}"
+echo -e "   Hard reset: ${GREEN}./server-setup-complete-stack.sh --hard-reset${NC}"
+echo -e "   Update images: ${GREEN}./server-setup-complete-stack.sh --update${NC}"
+echo -e "   Both options: ${GREEN}./server-setup-complete-stack.sh --hard-reset --update${NC}"
 echo ""
 echo -e "${CYAN}💰 Cost Savings:${NC}"
 echo -e "   LLM Hosting: ${GREEN}\$0/month${NC} (unlimited local)"
