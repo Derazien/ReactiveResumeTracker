@@ -257,8 +257,7 @@ cat > ecosystem.config.js << 'EOF'
 module.exports = {
   apps: [{
     name: 'reactive-resume-backend',
-    script: 'dist/main.js',
-    cwd: 'apps/server',
+    script: '/opt/reactive-resume/apps/server/dist/main.js',
     instances: 1,
     autorestart: true,
     watch: false,
@@ -272,11 +271,9 @@ EOF
 
 # Start with PM2
 log_info "Starting ReactiveResume with PM2..."
-cd apps/server
-pm2 start ../../ecosystem.config.js
+pm2 start ecosystem.config.js
 pm2 save
 pm2 startup
-cd ../..
 
 echo ""
 echo -e "${GREEN}🎉 REACTIVERESUME DEPLOYMENT COMPLETE!${NC}"
