@@ -325,7 +325,7 @@ cat > ecosystem.config.js << 'EOF'
 module.exports = {
   apps: [{
     name: 'reactive-resume-backend',
-    script: '/opt/reactive-resume/apps/server/dist/main.js',
+    script: '/opt/reactive-resume/dist/apps/server/main.js',
     instances: 1,
     autorestart: true,
     watch: false,
