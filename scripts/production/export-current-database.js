@@ -1,8 +1,8 @@
 const { PrismaClient } = require('../../apps/server/node_modules/@prisma/client');
 const fs = require('fs');
 
-// Set correct SQLite path
-process.env.DATABASE_URL = "file:./apps/server/prisma/dev.db";
+// Set correct SQLite path using absolute path
+process.env.DATABASE_URL = "file:C:/rzpl-android/ReactiveResumeTracker/apps/server/prisma/dev.db";
 
 const prisma = new PrismaClient();
 

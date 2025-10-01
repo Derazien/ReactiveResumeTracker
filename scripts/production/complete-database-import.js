@@ -110,57 +110,6 @@ async function importData() {
       }
     }
 
-    // Import content (with section relationships)
-    for (const content of user.content || []) {
-      console.log(`📚 Importing content: ${content.title}`);
-      await prisma.content.create({
-        data: {
-          id: content.id,
-          title: content.title,
-          description: content.description,
-          sectionId: content.sectionId || 'sect_technical_skills',  // Use actual sectionId from export
-          userId: user.id,
-          sourceContentId: content.sourceContentId,
-          data: content.data || '{}',
-          embedding: content.embedding,
-          embeddingHash: content.embeddingHash,
-          transformationDate: content.transformationDate ? NOW : null,
-          transformationNotes: content.transformationNotes,
-          createdAt: NOW,
-          updatedAt: NOW
-        }
-      });
-    }
-
-    // Import tags
-    for (const tag of user.tags || []) {
-      await prisma.tag.create({
-        data: {
-          id: tag.id,
-          name: tag.name,
-          userId: user.id,
-          createdAt: NOW,
-          updatedAt: NOW
-        }
-      });
-    }
-
-    // Import LLM settings
-    if (user.llmSettings) {
-      await prisma.userLLMSettings.create({
-        data: {
-          id: user.llmSettings.id,
-          provider: 'OLLAMA',
-          userId: user.id,
-          ollamaBaseUrl: 'http://localhost:11434/v1',
-          ollamaModel: 'qwen2.5:7b',
-          maxTokens: user.llmSettings.maxTokens || 4000,
-          temperature: user.llmSettings.temperature || 0.1,
-          createdAt: NOW,
-          updatedAt: NOW
-        }
-      });
-    }
   }
 
   // Import companies
