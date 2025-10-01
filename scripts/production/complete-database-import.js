@@ -30,27 +30,19 @@ async function importData() {
   await prisma.company.deleteMany();
   await prisma.user.deleteMany();
 
-  // Create required sections first
-  console.log('📁 Creating sections...');
-  const sections = [
-    { id: 'sect_technical_skills', key: 'technical_skills', name: 'Technical Skills', order: 1 },
-    { id: 'sect_education', key: 'education', name: 'Education', order: 2 },
-    { id: 'sect_languages', key: 'languages', name: 'Languages', order: 3 },
-    { id: 'sect_interests', key: 'interests', name: 'Interests', order: 4 },
-    { id: 'sect_contact', key: 'contact', name: 'Contact', order: 5 },
-    { id: 'sect_summary', key: 'summary', name: 'Summary', order: 6 },
-    { id: 'sect_experience', key: 'experience', name: 'Experience', order: 7 }
-  ];
 
-  for (const section of sections) {
+  // Import sections first (they're referenced by content)
+  console.log('📁 Importing sections...');
+  for (const section of data.data.sections || []) {
+    console.log(`📁 Importing section: ${section.name}`);
     await prisma.section.create({
       data: {
         id: section.id,
         key: section.key,
         name: section.name,
         order: section.order,
-        createdAt: NOW,
-        updatedAt: NOW
+        createdAt: section.createdAt ? new Date(section.createdAt) : NOW,
+        updatedAt: section.updatedAt ? new Date(section.updatedAt) : NOW
       }
     });
   }
@@ -216,13 +208,244 @@ async function importData() {
     }
   }
 
+  // Import all remaining tables from export
+  console.log('📋 Importing content...');
+  for (const content of data.data.content || []) {
+    console.log(`📋 Importing content: ${content.title}`);
+    await prisma.content.create({
+      data: {
+        id: content.id,
+        title: content.title,
+        description: content.description,
+        sectionId: content.sectionId,
+        userId: content.userId,
+        sourceContentId: content.sourceContentId,
+        data: content.data || '{}',
+        embedding: content.embedding,
+        embeddingHash: content.embeddingHash,
+        transformationDate: content.transformationDate ? new Date(content.transformationDate) : null,
+        transformationNotes: content.transformationNotes,
+        createdAt: content.createdAt ? new Date(content.createdAt) : NOW,
+        updatedAt: content.updatedAt ? new Date(content.updatedAt) : NOW
+      }
+    });
+  }
+
+  console.log('🏷️ Importing tags...');
+  for (const tag of data.data.tags || []) {
+    await prisma.tag.create({
+      data: {
+        id: tag.id,
+        name: tag.name,
+        userId: tag.userId,
+        createdAt: tag.createdAt ? new Date(tag.createdAt) : NOW,
+        updatedAt: tag.updatedAt ? new Date(tag.updatedAt) : NOW
+      }
+    });
+  }
+
+  console.log('🔗 Importing content tags...');
+  for (const contentTag of data.data.contentTags || []) {
+    await prisma.contentTag.create({
+      data: {
+        id: contentTag.id,
+        contentId: contentTag.contentId,
+        tagId: contentTag.tagId,
+        createdAt: contentTag.createdAt ? new Date(contentTag.createdAt) : NOW,
+        updatedAt: contentTag.updatedAt ? new Date(contentTag.updatedAt) : NOW
+      }
+    });
+  }
+
+  console.log('📄 Importing cover letters...');
+  for (const coverLetter of data.data.coverLetters || []) {
+    await prisma.coverLetter.create({
+      data: {
+        id: coverLetter.id,
+        title: coverLetter.title,
+        content: coverLetter.content,
+        userId: coverLetter.userId,
+        jobApplicationId: coverLetter.jobApplicationId,
+        createdAt: coverLetter.createdAt ? new Date(coverLetter.createdAt) : NOW,
+        updatedAt: coverLetter.updatedAt ? new Date(coverLetter.updatedAt) : NOW
+      }
+    });
+  }
+
+  console.log('📝 Importing cover letter content...');
+  for (const coverLetterContent of data.data.coverLetterContent || []) {
+    await prisma.coverLetterContent.create({
+      data: {
+        id: coverLetterContent.id,
+        content: coverLetterContent.content,
+        coverLetterId: coverLetterContent.coverLetterId,
+        createdAt: coverLetterContent.createdAt ? new Date(coverLetterContent.createdAt) : NOW,
+        updatedAt: coverLetterContent.updatedAt ? new Date(coverLetterContent.updatedAt) : NOW
+      }
+    });
+  }
+
+  console.log('🎤 Importing interviews...');
+  for (const interview of data.data.interviews || []) {
+    await prisma.interview.create({
+      data: {
+        id: interview.id,
+        title: interview.title,
+        description: interview.description,
+        userId: interview.userId,
+        createdAt: interview.createdAt ? new Date(interview.createdAt) : NOW,
+        updatedAt: interview.updatedAt ? new Date(interview.updatedAt) : NOW
+      }
+    });
+  }
+
+  console.log('📊 Importing story blocks...');
+  for (const storyBlock of data.data.storyBlocks || []) {
+    await prisma.storyBlock.create({
+      data: {
+        id: storyBlock.id,
+        title: storyBlock.title,
+        content: storyBlock.content,
+        interviewId: storyBlock.interviewId,
+        order: storyBlock.order,
+        createdAt: storyBlock.createdAt ? new Date(storyBlock.createdAt) : NOW,
+        updatedAt: storyBlock.updatedAt ? new Date(storyBlock.updatedAt) : NOW
+      }
+    });
+  }
+
+  console.log('💡 Importing answer snippets...');
+  for (const answerSnippet of data.data.answerSnippets || []) {
+    await prisma.answerSnippet.create({
+      data: {
+        id: answerSnippet.id,
+        content: answerSnippet.content,
+        storyBlockId: answerSnippet.storyBlockId,
+        createdAt: answerSnippet.createdAt ? new Date(answerSnippet.createdAt) : NOW,
+        updatedAt: answerSnippet.updatedAt ? new Date(answerSnippet.updatedAt) : NOW
+      }
+    });
+  }
+
+  console.log('👥 Importing contacts...');
+  for (const contact of data.data.contacts || []) {
+    await prisma.contact.create({
+      data: {
+        id: contact.id,
+        name: contact.name,
+        email: contact.email,
+        phone: contact.phone,
+        companyId: contact.companyId,
+        userId: contact.userId,
+        createdAt: contact.createdAt ? new Date(contact.createdAt) : NOW,
+        updatedAt: contact.updatedAt ? new Date(contact.updatedAt) : NOW
+      }
+    });
+  }
+
+  console.log('❓ Importing job application questions...');
+  for (const question of data.data.jobApplicationQuestions || []) {
+    await prisma.jobApplicationQuestion.create({
+      data: {
+        id: question.id,
+        question: question.question,
+        answer: question.answer,
+        jobApplicationId: question.jobApplicationId,
+        createdAt: question.createdAt ? new Date(question.createdAt) : NOW,
+        updatedAt: question.updatedAt ? new Date(question.updatedAt) : NOW
+      }
+    });
+  }
+
+  console.log('💬 Importing contact messages...');
+  for (const message of data.data.contactMessages || []) {
+    await prisma.contactMessage.create({
+      data: {
+        id: message.id,
+        content: message.content,
+        contactId: message.contactId,
+        userId: message.userId,
+        createdAt: message.createdAt ? new Date(message.createdAt) : NOW,
+        updatedAt: message.updatedAt ? new Date(message.updatedAt) : NOW
+      }
+    });
+  }
+
+  console.log('⚙️ Importing LLM settings...');
+  for (const llmSetting of data.data.userLLMSettings || []) {
+    await prisma.userLLMSettings.create({
+      data: {
+        id: llmSetting.id,
+        provider: llmSetting.provider,
+        userId: llmSetting.userId,
+        openaiApiKey: llmSetting.openaiApiKey,
+        anthropicApiKey: llmSetting.anthropicApiKey,
+        googleApiKey: llmSetting.googleApiKey,
+        ollamaBaseUrl: llmSetting.ollamaBaseUrl,
+        ollamaModel: llmSetting.ollamaModel,
+        maxTokens: llmSetting.maxTokens,
+        temperature: llmSetting.temperature,
+        createdAt: llmSetting.createdAt ? new Date(llmSetting.createdAt) : NOW,
+        updatedAt: llmSetting.updatedAt ? new Date(llmSetting.updatedAt) : NOW
+      }
+    });
+  }
+
+  console.log('📈 Importing statistics...');
+  for (const statistic of data.data.statistics || []) {
+    await prisma.statistics.create({
+      data: {
+        id: statistic.id,
+        views: statistic.views || 0,
+        downloads: statistic.downloads || 0,
+        resumeId: statistic.resumeId,
+        createdAt: statistic.createdAt ? new Date(statistic.createdAt) : NOW,
+        updatedAt: statistic.updatedAt ? new Date(statistic.updatedAt) : NOW
+      }
+    });
+  }
+
   console.log('✅ Import completed!');
+  
+  // Count all imported tables
   const userCount = await prisma.user.count();
   const resumeCount = await prisma.resume.count();
   const jobAppCount = await prisma.jobApplication.count();
   const companyCount = await prisma.company.count();
+  const sectionCount = await prisma.section.count();
+  const contentCount = await prisma.content.count();
+  const tagCount = await prisma.tag.count();
+  const contentTagCount = await prisma.contentTag.count();
+  const coverLetterCount = await prisma.coverLetter.count();
+  const coverLetterContentCount = await prisma.coverLetterContent.count();
+  const interviewCount = await prisma.interview.count();
+  const storyBlockCount = await prisma.storyBlock.count();
+  const answerSnippetCount = await prisma.answerSnippet.count();
+  const contactCount = await prisma.contact.count();
+  const questionCount = await prisma.jobApplicationQuestion.count();
+  const messageCount = await prisma.contactMessage.count();
+  const llmSettingCount = await prisma.userLLMSettings.count();
+  const statisticCount = await prisma.statistics.count();
   
-  console.log(`📊 Imported: ${userCount} users, ${resumeCount} resumes, ${jobAppCount} jobs, ${companyCount} companies`);
+  console.log(`📊 COMPLETE IMPORT SUMMARY:`);
+  console.log(`   👤 Users: ${userCount}`);
+  console.log(`   📄 Resumes: ${resumeCount}`);
+  console.log(`   💼 Job Applications: ${jobAppCount}`);
+  console.log(`   🏢 Companies: ${companyCount}`);
+  console.log(`   📁 Sections: ${sectionCount}`);
+  console.log(`   📋 Content Items: ${contentCount}`);
+  console.log(`   🏷️ Tags: ${tagCount}`);
+  console.log(`   🔗 Content Tags: ${contentTagCount}`);
+  console.log(`   📄 Cover Letters: ${coverLetterCount}`);
+  console.log(`   📝 Cover Letter Content: ${coverLetterContentCount}`);
+  console.log(`   🎤 Interviews: ${interviewCount}`);
+  console.log(`   📊 Story Blocks: ${storyBlockCount}`);
+  console.log(`   💡 Answer Snippets: ${answerSnippetCount}`);
+  console.log(`   👥 Contacts: ${contactCount}`);
+  console.log(`   ❓ Questions: ${questionCount}`);
+  console.log(`   💬 Messages: ${messageCount}`);
+  console.log(`   ⚙️ LLM Settings: ${llmSettingCount}`);
+  console.log(`   📈 Statistics: ${statisticCount}`);
 }
 
 importData().catch(console.error).finally(() => prisma.$disconnect());
