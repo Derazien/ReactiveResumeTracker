@@ -186,9 +186,9 @@ async function importData() {
       data: {
         id: tag.id,
         name: tag.name,
+        color: tag.color,
         userId: tag.userId,
-        createdAt: tag.createdAt ? new Date(tag.createdAt) : NOW,
-        updatedAt: tag.updatedAt ? new Date(tag.updatedAt) : NOW
+        createdAt: tag.createdAt ? new Date(tag.createdAt) : NOW
       }
     });
   }
@@ -199,9 +199,7 @@ async function importData() {
       data: {
         id: contentTag.id,
         contentId: contentTag.contentId,
-        tagId: contentTag.tagId,
-        createdAt: contentTag.createdAt ? new Date(contentTag.createdAt) : NOW,
-        updatedAt: contentTag.updatedAt ? new Date(contentTag.updatedAt) : NOW
+        tagId: contentTag.tagId
       }
     });
   }
