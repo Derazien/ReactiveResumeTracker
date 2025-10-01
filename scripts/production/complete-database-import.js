@@ -224,8 +224,15 @@ async function importData() {
     await prisma.coverLetterContent.create({
       data: {
         id: coverLetterContent.id,
-        content: coverLetterContent.content,
-        coverLetterId: coverLetterContent.coverLetterId,
+        contentType: coverLetterContent.contentType || 'PARAGRAPH_ANALYTICS',
+        contentId: coverLetterContent.contentId,
+        storyText: coverLetterContent.storyText || '',
+        skillTheme: coverLetterContent.skillTheme || 'analytical thinking',
+        tone: coverLetterContent.tone || 'professional',
+        tags: coverLetterContent.tags || '[]',
+        embedding: coverLetterContent.embedding,
+        embeddingHash: coverLetterContent.embeddingHash,
+        userId: coverLetterContent.userId,
         createdAt: coverLetterContent.createdAt ? new Date(coverLetterContent.createdAt) : NOW,
         updatedAt: coverLetterContent.updatedAt ? new Date(coverLetterContent.updatedAt) : NOW
       }
@@ -237,11 +244,12 @@ async function importData() {
     await prisma.interview.create({
       data: {
         id: interview.id,
-        title: interview.title,
-        description: interview.description,
-        userId: interview.userId,
-        createdAt: interview.createdAt ? new Date(interview.createdAt) : NOW,
-        updatedAt: interview.updatedAt ? new Date(interview.updatedAt) : NOW
+        type: interview.type || 'text',
+        content: interview.content,
+        audioUrl: interview.audioUrl,
+        insights: interview.insights,
+        jobApplicationId: interview.jobApplicationId,
+        createdAt: interview.createdAt ? new Date(interview.createdAt) : NOW
       }
     });
   }
@@ -251,10 +259,13 @@ async function importData() {
     await prisma.storyBlock.create({
       data: {
         id: storyBlock.id,
-        title: storyBlock.title,
-        content: storyBlock.content,
-        interviewId: storyBlock.interviewId,
-        order: storyBlock.order,
+        text: storyBlock.text || storyBlock.content || '',
+        tags: storyBlock.tags || '[]',
+        skillTheme: storyBlock.skillTheme || 'analytical thinking',
+        tone: storyBlock.tone || 'professional',
+        embedding: storyBlock.embedding,
+        embeddingHash: storyBlock.embeddingHash,
+        userId: storyBlock.userId,
         createdAt: storyBlock.createdAt ? new Date(storyBlock.createdAt) : NOW,
         updatedAt: storyBlock.updatedAt ? new Date(storyBlock.updatedAt) : NOW
       }
@@ -266,8 +277,14 @@ async function importData() {
     await prisma.answerSnippet.create({
       data: {
         id: answerSnippet.id,
-        content: answerSnippet.content,
-        storyBlockId: answerSnippet.storyBlockId,
+        text: answerSnippet.text || answerSnippet.content || '',
+        questionTag: answerSnippet.questionTag || 'general',
+        tags: answerSnippet.tags || '[]',
+        skillTheme: answerSnippet.skillTheme || 'analytical thinking',
+        tone: answerSnippet.tone || 'professional',
+        embedding: answerSnippet.embedding,
+        embeddingHash: answerSnippet.embeddingHash,
+        userId: answerSnippet.userId,
         createdAt: answerSnippet.createdAt ? new Date(answerSnippet.createdAt) : NOW,
         updatedAt: answerSnippet.updatedAt ? new Date(answerSnippet.updatedAt) : NOW
       }
