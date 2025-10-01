@@ -1,5 +1,8 @@
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient } = require('../../apps/server/node_modules/@prisma/client');
 const fs = require('fs');
+
+// Set correct SQLite path
+process.env.DATABASE_URL = "file:./apps/server/prisma/dev.db";
 
 const prisma = new PrismaClient();
 
@@ -61,12 +64,42 @@ async function exportCurrentDatabase() {
       }
     });
 
-    // Export individual tables for completeness
+    // Export ALL individual tables (complete database)
+    console.log('📁 Exporting sections...');
+    exportData.data.sections = await prisma.section.findMany();
+
     console.log('📋 Exporting content...');
     exportData.data.content = await prisma.content.findMany();
 
     console.log('🏷️ Exporting tags...');
     exportData.data.tags = await prisma.tag.findMany();
+
+    console.log('🔗 Exporting content tags...');
+    exportData.data.contentTags = await prisma.contentTag.findMany();
+
+    console.log('📄 Exporting cover letters...');
+    exportData.data.coverLetters = await prisma.coverLetter.findMany();
+
+    console.log('📝 Exporting cover letter content...');
+    exportData.data.coverLetterContent = await prisma.coverLetterContent.findMany();
+
+    console.log('🎤 Exporting interviews...');
+    exportData.data.interviews = await prisma.interview.findMany();
+
+    console.log('📊 Exporting story blocks...');
+    exportData.data.storyBlocks = await prisma.storyBlock.findMany();
+
+    console.log('💡 Exporting answer snippets...');
+    exportData.data.answerSnippets = await prisma.answerSnippet.findMany();
+
+    console.log('👥 Exporting contacts...');
+    exportData.data.contacts = await prisma.contact.findMany();
+
+    console.log('❓ Exporting job application questions...');
+    exportData.data.jobApplicationQuestions = await prisma.jobApplicationQuestion.findMany();
+
+    console.log('💬 Exporting contact messages...');
+    exportData.data.contactMessages = await prisma.contactMessage.findMany();
 
     console.log('⚙️ Exporting LLM settings...');
     exportData.data.userLLMSettings = await prisma.userLLMSettings.findMany();
@@ -74,15 +107,24 @@ async function exportCurrentDatabase() {
     // Write updated export
     fs.writeFileSync('database-export.json', JSON.stringify(exportData, null, 2));
     
-    // Summary
+    // Summary of ALL 19 tables
     const summary = {
       users: exportData.data.users?.length || 0,
       resumes: exportData.data.users?.reduce((sum, user) => sum + (user.resumes?.length || 0), 0) || 0,
       jobApplications: exportData.data.users?.reduce((sum, user) => sum + (user.jobApplications?.length || 0), 0) || 0,
       companies: exportData.data.companies?.length || 0,
-      contacts: exportData.data.companies?.reduce((sum, company) => sum + (company.contacts?.length || 0), 0) || 0,
+      contacts: exportData.data.contacts?.length || 0,
       content: exportData.data.content?.length || 0,
       tags: exportData.data.tags?.length || 0,
+      sections: exportData.data.sections?.length || 0,
+      contentTags: exportData.data.contentTags?.length || 0,
+      coverLetters: exportData.data.coverLetters?.length || 0,
+      coverLetterContent: exportData.data.coverLetterContent?.length || 0,
+      interviews: exportData.data.interviews?.length || 0,
+      storyBlocks: exportData.data.storyBlocks?.length || 0,
+      answerSnippets: exportData.data.answerSnippets?.length || 0,
+      jobApplicationQuestions: exportData.data.jobApplicationQuestions?.length || 0,
+      contactMessages: exportData.data.contactMessages?.length || 0,
       userLLMSettings: exportData.data.userLLMSettings?.length || 0
     };
 
