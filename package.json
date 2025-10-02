@@ -46,7 +46,7 @@
     "prisma:migrate:dev": "pnpm exec prisma migrate dev",
     "prisma:studio": "pnpm exec prisma studio",
     "messages:extract": "pnpm exec lingui extract --clean --overwrite",
-    "docs:maps": "node scripts/docs/generate-deps-graph.ps1 || bash scripts/docs/generate-deps-graph.sh",
+    "docs:maps": "node scripts/docs/generate-deps-graph.js",
     "docs:api": "typedoc --options typedoc.json",
     "docs:openapi": "node scripts/docs/export-openapi.js",
     "docs:all": "pnpm docs:maps && pnpm docs:api && pnpm docs:openapi",

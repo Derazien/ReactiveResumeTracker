@@ -3,6 +3,13 @@
 **Last Updated**: 2025-10-02  
 **Purpose**: Comprehensive catalog of all modules, their purpose, exports, and dependencies
 
+## Dependency Map
+
+The full dependency graph is available as a Graphviz DOT file:
+- **File:** `docs/maps/deps.dot` (1.07 MB, 1155 modules)
+- **View:** Use VS Code's Graphviz extension, or online viewers like [dreampuf.github.io/GraphvizOnline](https://dreampuf.github.io/GraphvizOnline)
+- **Generate:** Run `pnpm docs:maps` to regenerate
+
 ---
 
 ## Applications
