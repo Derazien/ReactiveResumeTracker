@@ -44,46 +44,127 @@ function getNpxCommand() {
 }
 
 /**
+ * Try to generate SVG from DOT file
+ * Returns true if successful, false otherwise (non-fatal)
+ */
+function tryGenerateSvg(dotPath) {
+  const svgPath = dotPath.replace(/\.dot$/, '.svg');
+  const npx = getNpxCommand();
+  
+  try {
+    execSync(
+      `${npx} graphviz -Tsvg "${dotPath}" > "${svgPath}"`,
+      { cwd: WORKSPACE_ROOT, shell: true, stdio: 'pipe' }
+    );
+    
+    if (fs.existsSync(svgPath) && fs.statSync(svgPath).size > 0) {
+      return true;
+    }
+  } catch (err) {
+    // Silent fail - SVG is optional
+  }
+  
+  return false;
+}
+
+/**
+ * Generate dependency graph for a specific path
+ */
+function generateGraph(targetPath, outputName, description, skipSvg = false) {
+  const npx = getNpxCommand();
+  const dotPath = path.join(OUTPUT_DIR, `${outputName}.dot`);
+  
+  console.log(`\n🔧 Generating graph for ${description}...`);
+  
+  try {
+    execSync(
+      `${npx} depcruise --config .dependency-cruiser.js --output-type dot ${targetPath} > "${dotPath}"`,
+      { cwd: WORKSPACE_ROOT, shell: true, stdio: 'pipe' }
+    );
+    
+    const dotSize = fs.statSync(dotPath).size;
+    console.log(`   ✅ DOT: ${path.relative(WORKSPACE_ROOT, dotPath)} (${(dotSize / 1024).toFixed(2)} KB)`);
+    
+    // Try SVG (skip for very large graphs)
+    if (skipSvg) {
+      console.log(`   ⏭️  SVG: Skipped (graph too large, use DOT viewer)`);
+    } else if (tryGenerateSvg(dotPath)) {
+      const svgPath = dotPath.replace(/\.dot$/, '.svg');
+      const svgSize = fs.statSync(svgPath).size;
+      console.log(`   ✅ SVG: ${path.relative(WORKSPACE_ROOT, svgPath)} (${(svgSize / 1024).toFixed(2)} KB)`);
+    } else {
+      console.log(`   ⚠️  SVG: Skipped (graphviz-cli not available or failed)`);
+    }
+    
+    return true;
+  } catch (err) {
+    console.log(`   ❌ Failed: ${err.message.split('\n')[0]}`);
+    return false;
+  }
+}
+
+/**
  * Main execution
  */
 function main() {
-  console.log('🗺️  Generating dependency graph...\n');
+  console.log('🗺️  Generating dependency graphs...\n');
   
   try {
     // Find project roots
     const roots = findProjectRoots();
-    console.log(`📂 Project roots: ${roots.join(', ')}\n`);
+    console.log(`📂 Project roots: ${roots.join(', ')}`);
     
-    const npx = getNpxCommand();
+    // Generate full repository graph (skip SVG - too large)
+    console.log('\n📊 Full Repository Graph');
+    console.log('─'.repeat(50));
+    generateGraph(roots.join(' '), 'deps', 'full repository', true);
     
-    // Generate DOT format (write directly to file to avoid buffer overflow)
-    console.log('🔧 Running dependency-cruiser...');
-    const dotPath = path.join(OUTPUT_DIR, 'deps.dot');
-    
-    execSync(
-      `${npx} depcruise --config .dependency-cruiser.js --output-type dot ${roots.join(' ')} > "${dotPath}"`,
-      { cwd: WORKSPACE_ROOT, shell: true, stdio: 'inherit' }
-    );
-    
-    console.log(`✅ DOT file generated: ${path.relative(WORKSPACE_ROOT, dotPath)}`);
-    
-    // DOT file info
-    const dotSize = fs.statSync(dotPath).size;
-    console.log(`\n📊 File size: ${(dotSize / 1024).toFixed(2)} KB`);
-    
-    // Count modules from DOT file
+    // Count modules
+    const depsPath = path.join(OUTPUT_DIR, 'deps.dot');
     try {
-      const dotContent = fs.readFileSync(dotPath, 'utf8');
+      const dotContent = fs.readFileSync(depsPath, 'utf8');
       const moduleCount = (dotContent.match(/\[label=/g) || []).length;
-      console.log(`\n📦 Modules analyzed: ${moduleCount}`);
+      console.log(`   📦 Total modules: ${moduleCount}`);
     } catch (err) {
-      // Non-fatal if we can't count modules
+      // Non-fatal
     }
     
-    console.log('\n✅ Dependency graph generation complete\n');
+    // Generate per-app graphs
+    const appsDir = path.join(WORKSPACE_ROOT, 'apps');
+    if (fs.existsSync(appsDir)) {
+      console.log('\n📱 Per-App Graphs');
+      console.log('─'.repeat(50));
+      
+      const apps = fs.readdirSync(appsDir).filter(name => {
+        const appPath = path.join(appsDir, name);
+        return fs.statSync(appPath).isDirectory();
+      });
+      
+      for (const app of apps) {
+        generateGraph(`apps/${app}`, `apps-${app}`, `apps/${app}`);
+      }
+    }
+    
+    // Generate graphs for large libs
+    const libsToGraph = ['ui']; // Add more as needed
+    const libsDir = path.join(WORKSPACE_ROOT, 'libs');
+    
+    if (fs.existsSync(libsDir)) {
+      console.log('\n📚 Library Graphs');
+      console.log('─'.repeat(50));
+      
+      for (const lib of libsToGraph) {
+        const libPath = path.join(libsDir, lib);
+        if (fs.existsSync(libPath)) {
+          generateGraph(`libs/${lib}`, `libs-${lib}`, `libs/${lib}`);
+        }
+      }
+    }
+    
+    console.log('\n✅ All dependency graphs generated successfully\n');
     
   } catch (err) {
-    console.error('❌ Error generating dependency graph:');
+    console.error('❌ Error generating dependency graphs:');
     console.error(err.message);
     process.exit(1);
   }

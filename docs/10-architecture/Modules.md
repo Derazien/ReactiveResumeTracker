@@ -5,10 +5,18 @@
 
 ## Dependency Map
 
-The full dependency graph is available as a Graphviz DOT file:
-- **File:** `docs/maps/deps.dot` (1.07 MB, 1155 modules)
-- **View:** Use VS Code's Graphviz extension, or online viewers like [dreampuf.github.io/GraphvizOnline](https://dreampuf.github.io/GraphvizOnline)
-- **Generate:** Run `pnpm docs:maps` to regenerate
+Visual dependency graphs are available for the full repository and individual apps/libs.
+
+**📍 [View all graphs →](../maps/README.md)**
+
+**Quick Links:**
+- [Full Repository Graph](../maps/deps.dot) — Complete dependency map (1155 modules)
+- [Artboard App](../maps/apps-artboard.svg) — Template renderer dependencies
+- [Client App](../maps/apps-client.svg) — Frontend UI dependencies  
+- [Server App](../maps/apps-server.svg) — Backend API dependencies
+- [UI Library](../maps/libs-ui.svg) — Shared component dependencies
+
+**Regenerate:** Run `pnpm docs:maps` (takes ~2-4 minutes)
 
 ---
 

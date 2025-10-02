@@ -1,0 +1,227 @@
+strict digraph "dependency-cruiser output"{
+    rankdir="LR" splines="ortho" overlap="false" nodesep="0.16" ranksep="0.18" fontname="Helvetica-bold" fontsize="9" style="rounded,bold,filled" fillcolor="#ffffff" compound="true"
+    node [shape="box" style="rounded, filled" height="0.2" color="black" fillcolor="#ffffcc" fontcolor="black" fontname="Helvetica" fontsize="9"]
+    edge [arrowhead="normal" arrowsize="0.6" penwidth="2.0" color="#00000033" fontname="Helvetica" fontsize="9"]
+
+    subgraph "cluster_apps" {label="apps" subgraph "cluster_apps/artboard" {label="artboard" "apps/artboard/postcss.config.js" [label=<postcss.config.js> tooltip="postcss.config.js" URL="apps/artboard/postcss.config.js" fillcolor="#ffcccc" style="filled"] } }
+    "apps/artboard/postcss.config.js" -> "path" [style="dashed" penwidth="1.0"]
+    subgraph "cluster_apps" {label="apps" subgraph "cluster_apps/artboard" {label="artboard" subgraph "cluster_apps/artboard/src" {label="src" subgraph "cluster_apps/artboard/src/components" {label="components" "apps/artboard/src/components/brand-icon.tsx" [label=<brand-icon.tsx> tooltip="brand-icon.tsx" URL="apps/artboard/src/components/brand-icon.tsx" fillcolor="#ffcccc" style="filled"] } } } }
+    subgraph "cluster_apps" {label="apps" subgraph "cluster_apps/artboard" {label="artboard" subgraph "cluster_apps/artboard/src" {label="src" subgraph "cluster_apps/artboard/src/components" {label="components" "apps/artboard/src/components/page.tsx" [label=<page.tsx> tooltip="page.tsx" URL="apps/artboard/src/components/page.tsx" fillcolor="#ffcccc" style="filled"] } } } }
+    "apps/artboard/src/components/page.tsx" -> "apps/artboard/src/store/artboard.ts"
+    "apps/artboard/src/components/page.tsx" -> "libs/hooks/src/index.ts"
+    "apps/artboard/src/components/page.tsx" -> "libs/utils/src/index.ts"
+    subgraph "cluster_apps" {label="apps" subgraph "cluster_apps/artboard" {label="artboard" subgraph "cluster_apps/artboard/src" {label="src" subgraph "cluster_apps/artboard/src/components" {label="components" "apps/artboard/src/components/picture.tsx" [label=<picture.tsx> tooltip="picture.tsx" URL="apps/artboard/src/components/picture.tsx" fillcolor="#ffcccc" style="filled"] } } } }
+    "apps/artboard/src/components/picture.tsx" -> "apps/artboard/src/store/artboard.ts"
+    "apps/artboard/src/components/picture.tsx" -> "libs/utils/src/index.ts"
+    subgraph "cluster_apps" {label="apps" subgraph "cluster_apps/artboard" {label="artboard" subgraph "cluster_apps/artboard/src" {label="src" subgraph "cluster_apps/artboard/src/constants" {label="constants" "apps/artboard/src/constants/helmet.ts" [label=<helmet.ts> tooltip="helmet.ts" URL="apps/artboard/src/constants/helmet.ts" fillcolor="#ffcccc" style="filled"] } } } }
+    subgraph "cluster_apps" {label="apps" subgraph "cluster_apps/artboard" {label="artboard" subgraph "cluster_apps/artboard/src" {label="src" "apps/artboard/src/main.tsx" [label=<main.tsx> tooltip="main.tsx" URL="apps/artboard/src/main.tsx" fillcolor="#ffcccc" style="filled"] } } }
+    "apps/artboard/src/main.tsx" -> "apps/artboard/src/router/index.tsx"
+    subgraph "cluster_apps" {label="apps" subgraph "cluster_apps/artboard" {label="artboard" subgraph "cluster_apps/artboard/src" {label="src" subgraph "cluster_apps/artboard/src/pages" {label="pages" "apps/artboard/src/pages/artboard.tsx" [label=<artboard.tsx> tooltip="artboard.tsx" URL="apps/artboard/src/pages/artboard.tsx" fillcolor="#ffcccc" style="filled"] } } } }
+    "apps/artboard/src/pages/artboard.tsx" -> "apps/artboard/src/store/artboard.ts"
+    subgraph "cluster_apps" {label="apps" subgraph "cluster_apps/artboard" {label="artboard" subgraph "cluster_apps/artboard/src" {label="src" subgraph "cluster_apps/artboard/src/pages" {label="pages" "apps/artboard/src/pages/cover-letter-artboard.tsx" [label=<cover-letter-artboard.tsx> tooltip="cover-letter-artboard.tsx" URL="apps/artboard/src/pages/cover-letter-artboard.tsx" fillcolor="#ffcccc" style="filled"] } } } }
+    "apps/artboard/src/pages/cover-letter-artboard.tsx" -> "apps/artboard/src/store/artboard.ts"
+    subgraph "cluster_apps" {label="apps" subgraph "cluster_apps/artboard" {label="artboard" subgraph "cluster_apps/artboard/src" {label="src" subgraph "cluster_apps/artboard/src/pages" {label="pages" "apps/artboard/src/pages/preview.tsx" [label=<preview.tsx> tooltip="preview.tsx" URL="apps/artboard/src/pages/preview.tsx" fillcolor="#ffcccc" style="filled"] } } } }
+    "apps/artboard/src/pages/preview.tsx" -> "apps/artboard/src/components/page.tsx"
+    "apps/artboard/src/pages/preview.tsx" -> "apps/artboard/src/store/artboard.ts"
+    "apps/artboard/src/pages/preview.tsx" -> "apps/artboard/src/templates/index.tsx"
+    subgraph "cluster_apps" {label="apps" subgraph "cluster_apps/artboard" {label="artboard" subgraph "cluster_apps/artboard/src" {label="src" subgraph "cluster_apps/artboard/src/providers" {label="providers" "apps/artboard/src/providers/index.tsx" [label=<index.tsx> tooltip="index.tsx" URL="apps/artboard/src/providers/index.tsx" fillcolor="#ffcccc" style="filled"] } } } }
+    "apps/artboard/src/providers/index.tsx" -> "apps/artboard/src/constants/helmet.ts"
+    "apps/artboard/src/providers/index.tsx" -> "apps/artboard/src/store/artboard.ts"
+    subgraph "cluster_apps" {label="apps" subgraph "cluster_apps/artboard" {label="artboard" subgraph "cluster_apps/artboard/src" {label="src" subgraph "cluster_apps/artboard/src/router" {label="router" "apps/artboard/src/router/index.tsx" [label=<index.tsx> tooltip="index.tsx" URL="apps/artboard/src/router/index.tsx" fillcolor="#ffcccc" style="filled"] } } } }
+    "apps/artboard/src/router/index.tsx" -> "apps/artboard/src/pages/artboard.tsx"
+    "apps/artboard/src/router/index.tsx" -> "apps/artboard/src/pages/preview.tsx"
+    "apps/artboard/src/router/index.tsx" -> "apps/artboard/src/providers/index.tsx"
+    subgraph "cluster_apps" {label="apps" subgraph "cluster_apps/artboard" {label="artboard" subgraph "cluster_apps/artboard/src" {label="src" subgraph "cluster_apps/artboard/src/store" {label="store" "apps/artboard/src/store/artboard.ts" [label=<artboard.ts> tooltip="artboard.ts" URL="apps/artboard/src/store/artboard.ts" fillcolor="#ffcccc" style="filled"] } } } }
+    "apps/artboard/src/store/artboard.ts" -> "libs/schema/src/index.ts"
+    subgraph "cluster_apps" {label="apps" subgraph "cluster_apps/artboard" {label="artboard" subgraph "cluster_apps/artboard/src" {label="src" subgraph "cluster_apps/artboard/src/templates" {label="templates" "apps/artboard/src/templates/azurill.tsx" [label=<azurill.tsx> tooltip="azurill.tsx" URL="apps/artboard/src/templates/azurill.tsx" fillcolor="#ffcccc" style="filled"] } } } }
+    "apps/artboard/src/templates/azurill.tsx" -> "apps/artboard/src/components/brand-icon.tsx"
+    "apps/artboard/src/templates/azurill.tsx" -> "apps/artboard/src/components/picture.tsx"
+    "apps/artboard/src/templates/azurill.tsx" -> "apps/artboard/src/store/artboard.ts"
+    "apps/artboard/src/templates/azurill.tsx" -> "libs/utils/src/index.ts"
+    subgraph "cluster_apps" {label="apps" subgraph "cluster_apps/artboard" {label="artboard" subgraph "cluster_apps/artboard/src" {label="src" subgraph "cluster_apps/artboard/src/templates" {label="templates" "apps/artboard/src/templates/bronzor.tsx" [label=<bronzor.tsx> tooltip="bronzor.tsx" URL="apps/artboard/src/templates/bronzor.tsx" fillcolor="#ffcccc" style="filled"] } } } }
+    "apps/artboard/src/templates/bronzor.tsx" -> "apps/artboard/src/components/brand-icon.tsx"
+    "apps/artboard/src/templates/bronzor.tsx" -> "apps/artboard/src/components/picture.tsx"
+    "apps/artboard/src/templates/bronzor.tsx" -> "apps/artboard/src/store/artboard.ts"
+    "apps/artboard/src/templates/bronzor.tsx" -> "libs/utils/src/index.ts"
+    subgraph "cluster_apps" {label="apps" subgraph "cluster_apps/artboard" {label="artboard" subgraph "cluster_apps/artboard/src" {label="src" subgraph "cluster_apps/artboard/src/templates" {label="templates" "apps/artboard/src/templates/chikorita.tsx" [label=<chikorita.tsx> tooltip="chikorita.tsx" URL="apps/artboard/src/templates/chikorita.tsx" fillcolor="#ffcccc" style="filled"] } } } }
+    "apps/artboard/src/templates/chikorita.tsx" -> "apps/artboard/src/components/brand-icon.tsx"
+    "apps/artboard/src/templates/chikorita.tsx" -> "apps/artboard/src/components/picture.tsx"
+    "apps/artboard/src/templates/chikorita.tsx" -> "apps/artboard/src/store/artboard.ts"
+    "apps/artboard/src/templates/chikorita.tsx" -> "libs/utils/src/index.ts"
+    subgraph "cluster_apps" {label="apps" subgraph "cluster_apps/artboard" {label="artboard" subgraph "cluster_apps/artboard/src" {label="src" subgraph "cluster_apps/artboard/src/templates" {label="templates" "apps/artboard/src/templates/cover-letter.tsx" [label=<cover-letter.tsx> tooltip="cover-letter.tsx" URL="apps/artboard/src/templates/cover-letter.tsx" fillcolor="#ffcccc" style="filled"] } } } }
+    "apps/artboard/src/templates/cover-letter.tsx" -> "apps/artboard/src/store/artboard.ts"
+    "apps/artboard/src/templates/cover-letter.tsx" -> "libs/utils/src/index.ts"
+    subgraph "cluster_apps" {label="apps" subgraph "cluster_apps/artboard" {label="artboard" subgraph "cluster_apps/artboard/src" {label="src" subgraph "cluster_apps/artboard/src/templates" {label="templates" "apps/artboard/src/templates/ditto.tsx" [label=<ditto.tsx> tooltip="ditto.tsx" URL="apps/artboard/src/templates/ditto.tsx" fillcolor="#ffcccc" style="filled"] } } } }
+    "apps/artboard/src/templates/ditto.tsx" -> "apps/artboard/src/components/brand-icon.tsx"
+    "apps/artboard/src/templates/ditto.tsx" -> "apps/artboard/src/components/picture.tsx"
+    "apps/artboard/src/templates/ditto.tsx" -> "apps/artboard/src/store/artboard.ts"
+    "apps/artboard/src/templates/ditto.tsx" -> "libs/utils/src/index.ts"
+    subgraph "cluster_apps" {label="apps" subgraph "cluster_apps/artboard" {label="artboard" subgraph "cluster_apps/artboard/src" {label="src" subgraph "cluster_apps/artboard/src/templates" {label="templates" "apps/artboard/src/templates/gengar.tsx" [label=<gengar.tsx> tooltip="gengar.tsx" URL="apps/artboard/src/templates/gengar.tsx" fillcolor="#ffcccc" style="filled"] } } } }
+    "apps/artboard/src/templates/gengar.tsx" -> "apps/artboard/src/components/brand-icon.tsx"
+    "apps/artboard/src/templates/gengar.tsx" -> "apps/artboard/src/components/picture.tsx"
+    "apps/artboard/src/templates/gengar.tsx" -> "apps/artboard/src/store/artboard.ts"
+    "apps/artboard/src/templates/gengar.tsx" -> "libs/utils/src/index.ts"
+    subgraph "cluster_apps" {label="apps" subgraph "cluster_apps/artboard" {label="artboard" subgraph "cluster_apps/artboard/src" {label="src" subgraph "cluster_apps/artboard/src/templates" {label="templates" "apps/artboard/src/templates/glalie.tsx" [label=<glalie.tsx> tooltip="glalie.tsx" URL="apps/artboard/src/templates/glalie.tsx" fillcolor="#ffcccc" style="filled"] } } } }
+    "apps/artboard/src/templates/glalie.tsx" -> "apps/artboard/src/components/brand-icon.tsx"
+    "apps/artboard/src/templates/glalie.tsx" -> "apps/artboard/src/components/picture.tsx"
+    "apps/artboard/src/templates/glalie.tsx" -> "apps/artboard/src/store/artboard.ts"
+    "apps/artboard/src/templates/glalie.tsx" -> "libs/utils/src/index.ts"
+    subgraph "cluster_apps" {label="apps" subgraph "cluster_apps/artboard" {label="artboard" subgraph "cluster_apps/artboard/src" {label="src" subgraph "cluster_apps/artboard/src/templates" {label="templates" "apps/artboard/src/templates/index.tsx" [label=<index.tsx> tooltip="index.tsx" URL="apps/artboard/src/templates/index.tsx" fillcolor="#ffcccc" style="filled"] } } } }
+    "apps/artboard/src/templates/index.tsx" -> "apps/artboard/src/templates/azurill.tsx"
+    "apps/artboard/src/templates/index.tsx" -> "apps/artboard/src/templates/bronzor.tsx"
+    "apps/artboard/src/templates/index.tsx" -> "apps/artboard/src/templates/chikorita.tsx"
+    "apps/artboard/src/templates/index.tsx" -> "apps/artboard/src/templates/ditto.tsx"
+    "apps/artboard/src/templates/index.tsx" -> "apps/artboard/src/templates/gengar.tsx"
+    "apps/artboard/src/templates/index.tsx" -> "apps/artboard/src/templates/glalie.tsx"
+    "apps/artboard/src/templates/index.tsx" -> "apps/artboard/src/templates/kakuna.tsx"
+    "apps/artboard/src/templates/index.tsx" -> "apps/artboard/src/templates/leafish.tsx"
+    "apps/artboard/src/templates/index.tsx" -> "apps/artboard/src/templates/nosepass.tsx"
+    "apps/artboard/src/templates/index.tsx" -> "apps/artboard/src/templates/novoresume.tsx"
+    "apps/artboard/src/templates/index.tsx" -> "apps/artboard/src/templates/onyx.tsx"
+    "apps/artboard/src/templates/index.tsx" -> "apps/artboard/src/templates/pikachu.tsx"
+    "apps/artboard/src/templates/index.tsx" -> "apps/artboard/src/templates/rhyhorn.tsx"
+    subgraph "cluster_apps" {label="apps" subgraph "cluster_apps/artboard" {label="artboard" subgraph "cluster_apps/artboard/src" {label="src" subgraph "cluster_apps/artboard/src/templates" {label="templates" "apps/artboard/src/templates/kakuna.tsx" [label=<kakuna.tsx> tooltip="kakuna.tsx" URL="apps/artboard/src/templates/kakuna.tsx" fillcolor="#ffcccc" style="filled"] } } } }
+    "apps/artboard/src/templates/kakuna.tsx" -> "apps/artboard/src/components/brand-icon.tsx"
+    "apps/artboard/src/templates/kakuna.tsx" -> "apps/artboard/src/components/picture.tsx"
+    "apps/artboard/src/templates/kakuna.tsx" -> "apps/artboard/src/store/artboard.ts"
+    "apps/artboard/src/templates/kakuna.tsx" -> "libs/utils/src/index.ts"
+    subgraph "cluster_apps" {label="apps" subgraph "cluster_apps/artboard" {label="artboard" subgraph "cluster_apps/artboard/src" {label="src" subgraph "cluster_apps/artboard/src/templates" {label="templates" "apps/artboard/src/templates/leafish.tsx" [label=<leafish.tsx> tooltip="leafish.tsx" URL="apps/artboard/src/templates/leafish.tsx" fillcolor="#ffcccc" style="filled"] } } } }
+    "apps/artboard/src/templates/leafish.tsx" -> "apps/artboard/src/components/brand-icon.tsx"
+    "apps/artboard/src/templates/leafish.tsx" -> "apps/artboard/src/components/picture.tsx"
+    "apps/artboard/src/templates/leafish.tsx" -> "apps/artboard/src/store/artboard.ts"
+    "apps/artboard/src/templates/leafish.tsx" -> "libs/utils/src/index.ts"
+    subgraph "cluster_apps" {label="apps" subgraph "cluster_apps/artboard" {label="artboard" subgraph "cluster_apps/artboard/src" {label="src" subgraph "cluster_apps/artboard/src/templates" {label="templates" "apps/artboard/src/templates/nosepass.tsx" [label=<nosepass.tsx> tooltip="nosepass.tsx" URL="apps/artboard/src/templates/nosepass.tsx" fillcolor="#ffcccc" style="filled"] } } } }
+    "apps/artboard/src/templates/nosepass.tsx" -> "apps/artboard/src/components/brand-icon.tsx"
+    "apps/artboard/src/templates/nosepass.tsx" -> "apps/artboard/src/components/picture.tsx"
+    "apps/artboard/src/templates/nosepass.tsx" -> "apps/artboard/src/store/artboard.ts"
+    "apps/artboard/src/templates/nosepass.tsx" -> "libs/utils/src/index.ts"
+    subgraph "cluster_apps" {label="apps" subgraph "cluster_apps/artboard" {label="artboard" subgraph "cluster_apps/artboard/src" {label="src" subgraph "cluster_apps/artboard/src/templates" {label="templates" "apps/artboard/src/templates/novoresume.tsx" [label=<novoresume.tsx> tooltip="novoresume.tsx" URL="apps/artboard/src/templates/novoresume.tsx" fillcolor="#ffcccc" style="filled"] } } } }
+    "apps/artboard/src/templates/novoresume.tsx" -> "apps/artboard/src/components/brand-icon.tsx"
+    "apps/artboard/src/templates/novoresume.tsx" -> "apps/artboard/src/components/picture.tsx"
+    "apps/artboard/src/templates/novoresume.tsx" -> "apps/artboard/src/store/artboard.ts"
+    "apps/artboard/src/templates/novoresume.tsx" -> "libs/utils/src/index.ts"
+    subgraph "cluster_apps" {label="apps" subgraph "cluster_apps/artboard" {label="artboard" subgraph "cluster_apps/artboard/src" {label="src" subgraph "cluster_apps/artboard/src/templates" {label="templates" "apps/artboard/src/templates/onyx.tsx" [label=<onyx.tsx> tooltip="onyx.tsx" URL="apps/artboard/src/templates/onyx.tsx" fillcolor="#ffcccc" style="filled"] } } } }
+    "apps/artboard/src/templates/onyx.tsx" -> "apps/artboard/src/components/brand-icon.tsx"
+    "apps/artboard/src/templates/onyx.tsx" -> "apps/artboard/src/components/picture.tsx"
+    "apps/artboard/src/templates/onyx.tsx" -> "apps/artboard/src/store/artboard.ts"
+    "apps/artboard/src/templates/onyx.tsx" -> "libs/utils/src/index.ts"
+    subgraph "cluster_apps" {label="apps" subgraph "cluster_apps/artboard" {label="artboard" subgraph "cluster_apps/artboard/src" {label="src" subgraph "cluster_apps/artboard/src/templates" {label="templates" "apps/artboard/src/templates/pikachu.tsx" [label=<pikachu.tsx> tooltip="pikachu.tsx" URL="apps/artboard/src/templates/pikachu.tsx" fillcolor="#ffcccc" style="filled"] } } } }
+    "apps/artboard/src/templates/pikachu.tsx" -> "apps/artboard/src/components/brand-icon.tsx"
+    "apps/artboard/src/templates/pikachu.tsx" -> "apps/artboard/src/components/picture.tsx"
+    "apps/artboard/src/templates/pikachu.tsx" -> "apps/artboard/src/store/artboard.ts"
+    "apps/artboard/src/templates/pikachu.tsx" -> "libs/utils/src/index.ts"
+    subgraph "cluster_apps" {label="apps" subgraph "cluster_apps/artboard" {label="artboard" subgraph "cluster_apps/artboard/src" {label="src" subgraph "cluster_apps/artboard/src/templates" {label="templates" "apps/artboard/src/templates/rhyhorn.tsx" [label=<rhyhorn.tsx> tooltip="rhyhorn.tsx" URL="apps/artboard/src/templates/rhyhorn.tsx" fillcolor="#ffcccc" style="filled"] } } } }
+    "apps/artboard/src/templates/rhyhorn.tsx" -> "apps/artboard/src/components/brand-icon.tsx"
+    "apps/artboard/src/templates/rhyhorn.tsx" -> "apps/artboard/src/components/picture.tsx"
+    "apps/artboard/src/templates/rhyhorn.tsx" -> "apps/artboard/src/store/artboard.ts"
+    "apps/artboard/src/templates/rhyhorn.tsx" -> "libs/utils/src/index.ts"
+    subgraph "cluster_apps" {label="apps" subgraph "cluster_apps/artboard" {label="artboard" subgraph "cluster_apps/artboard/src" {label="src" subgraph "cluster_apps/artboard/src/types" {label="types" "apps/artboard/src/types/template.ts" [label=<template.ts> tooltip="no-orphans" URL="apps/artboard/src/types/template.ts" fillcolor="#ffcccc" fontcolor="orange" color="orange" style="filled"] } } } }
+    subgraph "cluster_apps" {label="apps" subgraph "cluster_apps/artboard" {label="artboard" "apps/artboard/tailwind.config.js" [label=<tailwind.config.js> tooltip="tailwind.config.js" URL="apps/artboard/tailwind.config.js" fillcolor="#ffcccc" style="filled"] } }
+    "apps/artboard/tailwind.config.js" -> "path" [style="dashed" penwidth="1.0"]
+    subgraph "cluster_apps" {label="apps" subgraph "cluster_apps/artboard" {label="artboard" "apps/artboard/vite.config.ts" [label=<vite.config.ts> tooltip="vite.config.ts" URL="apps/artboard/vite.config.ts" fillcolor="#ffcccc" style="filled"] } }
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/hooks" {label="hooks" subgraph "cluster_libs/hooks/src" {label="src" subgraph "cluster_libs/hooks/src/hooks" {label="hooks" "libs/hooks/src/hooks/use-breakpoint.ts" [label=<use-breakpoint.ts> tooltip="use-breakpoint.ts" URL="libs/hooks/src/hooks/use-breakpoint.ts" fillcolor="#ccccff" style="filled"] } } } }
+    "libs/hooks/src/hooks/use-breakpoint.ts" -> "libs/utils/src/index.ts"
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/hooks" {label="hooks" subgraph "cluster_libs/hooks/src" {label="src" subgraph "cluster_libs/hooks/src/hooks" {label="hooks" "libs/hooks/src/hooks/use-form-field.ts" [label=<use-form-field.ts> tooltip="use-form-field.ts" URL="libs/hooks/src/hooks/use-form-field.ts" fillcolor="#ccccff" style="filled"] } } } }
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/hooks" {label="hooks" subgraph "cluster_libs/hooks/src" {label="src" subgraph "cluster_libs/hooks/src/hooks" {label="hooks" "libs/hooks/src/hooks/use-password-toggle.ts" [label=<use-password-toggle.ts> tooltip="use-password-toggle.ts" URL="libs/hooks/src/hooks/use-password-toggle.ts" fillcolor="#ccccff" style="filled"] } } } }
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/hooks" {label="hooks" subgraph "cluster_libs/hooks/src" {label="src" subgraph "cluster_libs/hooks/src/hooks" {label="hooks" "libs/hooks/src/hooks/use-theme.ts" [label=<use-theme.ts> tooltip="use-theme.ts" URL="libs/hooks/src/hooks/use-theme.ts" fillcolor="#ccccff" style="filled"] } } } }
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/hooks" {label="hooks" subgraph "cluster_libs/hooks/src" {label="src" "libs/hooks/src/index.ts" [label=<index.ts> tooltip="index.ts" URL="libs/hooks/src/index.ts" fillcolor="#ccccff" style="filled"] } } }
+    "libs/hooks/src/index.ts" -> "libs/hooks/src/hooks/use-breakpoint.ts" [arrowhead="inv"]
+    "libs/hooks/src/index.ts" -> "libs/hooks/src/hooks/use-form-field.ts" [arrowhead="inv"]
+    "libs/hooks/src/index.ts" -> "libs/hooks/src/hooks/use-password-toggle.ts" [arrowhead="inv"]
+    "libs/hooks/src/index.ts" -> "libs/hooks/src/hooks/use-theme.ts" [arrowhead="inv"]
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/schema" {label="schema" subgraph "cluster_libs/schema/src" {label="src" subgraph "cluster_libs/schema/src/basics" {label="basics" "libs/schema/src/basics/custom.ts" [label=<custom.ts> tooltip="custom.ts" URL="libs/schema/src/basics/custom.ts" fillcolor="#ccccff" style="filled"] } } } }
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/schema" {label="schema" subgraph "cluster_libs/schema/src" {label="src" subgraph "cluster_libs/schema/src/basics" {label="basics" "libs/schema/src/basics/index.ts" [label=<index.ts> tooltip="index.ts" URL="libs/schema/src/basics/index.ts" fillcolor="#ccccff" style="filled"] } } } }
+    "libs/schema/src/basics/index.ts" -> "libs/schema/src/shared/index.ts"
+    "libs/schema/src/basics/index.ts" -> "libs/schema/src/basics/custom.ts"
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/schema" {label="schema" subgraph "cluster_libs/schema/src" {label="src" "libs/schema/src/index.ts" [label=<index.ts> tooltip="index.ts" URL="libs/schema/src/index.ts" fillcolor="#ccccff" style="filled"] } } }
+    "libs/schema/src/index.ts" -> "libs/schema/src/basics/index.ts"
+    "libs/schema/src/index.ts" -> "libs/schema/src/metadata/index.ts"
+    "libs/schema/src/index.ts" -> "libs/schema/src/sample.ts" [arrowhead="inv"]
+    "libs/schema/src/index.ts" -> "libs/schema/src/sections/index.ts"
+    "libs/schema/src/index.ts" -> "libs/schema/src/shared/index.ts" [arrowhead="inv"]
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/schema" {label="schema" subgraph "cluster_libs/schema/src" {label="src" subgraph "cluster_libs/schema/src/metadata" {label="metadata" "libs/schema/src/metadata/index.ts" [label=<index.ts> tooltip="index.ts" URL="libs/schema/src/metadata/index.ts" fillcolor="#ccccff" style="filled"] } } } }
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/schema" {label="schema" subgraph "cluster_libs/schema/src" {label="src" "libs/schema/src/sample.ts" [label=<sample.ts> tooltip="sample.ts" URL="libs/schema/src/sample.ts" fillcolor="#ccccff" style="filled"] } } }
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/schema" {label="schema" subgraph "cluster_libs/schema/src" {label="src" subgraph "cluster_libs/schema/src/sections" {label="sections" "libs/schema/src/sections/award.ts" [label=<award.ts> tooltip="award.ts" URL="libs/schema/src/sections/award.ts" fillcolor="#ccccff" style="filled"] } } } }
+    "libs/schema/src/sections/award.ts" -> "libs/schema/src/shared/index.ts"
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/schema" {label="schema" subgraph "cluster_libs/schema/src" {label="src" subgraph "cluster_libs/schema/src/sections" {label="sections" "libs/schema/src/sections/certification.ts" [label=<certification.ts> tooltip="certification.ts" URL="libs/schema/src/sections/certification.ts" fillcolor="#ccccff" style="filled"] } } } }
+    "libs/schema/src/sections/certification.ts" -> "libs/schema/src/shared/index.ts"
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/schema" {label="schema" subgraph "cluster_libs/schema/src" {label="src" subgraph "cluster_libs/schema/src/sections" {label="sections" "libs/schema/src/sections/custom-section.ts" [label=<custom-section.ts> tooltip="custom-section.ts" URL="libs/schema/src/sections/custom-section.ts" fillcolor="#ccccff" style="filled"] } } } }
+    "libs/schema/src/sections/custom-section.ts" -> "libs/schema/src/shared/index.ts"
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/schema" {label="schema" subgraph "cluster_libs/schema/src" {label="src" subgraph "cluster_libs/schema/src/sections" {label="sections" "libs/schema/src/sections/education.ts" [label=<education.ts> tooltip="education.ts" URL="libs/schema/src/sections/education.ts" fillcolor="#ccccff" style="filled"] } } } }
+    "libs/schema/src/sections/education.ts" -> "libs/schema/src/shared/index.ts"
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/schema" {label="schema" subgraph "cluster_libs/schema/src" {label="src" subgraph "cluster_libs/schema/src/sections" {label="sections" "libs/schema/src/sections/experience.ts" [label=<experience.ts> tooltip="experience.ts" URL="libs/schema/src/sections/experience.ts" fillcolor="#ccccff" style="filled"] } } } }
+    "libs/schema/src/sections/experience.ts" -> "libs/schema/src/shared/index.ts"
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/schema" {label="schema" subgraph "cluster_libs/schema/src" {label="src" subgraph "cluster_libs/schema/src/sections" {label="sections" "libs/schema/src/sections/index.ts" [label=<index.ts> tooltip="index.ts" URL="libs/schema/src/sections/index.ts" fillcolor="#ccccff" style="filled"] } } } }
+    "libs/schema/src/sections/index.ts" -> "libs/schema/src/shared/index.ts"
+    "libs/schema/src/sections/index.ts" -> "libs/schema/src/sections/award.ts"
+    "libs/schema/src/sections/index.ts" -> "libs/schema/src/sections/certification.ts"
+    "libs/schema/src/sections/index.ts" -> "libs/schema/src/sections/custom-section.ts"
+    "libs/schema/src/sections/index.ts" -> "libs/schema/src/sections/education.ts"
+    "libs/schema/src/sections/index.ts" -> "libs/schema/src/sections/experience.ts"
+    "libs/schema/src/sections/index.ts" -> "libs/schema/src/sections/interest.ts"
+    "libs/schema/src/sections/index.ts" -> "libs/schema/src/sections/language.ts"
+    "libs/schema/src/sections/index.ts" -> "libs/schema/src/sections/profile.ts"
+    "libs/schema/src/sections/index.ts" -> "libs/schema/src/sections/project.ts"
+    "libs/schema/src/sections/index.ts" -> "libs/schema/src/sections/publication.ts"
+    "libs/schema/src/sections/index.ts" -> "libs/schema/src/sections/reference.ts"
+    "libs/schema/src/sections/index.ts" -> "libs/schema/src/sections/skill.ts"
+    "libs/schema/src/sections/index.ts" -> "libs/schema/src/sections/volunteer.ts"
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/schema" {label="schema" subgraph "cluster_libs/schema/src" {label="src" subgraph "cluster_libs/schema/src/sections" {label="sections" "libs/schema/src/sections/interest.ts" [label=<interest.ts> tooltip="interest.ts" URL="libs/schema/src/sections/interest.ts" fillcolor="#ccccff" style="filled"] } } } }
+    "libs/schema/src/sections/interest.ts" -> "libs/schema/src/shared/index.ts"
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/schema" {label="schema" subgraph "cluster_libs/schema/src" {label="src" subgraph "cluster_libs/schema/src/sections" {label="sections" "libs/schema/src/sections/language.ts" [label=<language.ts> tooltip="language.ts" URL="libs/schema/src/sections/language.ts" fillcolor="#ccccff" style="filled"] } } } }
+    "libs/schema/src/sections/language.ts" -> "libs/schema/src/shared/index.ts"
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/schema" {label="schema" subgraph "cluster_libs/schema/src" {label="src" subgraph "cluster_libs/schema/src/sections" {label="sections" "libs/schema/src/sections/profile.ts" [label=<profile.ts> tooltip="profile.ts" URL="libs/schema/src/sections/profile.ts" fillcolor="#ccccff" style="filled"] } } } }
+    "libs/schema/src/sections/profile.ts" -> "libs/schema/src/shared/index.ts"
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/schema" {label="schema" subgraph "cluster_libs/schema/src" {label="src" subgraph "cluster_libs/schema/src/sections" {label="sections" "libs/schema/src/sections/project.ts" [label=<project.ts> tooltip="project.ts" URL="libs/schema/src/sections/project.ts" fillcolor="#ccccff" style="filled"] } } } }
+    "libs/schema/src/sections/project.ts" -> "libs/schema/src/shared/index.ts"
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/schema" {label="schema" subgraph "cluster_libs/schema/src" {label="src" subgraph "cluster_libs/schema/src/sections" {label="sections" "libs/schema/src/sections/publication.ts" [label=<publication.ts> tooltip="publication.ts" URL="libs/schema/src/sections/publication.ts" fillcolor="#ccccff" style="filled"] } } } }
+    "libs/schema/src/sections/publication.ts" -> "libs/schema/src/shared/index.ts"
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/schema" {label="schema" subgraph "cluster_libs/schema/src" {label="src" subgraph "cluster_libs/schema/src/sections" {label="sections" "libs/schema/src/sections/reference.ts" [label=<reference.ts> tooltip="reference.ts" URL="libs/schema/src/sections/reference.ts" fillcolor="#ccccff" style="filled"] } } } }
+    "libs/schema/src/sections/reference.ts" -> "libs/schema/src/shared/index.ts"
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/schema" {label="schema" subgraph "cluster_libs/schema/src" {label="src" subgraph "cluster_libs/schema/src/sections" {label="sections" "libs/schema/src/sections/skill.ts" [label=<skill.ts> tooltip="skill.ts" URL="libs/schema/src/sections/skill.ts" fillcolor="#ccccff" style="filled"] } } } }
+    "libs/schema/src/sections/skill.ts" -> "libs/schema/src/shared/index.ts"
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/schema" {label="schema" subgraph "cluster_libs/schema/src" {label="src" subgraph "cluster_libs/schema/src/sections" {label="sections" "libs/schema/src/sections/volunteer.ts" [label=<volunteer.ts> tooltip="volunteer.ts" URL="libs/schema/src/sections/volunteer.ts" fillcolor="#ccccff" style="filled"] } } } }
+    "libs/schema/src/sections/volunteer.ts" -> "libs/schema/src/shared/index.ts"
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/schema" {label="schema" subgraph "cluster_libs/schema/src" {label="src" subgraph "cluster_libs/schema/src/shared" {label="shared" "libs/schema/src/shared/id.ts" [label=<id.ts> tooltip="id.ts" URL="libs/schema/src/shared/id.ts" fillcolor="#ccccff" style="filled"] } } } }
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/schema" {label="schema" subgraph "cluster_libs/schema/src" {label="src" subgraph "cluster_libs/schema/src/shared" {label="shared" "libs/schema/src/shared/index.ts" [label=<index.ts> tooltip="index.ts" URL="libs/schema/src/shared/index.ts" fillcolor="#ccccff" style="filled"] } } } }
+    "libs/schema/src/shared/index.ts" -> "libs/schema/src/shared/id.ts" [arrowhead="inv"]
+    "libs/schema/src/shared/index.ts" -> "libs/schema/src/shared/item.ts" [arrowhead="inv"]
+    "libs/schema/src/shared/index.ts" -> "libs/schema/src/shared/types.ts" [arrowhead="inv"]
+    "libs/schema/src/shared/index.ts" -> "libs/schema/src/shared/url.ts" [arrowhead="inv"]
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/schema" {label="schema" subgraph "cluster_libs/schema/src" {label="src" subgraph "cluster_libs/schema/src/shared" {label="shared" "libs/schema/src/shared/item.ts" [label=<item.ts> tooltip="item.ts" URL="libs/schema/src/shared/item.ts" fillcolor="#ccccff" style="filled"] } } } }
+    "libs/schema/src/shared/item.ts" -> "libs/schema/src/shared/id.ts"
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/schema" {label="schema" subgraph "cluster_libs/schema/src" {label="src" subgraph "cluster_libs/schema/src/shared" {label="shared" "libs/schema/src/shared/types.ts" [label=<types.ts> tooltip="types.ts" URL="libs/schema/src/shared/types.ts" fillcolor="#ccccff" style="filled"] } } } }
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/schema" {label="schema" subgraph "cluster_libs/schema/src" {label="src" subgraph "cluster_libs/schema/src/shared" {label="shared" "libs/schema/src/shared/url.ts" [label=<url.ts> tooltip="url.ts" URL="libs/schema/src/shared/url.ts" fillcolor="#ccccff" style="filled"] } } } }
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/utils" {label="utils" subgraph "cluster_libs/utils/src" {label="src" "libs/utils/src/index.ts" [label=<index.ts> tooltip="index.ts" URL="libs/utils/src/index.ts" fillcolor="#ccccff" style="filled"] } } }
+    "libs/utils/src/index.ts" -> "libs/utils/src/namespaces/array.ts" [arrowhead="inv"]
+    "libs/utils/src/index.ts" -> "libs/utils/src/namespaces/color.ts" [arrowhead="inv"]
+    "libs/utils/src/index.ts" -> "libs/utils/src/namespaces/csv.ts" [arrowhead="inv"]
+    "libs/utils/src/index.ts" -> "libs/utils/src/namespaces/date.ts" [arrowhead="inv"]
+    "libs/utils/src/index.ts" -> "libs/utils/src/namespaces/error.ts" [arrowhead="inv"]
+    "libs/utils/src/index.ts" -> "libs/utils/src/namespaces/fonts.ts" [arrowhead="inv"]
+    "libs/utils/src/index.ts" -> "libs/utils/src/namespaces/language.ts" [arrowhead="inv"]
+    "libs/utils/src/index.ts" -> "libs/utils/src/namespaces/number.ts" [arrowhead="inv"]
+    "libs/utils/src/index.ts" -> "libs/utils/src/namespaces/object.ts" [arrowhead="inv"]
+    "libs/utils/src/index.ts" -> "libs/utils/src/namespaces/page.ts" [arrowhead="inv"]
+    "libs/utils/src/index.ts" -> "libs/utils/src/namespaces/promise.ts" [arrowhead="inv"]
+    "libs/utils/src/index.ts" -> "libs/utils/src/namespaces/string.ts" [arrowhead="inv"]
+    "libs/utils/src/index.ts" -> "libs/utils/src/namespaces/style.ts" [arrowhead="inv"]
+    "libs/utils/src/index.ts" -> "libs/utils/src/namespaces/template.ts" [arrowhead="inv"]
+    "libs/utils/src/index.ts" -> "libs/utils/src/namespaces/types.ts" [arrowhead="inv"]
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/utils" {label="utils" subgraph "cluster_libs/utils/src" {label="src" subgraph "cluster_libs/utils/src/namespaces" {label="namespaces" "libs/utils/src/namespaces/array.ts" [label=<array.ts> tooltip="array.ts" URL="libs/utils/src/namespaces/array.ts" fillcolor="#ccccff" style="filled"] } } } }
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/utils" {label="utils" subgraph "cluster_libs/utils/src" {label="src" subgraph "cluster_libs/utils/src/namespaces" {label="namespaces" "libs/utils/src/namespaces/color.ts" [label=<color.ts> tooltip="color.ts" URL="libs/utils/src/namespaces/color.ts" fillcolor="#ccccff" style="filled"] } } } }
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/utils" {label="utils" subgraph "cluster_libs/utils/src" {label="src" subgraph "cluster_libs/utils/src/namespaces" {label="namespaces" "libs/utils/src/namespaces/csv.ts" [label=<csv.ts> tooltip="csv.ts" URL="libs/utils/src/namespaces/csv.ts" fillcolor="#ccccff" style="filled"] } } } }
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/utils" {label="utils" subgraph "cluster_libs/utils/src" {label="src" subgraph "cluster_libs/utils/src/namespaces" {label="namespaces" "libs/utils/src/namespaces/date.ts" [label=<date.ts> tooltip="date.ts" URL="libs/utils/src/namespaces/date.ts" fillcolor="#ccccff" style="filled"] } } } }
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/utils" {label="utils" subgraph "cluster_libs/utils/src" {label="src" subgraph "cluster_libs/utils/src/namespaces" {label="namespaces" "libs/utils/src/namespaces/error.ts" [label=<error.ts> tooltip="error.ts" URL="libs/utils/src/namespaces/error.ts" fillcolor="#ccccff" style="filled"] } } } }
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/utils" {label="utils" subgraph "cluster_libs/utils/src" {label="src" subgraph "cluster_libs/utils/src/namespaces" {label="namespaces" "libs/utils/src/namespaces/fonts.ts" [label=<fonts.ts> tooltip="fonts.ts" URL="libs/utils/src/namespaces/fonts.ts" fillcolor="#ccccff" style="filled"] } } } }
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/utils" {label="utils" subgraph "cluster_libs/utils/src" {label="src" subgraph "cluster_libs/utils/src/namespaces" {label="namespaces" "libs/utils/src/namespaces/language.ts" [label=<language.ts> tooltip="language.ts" URL="libs/utils/src/namespaces/language.ts" fillcolor="#ccccff" style="filled"] } } } }
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/utils" {label="utils" subgraph "cluster_libs/utils/src" {label="src" subgraph "cluster_libs/utils/src/namespaces" {label="namespaces" "libs/utils/src/namespaces/number.ts" [label=<number.ts> tooltip="number.ts" URL="libs/utils/src/namespaces/number.ts" fillcolor="#ccccff" style="filled"] } } } }
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/utils" {label="utils" subgraph "cluster_libs/utils/src" {label="src" subgraph "cluster_libs/utils/src/namespaces" {label="namespaces" "libs/utils/src/namespaces/object.ts" [label=<object.ts> tooltip="object.ts" URL="libs/utils/src/namespaces/object.ts" fillcolor="#ccccff" style="filled"] } } } }
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/utils" {label="utils" subgraph "cluster_libs/utils/src" {label="src" subgraph "cluster_libs/utils/src/namespaces" {label="namespaces" "libs/utils/src/namespaces/page.ts" [label=<page.ts> tooltip="page.ts" URL="libs/utils/src/namespaces/page.ts" fillcolor="#ccccff" style="filled"] } } } }
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/utils" {label="utils" subgraph "cluster_libs/utils/src" {label="src" subgraph "cluster_libs/utils/src/namespaces" {label="namespaces" "libs/utils/src/namespaces/promise.ts" [label=<promise.ts> tooltip="promise.ts" URL="libs/utils/src/namespaces/promise.ts" fillcolor="#ccccff" style="filled"] } } } }
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/utils" {label="utils" subgraph "cluster_libs/utils/src" {label="src" subgraph "cluster_libs/utils/src/namespaces" {label="namespaces" "libs/utils/src/namespaces/string.ts" [label=<string.ts> tooltip="string.ts" URL="libs/utils/src/namespaces/string.ts" fillcolor="#ccccff" style="filled"] } } } }
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/utils" {label="utils" subgraph "cluster_libs/utils/src" {label="src" subgraph "cluster_libs/utils/src/namespaces" {label="namespaces" "libs/utils/src/namespaces/style.ts" [label=<style.ts> tooltip="style.ts" URL="libs/utils/src/namespaces/style.ts" fillcolor="#ccccff" style="filled"] } } } }
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/utils" {label="utils" subgraph "cluster_libs/utils/src" {label="src" subgraph "cluster_libs/utils/src/namespaces" {label="namespaces" "libs/utils/src/namespaces/template.ts" [label=<template.ts> tooltip="template.ts" URL="libs/utils/src/namespaces/template.ts" fillcolor="#ccccff" style="filled"] } } } }
+    subgraph "cluster_libs" {label="libs" subgraph "cluster_libs/utils" {label="utils" subgraph "cluster_libs/utils/src" {label="src" subgraph "cluster_libs/utils/src/namespaces" {label="namespaces" "libs/utils/src/namespaces/types.ts" [label=<types.ts> tooltip="types.ts" URL="libs/utils/src/namespaces/types.ts" fillcolor="#ccccff" style="filled"] } } } }
+    "path" [label=<path> tooltip="path" URL="https://nodejs.org/api/path.html" color="grey" fontcolor="grey"]
+}
