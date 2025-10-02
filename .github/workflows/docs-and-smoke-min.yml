@@ -1,0 +1,32 @@
+name: Docs & Guard (minimal)
+
+on:
+  push:
+    branches: [ automation ]   # only this branch
+  workflow_dispatch: {}        # manual trigger if you want
+
+jobs:
+  docs-and-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: 'pnpm' }
+
+      - name: Install deps
+        run: pnpm i --frozen-lockfile
+
+      - name: Generate docs (maps, typedoc, openapi)
+        run: pnpm docs:all
+
+      - name: Dep hygiene (no new cycles)
+        run: pnpm check:deps
+
+      - name: Upload docs artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs
+          path: docs
+
