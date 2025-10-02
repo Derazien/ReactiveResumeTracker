@@ -45,7 +45,7 @@ Skyvern Automation Engine (Separate System)
 ### **Manual Setup (if needed)**
 ```powershell
 # Start just the automation services
-docker-compose -f docker-compose.skyvern.yml up -d
+docker compose -f unified-docker-compose.yml up -d
 
 # Check status
 docker ps --filter name=skyvern
@@ -56,7 +56,7 @@ docker ps --filter name=skyvern
 ### **Get Skyvern API Key**
 
 #### **Method 1: From Skyvern UI (Recommended)**
-1. **Start Skyvern**: `docker-compose -f docker-compose.skyvern.yml up -d`
+1. **Start Skyvern**: `docker compose -f unified-docker-compose.yml up -d`
 2. **Open UI**: http://localhost:8081
 3. **Create Account**: Register or login
 4. **Get API Key**: Settings → API Key → Copy
@@ -130,7 +130,7 @@ docker ps --filter name=skyvern
 ```powershell
 # Solution 1: Restart services
 docker-compose -f docker-compose.skyvern.yml down
-docker-compose -f docker-compose.skyvern.yml up -d
+docker compose -f unified-docker-compose.yml up -d
 
 # Solution 2: Check Docker Desktop is running
 # Start Docker Desktop if not running
@@ -216,7 +216,7 @@ docker restart skyvern-ui
    Remove-Item services/skyvern/automation-data/* -Recurse -Force
    
    # Restart
-   docker-compose -f docker-compose.skyvern.yml up -d
+   docker compose -f unified-docker-compose.yml up -d
    ```
 
 ### **Issue 5: Rate Limiting (Anthropic)**
@@ -353,7 +353,7 @@ docker system prune -f
 ```powershell
 # Update Skyvern images
 docker-compose -f docker-compose.skyvern.yml pull
-docker-compose -f docker-compose.skyvern.yml up -d
+docker compose -f unified-docker-compose.yml up -d
 ```
 
 ## 🆘 **Getting Help**

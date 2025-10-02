@@ -1,0 +1,11 @@
+[**ReactiveResumeTracker API Documentation v4.4.6**](../../../README.md)
+
+***
+
+[ReactiveResumeTracker API Documentation](../../../README.md) / [dto/src](../README.md) / createJobApplicationSchema
+
+# Variable: createJobApplicationSchema
+
+> `const` **createJobApplicationSchema**: `ZodObject`\<\{ `appliedDate`: `ZodOptional`\<`ZodString`\>; `companyId`: `ZodOptional`\<`ZodString`\>; `companyName`: `ZodString`; `createdViaAutomation`: `ZodOptional`\<`ZodDefault`\<`ZodBoolean`\>\>; `description`: `ZodOptional`\<`ZodString`\>; `extractedTags`: `ZodDefault`\<`ZodArray`\<`ZodString`, `"many"`\>\>; `industry`: `ZodOptional`\<`ZodString`\>; `location`: `ZodOptional`\<`ZodString`\>; `notes`: `ZodOptional`\<`ZodString`\>; `requirements`: `ZodDefault`\<`ZodArray`\<`ZodString`, `"many"`\>\>; `salary`: `ZodOptional`\<`ZodString`\>; `status`: `ZodDefault`\<`ZodEnum`\<\[`"DRAFT"`, `"APPLIED"`, `"INTERVIEW_SCHEDULED"`, `"INTERVIEWED"`, `"OFFER_RECEIVED"`, `"REJECTED"`, `"ACCEPTED"`, `"WITHDRAWN"`\]\>\>; `title`: `ZodString`; `url`: `ZodOptional`\<`ZodString`\>; \}, `"strip"`, `ZodTypeAny`, \{ `appliedDate?`: `string`; `companyId?`: `string`; `companyName?`: `string`; `createdViaAutomation?`: `boolean`; `description?`: `string`; `extractedTags?`: `string`[]; `industry?`: `string`; `location?`: `string`; `notes?`: `string`; `requirements?`: `string`[]; `salary?`: `string`; `status?`: `"DRAFT"` \| `"APPLIED"` \| `"INTERVIEW_SCHEDULED"` \| `"INTERVIEWED"` \| `"OFFER_RECEIVED"` \| `"REJECTED"` \| `"ACCEPTED"` \| `"WITHDRAWN"`; `title?`: `string`; `url?`: `string`; \}, \{ `appliedDate?`: `string`; `companyId?`: `string`; `companyName?`: `string`; `createdViaAutomation?`: `boolean`; `description?`: `string`; `extractedTags?`: `string`[]; `industry?`: `string`; `location?`: `string`; `notes?`: `string`; `requirements?`: `string`[]; `salary?`: `string`; `status?`: `"DRAFT"` \| `"APPLIED"` \| `"INTERVIEW_SCHEDULED"` \| `"INTERVIEWED"` \| `"OFFER_RECEIVED"` \| `"REJECTED"` \| `"ACCEPTED"` \| `"WITHDRAWN"`; `title?`: `string`; `url?`: `string`; \}\>
+
+Defined in: [libs/dto/src/job-application/create.ts:4](https://github.com/Derazien/ReactiveResumeTracker/blob/automation/libs/dto/src/job-application/create.ts#L4)

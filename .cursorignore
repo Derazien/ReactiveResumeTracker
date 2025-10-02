@@ -1,1 +1,29 @@
-# Add directories or file patterns to ignore during indexing (e.g. foo/ or *.csv)
+# === Cursor Indexing Ignore List ===
+# Build outputs & caches
+node_modules/
+dist/
+build/
+.out/
+.next/
+.turbo/
+.vite/
+.esbuild/
+coverage/
+.cache/
+
+# Logs & local artifacts
+*.log
+*.tmp
+tmp/
+temp/
+.swp
+.DS_Store
+
+# Generated docs & graphs (regenerate via scripts)
+docs/api/
+docs/20-backend/openapi.json
+docs/maps/deps.svg
+docs/40-testing/report.json
+
+# Quarantined experiments (non-authoritative)
+_scratch/

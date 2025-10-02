@@ -45,7 +45,12 @@
     "prisma:migrate": "pnpm exec prisma migrate deploy",
     "prisma:migrate:dev": "pnpm exec prisma migrate dev",
     "prisma:studio": "pnpm exec prisma studio",
-    "messages:extract": "pnpm exec lingui extract --clean --overwrite"
+    "messages:extract": "pnpm exec lingui extract --clean --overwrite",
+    "docs:maps": "node scripts/docs/generate-deps-graph.ps1 || bash scripts/docs/generate-deps-graph.sh",
+    "docs:api": "typedoc --options typedoc.json",
+    "docs:openapi": "node scripts/docs/export-openapi.js",
+    "docs:all": "pnpm docs:maps && pnpm docs:api && pnpm docs:openapi",
+    "check:deps": "node scripts/audit/depcruise-compare-baseline.js"
   },
   "devDependencies": {
     "@babel/core": "^7.26.7",
@@ -111,6 +116,7 @@
     "@vitest/ui": "^2.1.9",
     "autoprefixer": "^10.4.20",
     "babel-plugin-macros": "^3.1.0",
+    "dependency-cruiser": "17.0.1",
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.31.0",
@@ -138,6 +144,8 @@
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
+    "typedoc": "0.28.13",
+    "typedoc-plugin-markdown": "4.9.0",
     "typescript": "^5.7.3",
     "vite": "^5.4.14",
     "vite-plugin-dts": "^4.5.0",

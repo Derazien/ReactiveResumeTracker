@@ -1,0 +1,10 @@
+---
+description: Indexing and retrieval guardrails
+globs: **/*
+alwaysApply: true
+---
+
+# Indexing & Retrieval Guardrails
+- Exclude large/generated directories defined in `.cursorignore`.
+- When answering, prefer the **Golden Order of Truth** (docs/maps → OpenAPI → TypeDoc → ops → code).
+- If a required document is missing or stale, propose a docs patch first (not code).

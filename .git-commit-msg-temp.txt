@@ -1,0 +1,31 @@
+Phase B Complete: Canonicalization + Project Overview + Triage
+
+PHASE B: Canonicalization
+- Established canonical paths (40 entries)
+- Created shim infrastructure and shimmed 6 scripts
+- Classified all 136 run paths (0 untriaged)
+- Reduced code by -2,012 LOC
+
+TRIAGE & SCORING:
+- Scored 21 untriaged entries with rubric
+- Added Replaced By column mapping deprecated to canonical
+- Created Windows wrappers (scripts/win/*.ps1)
+
+PARITY & VERIFICATION:
+- Compared 4 deprecated compose files with canonical
+- Merged missing Skyvern configs into unified-docker-compose.yml
+- Smoke tested all canonical commands (9/9 services up)
+
+PROJECT OVERVIEW:
+- Created docs/00-foundation/Project-Overview.md (517 lines)
+- Synthesized from 10+ docs: workspace, stack, features, APIs
+- Added Golden Order of Truth for LLM answering
+
+IMPACT:
+- 136 run paths: 40 canonical, 33 active, 28 deprecated, 29 duplicate, 6 shim
+- 4 canonical one-liners verified working
+- Full backward compatibility via shims
+- Zero breaking changes
+
+Files: 25 new, 9 modified
+

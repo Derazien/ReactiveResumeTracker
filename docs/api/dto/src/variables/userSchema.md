@@ -1,0 +1,11 @@
+[**ReactiveResumeTracker API Documentation v4.4.6**](../../../README.md)
+
+***
+
+[ReactiveResumeTracker API Documentation](../../../README.md) / [dto/src](../README.md) / userSchema
+
+# Variable: userSchema
+
+> `const` **userSchema**: `ZodObject`\<\{ `createdAt`: `any`; `email`: `ZodEffects`\<`ZodString`, `string`, `string`\>; `emailVerified`: `ZodDefault`\<`ZodBoolean`\>; `id`: `any`; `locale`: `ZodDefault`\<`ZodString`\>; `name`: `ZodString`; `picture`: `ZodUnion`\<\[`ZodUnion`\<\[`ZodLiteral`\<`""`\>, `ZodNull`\]\>, `ZodString`\]\>; `provider`: `ZodDefault`\<`ZodEnum`\<\[`"email"`, `"github"`, `"google"`, `"openid"`\]\>\>; `twoFactorEnabled`: `ZodDefault`\<`ZodBoolean`\>; `updatedAt`: `any`; `username`: `ZodEffects`\<`ZodString`, `string`, `string`\>; `userType`: `ZodDefault`\<`ZodEnum`\<\[`"GENERAL_CONSUMER"`, `"DEVELOPER"`\]\>\>; \}, `"strip"`, `ZodTypeAny`, \{\[`key`: `string`\]: `any`; `createdAt?`: `unknown`; `email?`: `unknown`; `emailVerified?`: `unknown`; `id?`: `unknown`; `locale?`: `unknown`; `name?`: `unknown`; `picture?`: `unknown`; `provider?`: `unknown`; `twoFactorEnabled?`: `unknown`; `updatedAt?`: `unknown`; `username?`: `unknown`; `userType?`: `unknown`; \}, \{\[`key`: `string`\]: `any`; `createdAt?`: `unknown`; `email?`: `unknown`; `emailVerified?`: `unknown`; `id?`: `unknown`; `locale?`: `unknown`; `name?`: `unknown`; `picture?`: `unknown`; `provider?`: `unknown`; `twoFactorEnabled?`: `unknown`; `updatedAt?`: `unknown`; `username?`: `unknown`; `userType?`: `unknown`; \}\>
+
+Defined in: [libs/dto/src/user/user.ts:17](https://github.com/Derazien/ReactiveResumeTracker/blob/automation/libs/dto/src/user/user.ts#L17)

@@ -1,0 +1,16 @@
+---
+description: Project-specific context for Nx workspace
+globs: apps/**/*,libs/**/*,packages/**/*
+alwaysApply: true
+---
+
+# Must-read Overview
+- Read `/docs/00-foundation/Project-Overview.md` before proposing changes.
+- Reuse existing modules/services first; only create new when justified.
+
+# Change discipline
+- If new APIs/files are created, update:
+  - `/docs/10-architecture/Modules.md`
+  - `/docs/20-backend/openapi.json` (if HTTP)
+  - `/docs/api/` (TypeDoc — ensure exports have TSDoc)
+- Run `pnpm docs:all` in the same PR.

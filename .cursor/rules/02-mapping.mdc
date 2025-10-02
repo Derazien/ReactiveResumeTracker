@@ -1,0 +1,10 @@
+---
+description: Mapping and navigation policy
+globs: **/*
+alwaysApply: true
+---
+
+# Mapping & Navigation
+- Use dependency graphs in `/docs/maps/` to answer “where is X called / what depends on Y?”.
+- Provide path summaries (package → module → symbol) and link to `Modules.md` entries.
+- After changing imports/boundaries, regenerate the graph and update module docs.

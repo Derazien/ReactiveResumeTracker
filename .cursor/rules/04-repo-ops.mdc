@@ -1,0 +1,11 @@
+---
+description: Repository operations and hygiene
+globs: **/*
+alwaysApply: true
+---
+
+# Repo Ops & Hygiene
+- Don’t rely on `/_scratch` scripts; migrate or delete via PR.
+- Enforce dep‑cruiser: PRs fail on cycles/orphans unless justified in an ADR.
+- Run `npm run docs:all` on PRs that touch architecture, APIs, or exports.
+- Record non‑trivial architectural changes as `/docs/00-foundation/ADR-XXXX.md`.

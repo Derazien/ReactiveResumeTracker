@@ -1,0 +1,14 @@
+---
+description: Docs-first answering policy
+globs: **/*
+alwaysApply: true
+---
+
+# Docs‑First Answers
+- For architecture questions, summarize from: `/docs/10-architecture/*` and `/docs/maps/*`.
+- For API questions, quote from `/docs/20-backend/openapi.json` and show example requests.
+- For code‑level usage, cite `/docs/api/*` (TypeDoc). If symbol lacks TSDoc, propose it.
+- If docs conflict with code, open a docs PR to reconcile before code changes.
+- Before proposing new files, APIs, or docs, perform a codebase search for similar or related modules.
+- Prefer modifying or extending existing modules/docs over creating new ones.
+- If new artifacts are justified, update Modules.md, OpenAPI, and TypeDoc in the same PR and run `docs:all`.

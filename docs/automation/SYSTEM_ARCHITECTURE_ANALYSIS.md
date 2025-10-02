@@ -120,7 +120,7 @@ volumes:
 ### **Step 1: Stop All Containers & Clean**
 ```powershell
 # Stop everything
-docker-compose -f docker-compose.skyvern.yml down
+docker compose -f unified-docker-compose.yml down
 docker system prune -f
 ```
 

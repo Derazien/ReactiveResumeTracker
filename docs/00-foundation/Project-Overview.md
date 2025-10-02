@@ -215,6 +215,10 @@ pnpm format            # Format code
 
 ## Services & Ports
 
+**For detailed service configurations and health checks**, see:
+- **📋 [Docker-Services.md](../50-ops/Docker-Services.md)** — Complete service catalog
+- **🏥 [Service-Health.md](../50-ops/Service-Health.md)** — Health check commands and CI integration
+
 | Service | Port(s) | Purpose | Health Check |
 |---------|---------|---------|--------------|
 | **client** (dev) | 5173 | React frontend | `http://localhost:5173` |
@@ -238,13 +242,21 @@ pnpm format            # Format code
 ## APIs & Contracts
 
 ### OpenAPI Specification
-**Location**: Currently not generated; planned for Phase C.
+**Location**: `docs/20-backend/openapi.json` (placeholder)
 
-**To generate** (future):
+**To generate full spec**:
 ```bash
-pnpm docs:openapi
+# Start server in one terminal
+pnpm dev
+
+# In another terminal, export live spec
+curl http://localhost:3000/docs-json > docs/20-backend/openapi.json
+
+# OR visit Swagger UI
+open http://localhost:3000/docs
 ```
-**Output**: `docs/20-backend/openapi.json`
+
+**Script**: `pnpm docs:openapi` (generates placeholder)
 
 ### API Endpoints (Selection)
 
@@ -553,10 +565,61 @@ Once Phase C is complete:
 
 ---
 
+## Technical Debt
+
+### Circular Dependencies (ADR-0001)
+
+**Status**: 40 circular dependencies exist in current codebase  
+**ADR**: See `docs/00-foundation/ADR-0001-Dependency-Cycles-Baseline.md`
+
+**Breakdown**:
+- **libs/ui** (24 cycles) — Barrel export patterns creating circular imports
+- **apps/server** (3 cycles) — NestJS module circular dependencies
+- **apps/client/auth** (13 cycles) — Auth service circular imports through axios
+
+**CI Enforcement**: 
+- ✅ Baseline captured in `docs/maps/depcruise-baseline.json`
+- ✅ CI check prevents NEW cycles: `pnpm check:deps`
+- ⏳ Existing cycles must be fixed incrementally (see ADR-0001 for strategy)
+
+**Remediation Priority**:
+1. libs/ui cycles (highest impact)
+2. apps/server cycles (module architecture)
+3. apps/client auth cycles (frontend refactor)
+
+**Impact**: 
+- Does not cause runtime errors currently
+- Prevents optimal tree-shaking
+- Makes dependency analysis harder
+- TypeDoc generation limited (libs only, apps excluded due to cycles)
+
+### TypeDoc Limitations
+
+**Current State**: Successfully generates docs for libraries only  
+**Excluded**: apps/client, apps/server (due to circular dependencies)  
+**Output**: `docs/api/` (dto, hooks, parser, schema, utils)
+
+**Future**: Once circular dependencies are resolved, full TypeDoc generation will include all apps
+
+### OpenAPI Generation
+
+**Current State**: Placeholder generated; full spec requires running server  
+**Location**: `docs/20-backend/openapi.json`
+
+**To Generate Full Spec**:
+1. Start server: `pnpm dev`
+2. Export: `curl http://localhost:3000/docs-json > docs/20-backend/openapi.json`
+3. Or visit: `http://localhost:3000/docs`
+
+---
+
 ## Changelog & ADRs
 
 ### Architecture Decision Records (ADRs)
-**Location**: `/docs/00-foundation/ADR-*.md` (future: Phase C)
+**Location**: `/docs/00-foundation/ADR-*.md`
+
+**Existing ADRs**:
+- **ADR-0001**: Dependency Cycles Baseline (2025-10-02) — Documents 40 circular dependencies and remediation strategy
 
 **Format**:
 ```markdown

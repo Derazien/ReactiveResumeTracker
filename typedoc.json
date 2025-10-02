@@ -1,0 +1,48 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": [
+    "apps/server/src/index.ts",
+    "libs/dto/src/index.ts",
+    "libs/schema/src/index.ts",
+    "libs/utils/src/index.ts",
+    "libs/hooks/src/index.ts",
+    "libs/parser/src/index.ts"
+  ],
+  "entryPointStrategy": "resolve",
+  "out": "docs/api",
+  "plugin": ["typedoc-plugin-markdown"],
+  "exclude": [
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/_scratch/**",
+    "**/coverage/**"
+  ],
+  "excludePrivate": true,
+  "excludeProtected": false,
+  "excludeInternal": true,
+  "readme": "none",
+  "gitRevision": "automation",
+  "name": "ReactiveResumeTracker API Documentation",
+  "includeVersion": true,
+  "categorizeByGroup": true,
+  "skipErrorChecking": true,
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true
+  },
+  "categoryOrder": [
+    "Applications",
+    "Libraries",
+    "Services",
+    "Controllers",
+    "Components",
+    "*"
+  ],
+  "validation": {
+    "invalidLink": true,
+    "notDocumented": false
+  }
+}
+

@@ -196,8 +196,8 @@ docker logs skyvern-api --tail 50
 #### **Restart Automation Services**
 ```powershell
 # Stop and restart automation
-docker-compose -f docker-compose.skyvern.yml down
-docker-compose -f docker-compose.skyvern.yml up -d
+docker compose -f unified-docker-compose.yml down
+docker compose -f unified-docker-compose.yml up -d
 ```
 
 ## 📈 **Optimization Tips**

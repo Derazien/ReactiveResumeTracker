@@ -1,0 +1,10 @@
+---
+description: Style and commenting policy
+globs: **/*
+alwaysApply: true
+---
+
+# Style & Commenting
+- Respect `/docs/00-foundation/Glossary.md` naming.
+- Every exported function/class/module gets TSDoc with: Purpose • Inputs/Outputs • Side‑effects • Related modules.
+- Avoid grab‑bag utility files; group by domain.
