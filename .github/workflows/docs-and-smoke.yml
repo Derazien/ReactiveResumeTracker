@@ -1,0 +1,246 @@
+name: Docs & Smoke
+
+on:
+  pull_request:
+  push:
+    branches: [main, automation]
+
+jobs:
+  build-docs-and-guard-deps:
+    name: Build Docs & Guard Dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: Generate all documentation
+        run: pnpm docs:all
+      
+      - name: Check dependency baseline (no new cycles)
+        run: pnpm check:deps
+      
+      - name: Upload docs artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-docs
+          path: |
+            docs/api/
+            docs/20-backend/
+            docs/maps/
+          retention-days: 30
+
+  smoke:
+    name: Smoke Test - ${{ matrix.mode }}
+    runs-on: ubuntu-latest
+    needs: build-docs-and-guard-deps
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [dev, docker-dev, prod-dryrun, tests]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      # Mode: dev (pnpm dev smoke test)
+      - name: Start pnpm dev (short boot)
+        if: matrix.mode == 'dev'
+        run: |
+          echo "🚀 Starting development servers..."
+          pnpm prisma:generate
+          nohup pnpm dev > dev.log 2>&1 &
+          DEV_PID=$!
+          
+          echo "⏳ Waiting 30 seconds for services to boot..."
+          sleep 30
+          
+          echo "🏥 Health checks from docs/50-ops/Service-Health.md"
+          
+          # Client health check
+          echo "Checking Client (localhost:5173)..."
+          curl -f http://localhost:5173/ || (echo "Client failed" && tail -n 100 dev.log && exit 1)
+          
+          # Server API health check
+          echo "Checking Server API (localhost:3000/api/health)..."
+          curl -f http://localhost:3000/api/health || (echo "Server failed" && tail -n 100 dev.log && exit 1)
+          
+          # Artboard health check
+          echo "Checking Artboard (localhost:6173/artboard/)..."
+          curl -f http://localhost:6173/artboard/ || (echo "Artboard failed" && tail -n 100 dev.log && exit 1)
+          
+          echo "✅ All dev services healthy"
+          
+          # Cleanup
+          kill $DEV_PID || true
+          pkill -f "nx run-many" || true
+      
+      # Mode: docker-dev (unified-docker-compose.yml smoke test)
+      - name: Docker dev stack smoke test
+        if: matrix.mode == 'docker-dev'
+        run: |
+          echo "🐳 Starting unified Docker stack..."
+          docker compose -f unified-docker-compose.yml up -d
+          
+          echo "⏳ Waiting 45 seconds for services to initialize..."
+          sleep 45
+          
+          echo "🏥 Health checks from docs/50-ops/Service-Health.md"
+          
+          # PostgreSQL checks
+          echo "Checking PostgreSQL (main)..."
+          docker exec reactive-resume-postgres pg_isready -U reactive_resume || exit 1
+          
+          echo "Checking PostgreSQL (Skyvern)..."
+          docker exec skyvern-postgres pg_isready -U skyvern || exit 1
+          
+          # Redis checks
+          echo "Checking Redis (main)..."
+          docker exec reactive-resume-redis redis-cli ping || exit 1
+          
+          echo "Checking Redis (Skyvern)..."
+          docker exec skyvern-redis redis-cli ping || exit 1
+          
+          # HTTP service checks
+          echo "Checking MinIO..."
+          curl -f http://localhost:9000/minio/health/live || exit 1
+          
+          echo "Checking MinIO Console..."
+          curl -I http://localhost:9001 || exit 1
+          
+          echo "Checking Chrome..."
+          curl -f http://localhost:3001/json/version || exit 1
+          
+          echo "Checking Skyvern UI..."
+          curl -I http://localhost:8081 || exit 1
+          
+          echo "Checking Ollama..."
+          curl -f http://localhost:11434/api/version || exit 1
+          
+          # Note: Skyvern API requires API keys, may not be fully healthy in CI
+          echo "Checking Skyvern API (container status)..."
+          docker ps --filter name=skyvern-api --format "{{.Status}}" | grep -q "Up" || exit 1
+          
+          echo "✅ All Docker services healthy"
+          
+          # Show final status
+          docker compose -f unified-docker-compose.yml ps
+          
+          # Cleanup
+          docker compose -f unified-docker-compose.yml down -v
+      
+      # Mode: prod-dryrun (validate production compose)
+      - name: Production compose dry-run
+        if: matrix.mode == 'prod-dryrun'
+        run: |
+          echo "🌐 Validating production compose file..."
+          docker compose -f self-hosted-infrastructure.yml config -q
+          
+          echo "✅ Production compose configuration valid"
+          
+          # Show service count
+          SERVICES=$(docker compose -f self-hosted-infrastructure.yml config --services | wc -l)
+          echo "📊 Services defined: $SERVICES"
+      
+      # Mode: tests (run test suite)
+      - name: Run tests
+        if: matrix.mode == 'tests'
+        run: |
+          echo "🧪 Running test suite..."
+          pnpm test -- --passWithNoTests
+          
+          echo "✅ Tests passed"
+
+  docs-validation:
+    name: Validate Documentation
+    runs-on: ubuntu-latest
+    needs: build-docs-and-guard-deps
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download generated docs
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-docs
+          path: docs-generated/
+      
+      - name: Verify docs exist
+        run: |
+          echo "📚 Verifying generated documentation..."
+          
+          test -d docs-generated/api || (echo "TypeDoc not generated" && exit 1)
+          test -f docs-generated/20-backend/openapi.json || (echo "OpenAPI not generated" && exit 1)
+          test -f docs-generated/maps/depcruise-baseline.json || (echo "Dependency baseline not found" && exit 1)
+          
+          echo "✅ All documentation artifacts present"
+      
+      - name: Check for broken links (optional)
+        run: |
+          echo "🔗 Checking for common documentation issues..."
+          
+          # Check if canonical compose files are referenced correctly
+          grep -r "unified-docker-compose.yml" docs/ > /dev/null || echo "⚠️  No references to canonical dev compose"
+          grep -r "self-hosted-infrastructure.yml" docs/ > /dev/null || echo "⚠️  No references to canonical prod compose"
+          
+          # Check that deprecated files aren't referenced (except in archive/Phase docs)
+          if grep -r "docker-compose.skyvern.yml" docs/ --exclude-dir="_archive" --exclude="*Phase-*" --exclude="*Report*" | grep -v "_scratch"; then
+            echo "⚠️  Found references to deprecated compose files (may be historical)"
+          fi
+          
+          echo "✅ Documentation validation complete"
+
+  summary:
+    name: CI Summary
+    runs-on: ubuntu-latest
+    needs: [build-docs-and-guard-deps, smoke, docs-validation]
+    if: always()
+    steps:
+      - name: Check overall status
+        run: |
+          echo "📊 CI Pipeline Summary"
+          echo "======================"
+          echo ""
+          echo "Docs & Deps: ${{ needs.build-docs-and-guard-deps.result }}"
+          echo "Smoke Tests: ${{ needs.smoke.result }}"
+          echo "Docs Validation: ${{ needs.docs-validation.result }}"
+          echo ""
+          
+          if [ "${{ needs.build-docs-and-guard-deps.result }}" == "success" ] && \
+             [ "${{ needs.smoke.result }}" == "success" ] && \
+             [ "${{ needs.docs-validation.result }}" == "success" ]; then
+            echo "✅ All checks passed!"
+            exit 0
+          else
+            echo "❌ Some checks failed"
+            exit 1
+          fi
+
