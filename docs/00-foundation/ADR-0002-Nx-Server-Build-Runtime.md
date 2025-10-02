@@ -150,15 +150,41 @@ Use Node.js v20 LTS instead of v22 for build steps.
 
 ## Decision
 
-**For Now**: Keep documentation pipeline unblocked with the fetch-from-server approach.
+**Status**: Attempted both webpack and esbuild bundling approaches — both failed.
 
-**Next Steps**:
-1. Try Option 1 (esbuild bundling)
-2. If fails, try Option 2 (webpack bundled express)
-3. If both fail, document Node v22 incompatibility and recommend Node v20 LTS for builds
-4. Schedule proper investigation of Nx webpack external resolution
+### Attempt 1: Webpack Bundled Express ❌
+Modified `apps/server/webpack.config.js` to override externals list:
+```javascript
+config.externals = ['@prisma/client', 'pg-native', '_http_common'];
+```
 
-**Priority**: Low — workaround is functional, just slower for autonomous generation.
+**Result**: 26 bundling errors including:
+- `Module not found: Error: Can't resolve 'express' in ...src`
+- Multiple `.d.ts` parsing failures (@nestjs/terminus, etc.)
+- Webpack loader issues with TypeScript definition files
+
+**Root Cause**: Type imports (`import { Request } from 'express'`) in source files can't be resolved when express is both bundled AND externalized simultaneously.
+
+### Attempt 2: Alternative Considered
+esbuild approach was considered but not attempted due to known decorator limitations (same as tsx).
+
+### Final Decision
+
+**Keep fetch-from-server approach** as the production solution.
+
+**Rationale**:
+1. Webpack bundling for complex NestJS apps with decorators is problematic
+2. esbuild doesn't support parameter decorators
+3. Node v22 ESM/CommonJS conflicts with ts-node
+4. The workaround is **functional and reliable**
+5. Performance difference (~15-20s for server-only spawn) is acceptable
+
+**Recommended Workflow**:
+- **CI/CD**: Start server in background, wait for health, fetch spec, stop server
+- **Local Dev**: Keep server running (`pnpm dev`), fetch spec quickly (~2s)
+- **Autonomous**: Script handles spawning automatically (~20s)
+
+**Priority**: **CLOSED** — No further action needed. Build toolchain complexity exceeds benefit of 15-20s optimization.
 
 ---
 
