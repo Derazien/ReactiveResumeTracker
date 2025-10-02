@@ -39,7 +39,19 @@ function addEntry(entry, type, referencedBy, command = null, description = null)
     referencedBy,
     command,
     description,
-    status: 'untriaged'
+    status: 'untriaged' // Will be updated by classification
+  });
+}
+
+/**
+ * Apply classification to catalog
+ */
+function applyClassification() {
+  const classifyScript = path.join(__dirname, 'classify-runpaths.js');
+  const { classifyEntry } = require(classifyScript);
+  
+  catalog.forEach(entry => {
+    entry.status = classifyEntry(entry);
   });
 }
 
@@ -398,6 +410,10 @@ function main() {
     findRootScripts();
     parseMarkdownFiles();
     
+    // Apply classification
+    console.log('🔍 Applying classification...\n');
+    applyClassification();
+    
     // Generate markdown
     const markdown = generateMarkdown();
     
@@ -407,8 +423,18 @@ function main() {
     console.log(`\n✅ Catalog generated: ${OUTPUT_FILE}`);
     console.log(`📊 Total entries: ${catalog.length}\n`);
     
-    // Print summary table
-    console.log('Summary by Type:');
+    // Print summary by status
+    console.log('Summary by Status:');
+    console.log('─────────────────────────────────────');
+    const byStatus = {};
+    catalog.forEach(entry => {
+      byStatus[entry.status] = (byStatus[entry.status] || 0) + 1;
+    });
+    Object.entries(byStatus).sort().forEach(([status, count]) => {
+      console.log(`  ${status.padEnd(15)} ${count}`);
+    });
+    
+    console.log('\nSummary by Type:');
     console.log('─────────────────────────────────────');
     const byType = {};
     catalog.forEach(entry => {

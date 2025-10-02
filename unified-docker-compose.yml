@@ -112,26 +112,44 @@ services:
       DATABASE_STRING: postgresql+psycopg://skyvern:skyvern123@skyvern-postgres:5432/skyvern
       REDIS_URL: redis://skyvern-redis:6379
       BROWSER_TYPE: chromium-headful
+      CHROME_USER_DATA_DIR: /tmp/chrome-user-data
+      ENABLE_CODE_BLOCK: "true"
+      ENABLE_ANTHROPIC: "true"
+      LLM_KEY: ANTHROPIC_CLAUDE3.5_HAIKU
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
       SKYVERN_API_KEY: ${SKYVERN_API_KEY}
-      SKYVERN_TELEMETRY: false
+      SKYVERN_TELEMETRY: "false"
       ALLOWED_HOSTS: '["66.96.83.44", "localhost", "127.0.0.1"]'
+      BLOCKED_HOSTS: "[]"
+      API_PORT: "8000"
     ports:
-      - "8000:8000"
+      - "8000:8000"    # API
+      - "9222:9222"    # Chrome debugging
+      - "5900:5900"    # VNC access
     depends_on:
       - skyvern-postgres
       - skyvern-redis
     volumes:
       - skyvern_data:/app/data
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8000/docs"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   # Skyvern UI (Existing)
   skyvern-ui:
-    image: skyvern/skyvern-ui:latest
+    image: public.ecr.aws/skyvern/skyvern-ui:latest
     container_name: skyvern-ui
     ports:
       - "8081:8080"
+      - "9091:9090"    # Artifact server
     environment:
+      VITE_API_BASE_URL: http://localhost:8000/api/v1
+      VITE_WSS_BASE_URL: ws://localhost:8000/api/v1
+      VITE_ARTIFACT_API_BASE_URL: http://localhost:9091
+      VITE_SKYVERN_API_KEY: ${SKYVERN_API_KEY}
       SKYVERN_API_URL: http://skyvern:8000
     depends_on:
       - skyvern
