@@ -1,3 +1,6 @@
+import { writeFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
@@ -62,6 +65,15 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("docs", app, document);
+
+  // Export OpenAPI JSON if requested
+  if (process.env.EXPORT_OPENAPI === "true") {
+    const outputPath = join(process.cwd(), "docs", "20-backend", "openapi.json");
+    writeFileSync(outputPath, JSON.stringify(document, null, 2), "utf8");
+    Logger.log(`📄 OpenAPI specification exported to: ${outputPath}`, "OpenAPI");
+    await app.close();
+    process.exit(0);
+  }
 
   // Port
   const port = configService.get<number>("PORT") ?? 3000;

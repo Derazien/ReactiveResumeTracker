@@ -242,21 +242,18 @@ pnpm format            # Format code
 ## APIs & Contracts
 
 ### OpenAPI Specification
-**Location**: `docs/20-backend/openapi.json` (placeholder)
+**Location**: `docs/20-backend/openapi.json`
 
-**To generate full spec**:
-```bash
-# Start server in one terminal
-pnpm dev
+**Generate**: `pnpm docs:openapi`
 
-# In another terminal, export live spec
-curl http://localhost:3000/docs-json > docs/20-backend/openapi.json
+**How it works**:
+1. Checks if spec is up-to-date (compares with server source files)
+2. Tries to fetch from running server (`http://localhost:3000/docs-json`)
+3. If server not running, spawns it temporarily to fetch spec
 
-# OR visit Swagger UI
-open http://localhost:3000/docs
-```
+**Manual alternative**: Start server with `pnpm dev`, then run script for faster fetch.
 
-**Script**: `pnpm docs:openapi` (generates placeholder)
+**View**: Visit `http://localhost:3000/docs` for Swagger UI (when server is running)
 
 ### API Endpoints (Selection)
 
@@ -603,13 +600,16 @@ Once Phase C is complete:
 
 ### OpenAPI Generation
 
-**Current State**: Placeholder generated; full spec requires running server  
+**Status**: Fully automated  
 **Location**: `docs/20-backend/openapi.json`
 
-**To Generate Full Spec**:
-1. Start server: `pnpm dev`
-2. Export: `curl http://localhost:3000/docs-json > docs/20-backend/openapi.json`
-3. Or visit: `http://localhost:3000/docs`
+**Generate**: `pnpm docs:openapi`
+
+The script automatically:
+- Checks if regeneration is needed
+- Spawns server temporarily if not already running
+- Fetches and saves the OpenAPI specification
+- Provides spec summary (endpoints, schemas count)
 
 ---
 
