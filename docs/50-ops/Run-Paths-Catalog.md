@@ -13,8 +13,8 @@
 
 ## Summary
 
-- **Total Entries:** 136
-- **Canonical:** 40
+- **Total Entries:** 146
+- **Canonical:** 50
 - **Active:** 33
 - **Deprecated:** 28
 - **Duplicate:** 29
@@ -161,6 +161,16 @@
 | RP0134 | `-f docker-compose.skyvern.y...` | docs-command | active | 1 | 8d | 0 | 10% | cross | - |
 | RP0135 | `ps --filter name=skyvern` | docs-command | active | 3 | 8d | 0 | 10% | cross | - |
 | RP0136 | `logs skyvern-api | findstr ...` | findstr "API"` | active | 2 | 8d | 0 | 10% | cross | - |
+| RP0137 | `dev:server` | npm-script | canonical | - | - | 0 | 0% | cross | - |
+| RP0138 | `docs:maps` | npm-script | canonical | - | - | 0 | 0% | cross | - |
+| RP0139 | `docs:api` | npm-script | canonical | - | - | 0 | 0% | cross | - |
+| RP0140 | `docs:openapi` | npm-script | canonical | - | - | 0 | 0% | cross | - |
+| RP0141 | `docs:all` | npm-script | canonical | - | - | 0 | 0% | cross | - |
+| RP0142 | `check:deps` | npm-script | canonical | - | - | 0 | 0% | cross | - |
+| RP0143 | `check:docs` | npm-script | canonical | - | - | 0 | 0% | cross | - |
+| RP0144 | `scripts/win/start-local.ps1` | script-ps1 | canonical | - | - | 1 | 0% | win-only | Windows local dev with Docker + port cleanup |
+| RP0145 | `scripts/production/deploy-server.sh` | script-sh | canonical | - | - | 1 | 0% | linux-only | Linux server deploy with PM2, Docker, migrations |
+| RP0146 | `scripts/production/deploy-server.ps1` | script-ps1 | canonical | - | - | 1 | 0% | win-only | Windows server deploy with PM2, Docker, migrations |
 
 ## Summary by Status
 

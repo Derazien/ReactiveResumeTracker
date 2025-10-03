@@ -227,3 +227,13 @@ POST /api/job-applications/{id}/generate-cover-letter
 
 
 
+
+
+
+
+
+
+
+
+
+

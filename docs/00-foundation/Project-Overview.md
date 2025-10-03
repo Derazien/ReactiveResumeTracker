@@ -35,9 +35,58 @@ The primary goal is to streamline the job application process by combining resum
 
 ### External Services
 
-| Service | Purpose | Location |
-|---------|---------|----------|
-| **Skyvern** | Web automation for LinkedIn job scraping | `services/skyvern/` (submodule) |
+| Service | Purpose | Configuration | Documentation |
+|---------|---------|---------------|---------------|
+| **Skyvern** | Web automation for LinkedIn job scraping (optional) | See "Skyvern Integration" below | [Skyvern Docs](https://docs.skyvern.com) |
+
+#### Skyvern Integration (External Service)
+
+**Status**: Optional external service (not bundled)  
+**Purpose**: Browser automation for LinkedIn job extraction using LLMs and computer vision
+
+**Configuration** (`.env`):
+```bash
+# Enable/disable Skyvern globally
+SKYVERN_ENABLED=false                    # Default: disabled
+
+# Base URL of your Skyvern instance
+SKYVERN_BASE_URL=http://localhost:8000  # Local instance
+# SKYVERN_BASE_URL=https://api.skyvern.com  # Skyvern Cloud
+# SKYVERN_BASE_URL=https://skyvern.yourcompany.com  # Self-hosted
+
+# HTTP request timeout (milliseconds)
+SKYVERN_TIMEOUT_MS=30000                 # Default: 30 seconds
+```
+
+**User Configuration**:
+- Users configure their personal Skyvern API keys in app Settings → Automation
+- API keys are stored per-user in the database (`UserLLMSettings` table)
+- Each user can use different Skyvern instances/organizations
+
+**Behavior**:
+- When `SKYVERN_ENABLED=false`: Automation endpoints return `501 Not Implemented`
+- When `SKYVERN_ENABLED=true`: Automation endpoints proxy requests to `SKYVERN_BASE_URL`
+- Server-level config controls global availability; users control their own API keys
+
+**Deployment Options**:
+1. **Local Development**: Run Skyvern separately (`cd /path/to/skyvern && docker compose up -d`)
+2. **Remote Server**: Point to self-hosted instance (`SKYVERN_BASE_URL=https://skyvern.yourserver.com`)
+3. **Skyvern Cloud**: Use hosted service (`SKYVERN_BASE_URL=https://api.skyvern.com`)
+4. **Disabled**: Set `SKYVERN_ENABLED=false` to disable automation features
+
+**Integration Module**: `apps/server/src/integrations/skyvern/`
+- `SkyvernClient` - HTTP client with configuration-based URLs
+- `SkyvernEnabledGuard` - Feature guard (returns 501 when disabled)
+- Consumed by `AutomationIntegrationController` for all Skyvern operations
+
+**Health Check**:
+```bash
+# Verify Skyvern is reachable
+curl ${SKYVERN_BASE_URL}/docs
+
+# Check integration status
+curl http://localhost:3000/api/automation/status
+```
 
 ---
 
@@ -146,12 +195,15 @@ The primary goal is to streamline the job application process by combining resum
 - Filter and search by tags
 - Tag-based content organization
 
-### 8. Automation Integration (Skyvern)
-**Path**: `apps/server/src/automation-integration.controller.ts`
-- LinkedIn job search automation with filters
+### 8. Automation Integration (Skyvern - Optional)
+**Path**: `apps/server/src/automation-integration.controller.ts`, `apps/server/src/integrations/skyvern/`
+- **Optional external service** - disabled by default (`SKYVERN_ENABLED=false`)
+- LinkedIn job search automation with filters (when enabled)
 - Company research and contact extraction
 - Webhook-based data flow
 - Real-time status monitoring
+- Centralized HTTP client with configurable base URL
+- Feature guards return 501 when disabled
 
 ---
 
@@ -171,10 +223,14 @@ pnpm dev
 - Backend API: `http://localhost:3000`
 - Health check: `http://localhost:3000/api/health`
 
-### Local (Docker full stack) — All Services
+### Local (Docker full stack) — Core Services
 
 ```bash
+# Start core infrastructure (Postgres, Redis, MinIO, Chrome, Ollama)
 docker compose -f unified-docker-compose.yml up -d
+
+# Optional: Start Skyvern services (if needed for automation)
+docker compose --profile skyvern -f unified-docker-compose.yml up -d
 ```
 
 **Services started**:

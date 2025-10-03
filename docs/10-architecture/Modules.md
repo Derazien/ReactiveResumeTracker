@@ -494,17 +494,70 @@ Visual dependency graphs are available for the full repository and individual ap
 
 ---
 
+## External Integrations
+
+### integrations/skyvern
+**Path**: `apps/server/src/integrations/skyvern/`  
+**Purpose**: External service integration for Skyvern browser automation  
+**Status**: Optional external service (disabled by default)
+
+**Configuration** (from `.env`):
+- `SKYVERN_ENABLED` — Enable/disable globally (default: `false`)
+- `SKYVERN_BASE_URL` — Skyvern instance URL (default: `http://localhost:8000`)
+- `SKYVERN_TIMEOUT_MS` — HTTP timeout (default: `30000`)
+
+**Module Structure**:
+```
+integrations/skyvern/
+├── skyvern.client.ts             # HTTP client with config-based URLs
+├── skyvern.module.ts              # NestJS module
+├── guards/
+│   └── skyvern-enabled.guard.ts  # Feature guard (returns 501 when disabled)
+└── index.ts                       # Clean exports
+```
+
+**Key Exports**:
+- **`SkyvernClient`** — Centralized HTTP client
+  - `get(endpoint, apiKey)` — GET request to Skyvern API
+  - `post(endpoint, apiKey, body)` — POST request
+  - `delete(endpoint, apiKey)` — DELETE request
+  - `checkHealth()` — Verify Skyvern is reachable
+  - `getWebhookCallbackUrl(userId)` — Build webhook URL
+  - `isEnabled()`, `getBaseUrl()`, `getTimeout()` — Config accessors
+
+- **`SkyvernEnabledGuard`** — Returns `501 Not Implemented` when disabled
+
+**Consumed By**: `AutomationIntegrationController`
+
+**Behavior**:
+- When `SKYVERN_ENABLED=false`: Guard returns 501
+- When enabled: Proxies to `SKYVERN_BASE_URL`
+- User API keys in database (`UserLLMSettings.skyvernApiKey`)
+
+**Deployment**:
+- Skyvern runs **independently** (not in `unified-docker-compose.yml` by default)
+- Optional: `docker compose --profile skyvern up -d`
+- Or remote: `SKYVERN_BASE_URL=https://skyvern.yourcompany.com`
+
+**Inbound**: ConfigService  
+**Outbound**: None (HTTP only)
+
+---
+
 ## Special Controllers
 
 ### automation-integration.controller.ts
-**Purpose**: Integration with Skyvern automation engine
+**Purpose**: Automation endpoints using Skyvern integration  
+**Path**: `apps/server/src/automation-integration.controller.ts`
 
 **Standalone Controller** (no module):
 - `executeLinkedInWorkflow()` — LinkedIn job search automation
 - `handleLinkedInJobSearchCallback()` — Webhook handler
 - `handleCompanyResearchCallback()` — Company data webhook
 
-**Dependencies**: job-application, company, contact
+**Dependencies**: job-application, company, contact, **SkyvernClient**
+
+**Note**: All Skyvern HTTP calls go through `SkyvernClient` (no hardcoded URLs)
 
 ---
 

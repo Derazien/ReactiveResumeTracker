@@ -1,100 +1,194 @@
 # ReactiveResumeTracker Documentation
 
-Welcome to the ReactiveResumeTracker documentation! This folder contains comprehensive documentation for the AI-powered resume builder with job application tracking and smart content management.
+Welcome to the official documentation for **ReactiveResumeTracker** - an AI-powered resume builder with intelligent job application tracking and smart content management.
 
-## 📚 Documentation Index
+---
 
-### 🏗️ **Core Documentation**
-- **[COMPREHENSIVE_PROJECT_DOCUMENTATION.md](./COMPREHENSIVE_PROJECT_DOCUMENTATION.md)** - Complete project overview, architecture, and tech stack
-- **[PROJECT_CONTEXT.md](./PROJECT_CONTEXT.md)** - Current implementation status, key patterns, and development guidelines
-- **[LLM_SETUP.md](./LLM_SETUP.md)** - LLM configuration and setup guide for Anthropic Claude, OpenAI, and local models
+## 📚 Canonical Documentation Structure
 
-### 🚀 **Feature Documentation**
-- **[FUTURE_RESUME_TAILORING_ENHANCEMENTS.md](./FUTURE_RESUME_TAILORING_ENHANCEMENTS.md)** - Future roadmap and planned features
-- **[EXPERIENCE_MATCHING_IMPROVEMENTS.md](./EXPERIENCE_MATCHING_IMPROVEMENTS.md)** - Current job priority implementation and experience matching logic
-- **[RAG_SYSTEM_DOCUMENTATION.md](./RAG_SYSTEM_DOCUMENTATION.md)** - Content matching and retrieval system implementation
-- **[RAG_SYSTEM_SUMMARY.md](./RAG_SYSTEM_SUMMARY.md)** - RAG system overview and architecture
-- **[FORM_FIELD_EDITING_FIX.md](./FORM_FIELD_EDITING_FIX.md)** - Form synchronization solution for section dialogs
+> **Golden Order of Truth**: Foundation → Architecture → Backend → Operations → Guides
 
-### 🤖 **Automation Integration**
-- **[AUTOMATION_INTEGRATION_SUMMARY.md](./AUTOMATION_INTEGRATION_SUMMARY.md)** - Complete implementation summary and architecture
-- **[automation/QUICKSTART.md](./automation/QUICKSTART.md)** - Complete automation setup and usage guide
-- **[automation/LINKEDIN_AUTOMATION.md](./automation/LINKEDIN_AUTOMATION.md)** - Comprehensive LinkedIn workflow guide  
-- **[automation/SETUP_AND_TROUBLESHOOTING.md](./automation/SETUP_AND_TROUBLESHOOTING.md)** - Technical setup and debugging
-- **[automation/SYSTEM_ARCHITECTURE_ANALYSIS.md](./automation/SYSTEM_ARCHITECTURE_ANALYSIS.md)** - Complete technical analysis
+### 🏛️ Foundation (`00-foundation/`)
 
-### 🔧 **Technical Reference**
-- **[RESUME_SECTIONS_DATA_STRUCTURE_REFERENCE.md](./RESUME_SECTIONS_DATA_STRUCTURE_REFERENCE.md)** - Complete resume data structure reference
-- **[TEMPLATE_CREATION_GUIDE.md](./TEMPLATE_CREATION_GUIDE.md)** - Template creation guidelines and best practices
-- **[REACTIVE_RESUME_TRACKER_DOCS.md](./REACTIVE_RESUME_TRACKER_DOCS.md)** - Additional technical documentation and implementation details
-- **[PDF_SIZE_OPTIMIZATION_GUIDE.md](./PDF_SIZE_OPTIMIZATION_GUIDE.md)** - PDF generation optimization and file size reduction
+**Core project documentation** - Start here for understanding the system
 
-## 🎯 **Quick Start Guide**
+- **[Project-Overview.md](00-foundation/Project-Overview.md)** ⭐ — Complete system architecture, tech stack, and features
+- **[Glossary.md](00-foundation/Glossary.md)** — Term definitions and naming conventions
+- **[ADR-*.md](00-foundation/)** — Architecture Decision Records
+
+### 🏗️ Architecture (`10-architecture/`)
+
+**System design and patterns** - How components work together
+
+- **[Modules.md](10-architecture/Modules.md)** — Module organization and dependencies
+- **[RAG-System.md](10-architecture/RAG-System.md)** — Content matching and retrieval architecture
+- **[Content-Matching.md](10-architecture/Content-Matching.md)** — Experience matching algorithms
+- **[Enhanced-RAG.md](10-architecture/Enhanced-RAG.md)** — Advanced RAG enhancements
+
+### 🔌 Backend (`20-backend/`)
+
+**API contracts and schemas** - Technical specifications
+
+- **[openapi.json](20-backend/openapi.json)** — Complete API specification
+- **[Schema-Reference.md](20-backend/Schema-Reference.md)** — Database schemas and data structures
+
+### ⚙️ Operations (`50-ops/`)
+
+**Deployment and execution** - How to run and maintain the system
+
+- **[Phase-E-Server-Deployment-Guide.md](50-ops/Phase-E-Server-Deployment-Guide.md)** ⭐ — Complete deployment procedures
+- **[Phase-E-Archiving-Plan.md](50-ops/Phase-E-Archiving-Plan.md)** — Documentation organization strategy
+- **[Run-Paths-Catalog.md](50-ops/Run-Paths-Catalog.md)** — All executable commands and scripts
+- **[Docker-Services.md](50-ops/Docker-Services.md)** — Service configurations
+- **[Service-Health.md](50-ops/Service-Health.md)** — Health check commands
+- **[SQLITE_TO_POSTGRES_MIGRATION.md](50-ops/SQLITE_TO_POSTGRES_MIGRATION.md)** — Database migration reference
+
+### 📖 User Guides (`guides/`)
+
+**How-to guides** - Practical instructions for specific tasks
+
+- **[TEMPLATE-CREATION.md](guides/TEMPLATE-CREATION.md)** — Create custom resume templates
+- **[PDF-SIZE-OPTIMIZATION.md](guides/PDF-SIZE-OPTIMIZATION.md)** — Optimize PDF generation
+- **[COVER-LETTER-QUICK-START.md](guides/COVER-LETTER-QUICK-START.md)** — Cover letter generator quick start
+- **[OPENAI-WHISPER-TRANSCRIPTION.md](guides/OPENAI-WHISPER-TRANSCRIPTION.md)** — Voice-to-text integration
+
+### ✉️ Cover Letter System (`cover-letters/`)
+
+**Cover letter implementation** - How the cover letter generation system works
+
+- **[COVER_LETTER_SYSTEM_IMPLEMENTATION_COMPLETE.md](cover-letters/COVER_LETTER_SYSTEM_IMPLEMENTATION_COMPLETE.md)** — Complete implementation details
+- **[COVER_LETTER_SYSTEM_CONSOLIDATION.md](cover-letters/COVER_LETTER_SYSTEM_CONSOLIDATION.md)** — System consolidation notes
+- **[COVER_LETTER_MANUAL_TESTING_GUIDE.md](cover-letters/COVER_LETTER_MANUAL_TESTING_GUIDE.md)** — Testing procedures
+
+### 🗺️ Roadmap (`roadmap/`)
+
+**Future plans** - Planned features and enhancements
+
+- **[FUTURE_RESUME_TAILORING_ENHANCEMENTS.md](roadmap/FUTURE_RESUME_TAILORING_ENHANCEMENTS.md)** — Resume tailoring roadmap
+- **[RAG_ENHANCEMENT_ROADMAP.md](roadmap/RAG_ENHANCEMENT_ROADMAP.md)** — RAG system improvements
+
+### 🤖 Automation (`automation/`)
+
+**LinkedIn automation** - Skyvern integration guides
+
+- **[QUICKSTART.md](automation/QUICKSTART.md)** — Quick start guide
+- **[LINKEDIN_AUTOMATION.md](automation/LINKEDIN_AUTOMATION.md)** — LinkedIn workflow guide
+- **[SETUP_AND_TROUBLESHOOTING.md](automation/SETUP_AND_TROUBLESHOOTING.md)** — Technical setup
+- **[SYSTEM_ARCHITECTURE_ANALYSIS.md](automation/SYSTEM_ARCHITECTURE_ANALYSIS.md)** — Architecture analysis
+- **[SKYVERN_BLOCK_TYPES_REFERENCE.md](automation/SKYVERN_BLOCK_TYPES_REFERENCE.md)** — Block types reference
+
+### 📁 Generated Documentation
+
+- **[api/](api/)** — TypeDoc API documentation (auto-generated)
+- **[maps/](maps/)** — Dependency graphs (auto-generated)
+
+### 📦 Archive (`_archive/`)
+
+**Historical reference** - Old documentation and completed work
+
+See [_archive/README.md](_archive/README.md) for details. Do not use for current development.
+
+---
+
+## 🚀 Quick Start
 
 ### For New Developers
-1. Start with **[COMPREHENSIVE_PROJECT_DOCUMENTATION.md](./COMPREHENSIVE_PROJECT_DOCUMENTATION.md)** for project overview
-2. Read **[PROJECT_CONTEXT.md](./PROJECT_CONTEXT.md)** for current implementation status
-3. Follow **[LLM_SETUP.md](./LLM_SETUP.md)** to configure AI services
-4. Review **[FORM_FIELD_EDITING_FIX.md](./FORM_FIELD_EDITING_FIX.md)** for form patterns
+
+1. **Read** [Project-Overview.md](00-foundation/Project-Overview.md) — Understand the system
+2. **Follow** [Phase-E-Server-Deployment-Guide.md](50-ops/Phase-E-Server-Deployment-Guide.md) — Set up environment
+3. **Configure** [USER_LLM_CONFIGURATION_GUIDE.md](USER_LLM_CONFIGURATION_GUIDE.md) — Configure AI providers
+4. **Review** [Modules.md](10-architecture/Modules.md) — Understand code organization
 
 ### For Feature Development
-1. Check **[FUTURE_RESUME_TAILORING_ENHANCEMENTS.md](./FUTURE_RESUME_TAILORING_ENHANCEMENTS.md)** for planned features
-2. Review **[RAG_SYSTEM_DOCUMENTATION.md](./RAG_SYSTEM_DOCUMENTATION.md)** for content matching
-3. Consult **[RESUME_SECTIONS_DATA_STRUCTURE_REFERENCE.md](./RESUME_SECTIONS_DATA_STRUCTURE_REFERENCE.md)** for data structures
+
+1. **Check** [roadmap/](roadmap/) — See planned features
+2. **Review** [10-architecture/](10-architecture/) — Understand current architecture
+3. **Consult** [20-backend/openapi.json](20-backend/openapi.json) — API contracts
+4. **Follow** [00-foundation/Project-Overview.md](00-foundation/Project-Overview.md) — Implementation rules
+
+### For Operations/Deployment
+
+1. **Follow** [Phase-E-Server-Deployment-Guide.md](50-ops/Phase-E-Server-Deployment-Guide.md) — Complete deployment
+2. **Reference** [Run-Paths-Catalog.md](50-ops/Run-Paths-Catalog.md) — All commands
+3. **Check** [Docker-Services.md](50-ops/Docker-Services.md) — Service configurations
+4. **Use** [Service-Health.md](50-ops/Service-Health.md) — Health checks
 
 ### For Bug Fixes
-1. Check **[FORM_FIELD_EDITING_FIX.md](./FORM_FIELD_EDITING_FIX.md)** for form-related issues
-2. Review **[PROJECT_CONTEXT.md](./PROJECT_CONTEXT.md)** for current implementation status
-3. Consult relevant feature documentation for specific issues
 
-## 🔍 **Documentation Categories**
+1. **Check** [50-ops/Run-Paths-Catalog.md](50-ops/Run-Paths-Catalog.md) — Find canonical scripts
+2. **Review** [10-architecture/Modules.md](10-architecture/Modules.md) — Module boundaries
+3. **Consult** [20-backend/openapi.json](20-backend/openapi.json) — API contracts
+4. **Search** codebase using Golden Order of Truth (see below)
 
-### **Architecture & Setup**
-- Project overview and tech stack
-- Development environment setup
-- LLM configuration
-- Database schema
+---
 
-### **Core Features**
-- Job application tracking
-- Content library management
-- Resume tailoring
-- AI-powered editing
+## 🔍 Golden Order of Truth
 
-### **Technical Implementation**
-- Form patterns and synchronization
-- Content matching algorithms
-- RAG system architecture
-- Data structures and schemas
-- PDF generation optimization
+When searching for answers, use this priority order:
 
-### **Development Guidelines**
-- Code patterns and best practices
-- Service architecture rules
-- Frontend component patterns
-- Testing and validation
+1. **Foundation & Architecture** (`00-foundation/`, `10-architecture/`) — System design
+2. **API Contracts** (`20-backend/openapi.json`) — API specifications
+3. **Generated Docs** (`api/`, `maps/`) — TypeDoc and dependency graphs
+4. **Operations** (`50-ops/`) — Deployment and execution
+5. **Source Code** (`apps/`, `libs/`) — Implementation details
 
-## 📝 **Documentation Standards**
+---
 
-All documentation follows these standards:
-- **Clear structure** with headers and sections
-- **Code examples** for implementation details
-- **Architecture diagrams** where helpful
-- **Step-by-step guides** for complex processes
-- **Cross-references** to related documentation
+## 📝 Documentation Standards
 
-## 🔄 **Keeping Documentation Updated**
+All documentation follows these principles:
 
-When making changes to the codebase:
-1. **Update relevant documentation** files
-2. **Add new documentation** for new features
-3. **Update this index** if adding new files
-4. **Update .cursorrules** with new documentation references
+- ✅ **Clear hierarchy** — Foundation → Architecture → Backend → Operations → Guides
+- ✅ **Single source of truth** — No redundant documentation
+- ✅ **Cross-references** — Link to related docs
+- ✅ **Code examples** — Show don't tell
+- ✅ **Up-to-date** — Run `pnpm docs:all` after changes
 
-## 📞 **Need Help?**
+---
 
-If you can't find what you're looking for:
-1. Check the **[PROJECT_CONTEXT.md](./PROJECT_CONTEXT.md)** for current implementation status
-2. Review the **[COMPREHENSIVE_PROJECT_DOCUMENTATION.md](./COMPREHENSIVE_PROJECT_DOCUMENTATION.md)** for project overview
-3. Consult the relevant feature documentation for specific functionality
-4. Check the codebase for the most up-to-date implementation details 
+## 🔄 Keeping Documentation Updated
+
+### When Making Code Changes
+
+1. **Update relevant docs** in canonical locations
+2. **Run** `pnpm docs:all` to regenerate API docs and graphs
+3. **Update** this README if adding new files
+4. **Create ADR** for significant architectural changes
+
+### Documentation Commands
+
+```bash
+# Regenerate all documentation
+pnpm docs:all
+
+# Individual commands
+pnpm docs:maps        # Dependency graphs
+pnpm docs:api         # TypeDoc API docs
+pnpm docs:openapi     # OpenAPI specification
+
+# Validation
+pnpm check:deps       # Check for circular dependencies
+pnpm check:docs       # Validate documentation integrity
+```
+
+---
+
+## 📞 Need Help?
+
+### Can't Find What You're Looking For?
+
+1. **Check** [Project-Overview.md](00-foundation/Project-Overview.md) — Overview of everything
+2. **Search** [Run-Paths-Catalog.md](50-ops/Run-Paths-Catalog.md) — All commands
+3. **Review** [Modules.md](10-architecture/Modules.md) — Code organization
+4. **Consult** [openapi.json](20-backend/openapi.json) — API reference
+
+### Documentation Issues?
+
+- Found outdated info? Update it and run `pnpm docs:all`
+- Missing documentation? Add it in the appropriate canonical location
+- Unclear documentation? Improve it and submit a PR
+
+---
+
+**Last Updated**: Phase E (2025-10-03)  
+**Maintained By**: ReactiveResumeTracker Team
