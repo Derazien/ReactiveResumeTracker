@@ -1,0 +1,15 @@
+LOAD DATABASE
+     FROM sqlite:///data/dev.db
+     INTO postgresql://reactive_resume:reactive_resume_2024@reactive-resume-postgres:5432/reactive_resume
+
+ WITH include drop, create no tables, create no indexes, reset sequences
+
+  SET work_mem to '16MB', maintenance_work_mem to '512 MB'
+
+ EXCLUDING TABLE NAMES MATCHING '_prisma_migrations'
+
+ ALTER SCHEMA 'main' RENAME TO 'public'
+;
+
+
+

@@ -1,0 +1,263 @@
+#!/usr/bin/env bash
+set -e
+
+# ============================================================================
+# Reactive Resume - Production Server Deployment (CANONICAL)
+# ============================================================================
+# 
+# This script handles complete server deployment with PM2:
+# 1. Stops existing PM2 processes
+# 2. Cleans up Docker containers and ports
+# 3. Pulls latest code and installs dependencies
+# 4. Builds the application
+# 5. Runs database migrations
+# 6. Starts services with PM2 (server + client)
+# 7. Verifies health
+#
+# Environment: Production Linux server
+# PM2 Process Names: imin_backend_dev, imin_frontend_dev
+# ============================================================================
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
+GRAY='\033[0;37m'
+NC='\033[0m' # No Color
+
+# Configuration
+PM2_BACKEND_NAME="${PM2_BACKEND_NAME:-imin_backend_dev}"
+PM2_FRONTEND_NAME="${PM2_FRONTEND_NAME:-imin_frontend_dev}"
+SERVER_PORT="${SERVER_PORT:-3000}"
+CLIENT_PORT="${CLIENT_PORT:-5173}"
+COMPOSE_FILE="self-hosted-infrastructure.yml"
+
+# Parse arguments
+SKIP_BUILD=false
+SKIP_DOCKER=false
+CLEAN_INSTALL=false
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --skip-build)
+            SKIP_BUILD=true
+            shift
+            ;;
+        --skip-docker)
+            SKIP_DOCKER=true
+            shift
+            ;;
+        --clean)
+            CLEAN_INSTALL=true
+            shift
+            ;;
+        *)
+            echo -e "${RED}Unknown option: $1${NC}"
+            exit 1
+            ;;
+    esac
+done
+
+echo -e "${CYAN}═══════════════════════════════════════════════════════${NC}"
+echo -e "${CYAN}  🚀 Reactive Resume - Production Deployment${NC}"
+echo -e "${CYAN}═══════════════════════════════════════════════════════${NC}"
+echo ""
+
+# Function to check if port is in use
+check_port() {
+    local port=$1
+    if lsof -Pi :$port -sTCP:LISTEN -t >/dev/null 2>&1; then
+        return 0  # Port is in use
+    else
+        return 1  # Port is free
+    fi
+}
+
+# Function to kill process on port
+kill_port() {
+    local port=$1
+    echo -e "   ${GRAY}Checking port $port...${NC}"
+    
+    if check_port $port; then
+        echo -e "      ${YELLOW}Port $port in use - stopping...${NC}"
+        local pids=$(lsof -ti:$port)
+        if [ ! -z "$pids" ]; then
+            kill -9 $pids 2>/dev/null || true
+            echo -e "      ${GREEN}Stopped processes on port $port${NC}"
+        fi
+    else
+        echo -e "      ${GREEN}Port $port is free${NC}"
+    fi
+}
+
+# Step 1: Stop PM2 processes
+echo -e "${YELLOW}📦 Step 1: Stopping PM2 processes...${NC}"
+echo ""
+
+if command -v pm2 &> /dev/null; then
+    echo -e "   ${GRAY}Stopping $PM2_BACKEND_NAME...${NC}"
+    pm2 stop $PM2_BACKEND_NAME 2>/dev/null || echo -e "      ${GRAY}(not running)${NC}"
+    
+    echo -e "   ${GRAY}Stopping $PM2_FRONTEND_NAME...${NC}"
+    pm2 stop $PM2_FRONTEND_NAME 2>/dev/null || echo -e "      ${GRAY}(not running)${NC}"
+    
+    echo -e "   ${GRAY}Deleting old PM2 processes...${NC}"
+    pm2 delete $PM2_BACKEND_NAME 2>/dev/null || true
+    pm2 delete $PM2_FRONTEND_NAME 2>/dev/null || true
+    
+    echo -e "   ${GREEN}✓ PM2 processes stopped${NC}"
+else
+    echo -e "   ${YELLOW}⚠ PM2 not installed - skipping${NC}"
+fi
+echo ""
+
+# Step 2: Clean up ports
+echo -e "${YELLOW}🧹 Step 2: Cleaning up ports...${NC}"
+echo ""
+
+kill_port $SERVER_PORT
+kill_port $CLIENT_PORT
+
+echo ""
+echo -e "   ${GREEN}✓ Ports cleaned${NC}"
+echo ""
+
+# Step 3: Stop Docker containers (if not skipped)
+if [ "$SKIP_DOCKER" = false ]; then
+    echo -e "${YELLOW}🐳 Step 3: Managing Docker services...${NC}"
+    echo ""
+    
+    echo -e "   ${GRAY}Stopping existing containers...${NC}"
+    docker compose -f $COMPOSE_FILE down 2>/dev/null || true
+    
+    echo -e "   ${GRAY}Starting infrastructure services...${NC}"
+    docker compose -f $COMPOSE_FILE up -d
+    
+    echo ""
+    echo -e "   ${GREEN}✓ Docker services started${NC}"
+    echo ""
+    
+    # Wait for services
+    echo -e "${YELLOW}⏳ Waiting for services to be healthy...${NC}"
+    sleep 10
+    
+    docker compose -f $COMPOSE_FILE ps
+    echo ""
+else
+    echo -e "${GRAY}⏭️  Step 3: Skipping Docker management${NC}"
+    echo ""
+fi
+
+# Step 4: Install dependencies
+echo -e "${YELLOW}📦 Step 4: Installing dependencies...${NC}"
+echo ""
+
+if [ "$CLEAN_INSTALL" = true ]; then
+    echo -e "   ${GRAY}Clean install: Removing node_modules and lock file...${NC}"
+    rm -rf node_modules pnpm-lock.yaml
+fi
+
+echo -e "   ${GRAY}Running: pnpm install --frozen-lockfile${NC}"
+pnpm install --frozen-lockfile
+
+echo ""
+echo -e "   ${GREEN}✓ Dependencies installed${NC}"
+echo ""
+
+# Step 5: Build application (if not skipped)
+if [ "$SKIP_BUILD" = false ]; then
+    echo -e "${YELLOW}🔨 Step 5: Building application...${NC}"
+    echo ""
+    
+    echo -e "   ${GRAY}Generating Prisma client...${NC}"
+    pnpm prisma:generate
+    
+    echo -e "   ${GRAY}Building all apps...${NC}"
+    pnpm build
+    
+    echo ""
+    echo -e "   ${GREEN}✓ Build complete${NC}"
+    echo ""
+else
+    echo -e "${GRAY}⏭️  Step 5: Skipping build${NC}"
+    echo ""
+fi
+
+# Step 6: Run database migrations
+echo -e "${YELLOW}🗄️  Step 6: Running database migrations...${NC}"
+echo ""
+
+echo -e "   ${GRAY}Running: pnpm prisma:migrate${NC}"
+pnpm prisma:migrate
+
+echo ""
+echo -e "   ${GREEN}✓ Migrations complete${NC}"
+echo ""
+
+# Step 7: Start with PM2
+echo -e "${YELLOW}🚀 Step 7: Starting services with PM2...${NC}"
+echo ""
+
+if ! command -v pm2 &> /dev/null; then
+    echo -e "   ${RED}❌ ERROR: PM2 is not installed!${NC}"
+    echo -e "   ${GRAY}Install with: npm install -g pm2${NC}"
+    exit 1
+fi
+
+# Start backend
+echo -e "   ${GRAY}Starting backend: $PM2_BACKEND_NAME${NC}"
+pm2 start npm --name "$PM2_BACKEND_NAME" -- run start --update-env
+
+# Wait for backend to be ready
+echo -e "   ${GRAY}Waiting for backend to be ready...${NC}"
+sleep 5
+
+# Verify backend is running
+if curl -f http://localhost:$SERVER_PORT/api/health >/dev/null 2>&1; then
+    echo -e "   ${GREEN}✓ Backend is healthy${NC}"
+else
+    echo -e "   ${YELLOW}⚠ Backend health check failed (may still be starting)${NC}"
+fi
+
+echo ""
+echo -e "   ${GREEN}✓ Services started${NC}"
+echo ""
+
+# Step 8: Display status
+echo -e "${YELLOW}📊 Step 8: Service Status${NC}"
+echo ""
+
+pm2 list
+
+echo ""
+echo -e "${GREEN}═══════════════════════════════════════════════════════${NC}"
+echo -e "${GREEN}  ✓ Deployment Complete!${NC}"
+echo -e "${GREEN}═══════════════════════════════════════════════════════${NC}"
+echo ""
+
+echo -e "${CYAN}Service URLs:${NC}"
+echo -e "   • Backend API: ${CYAN}http://localhost:$SERVER_PORT${NC}"
+echo -e "   • Health Check: ${CYAN}http://localhost:$SERVER_PORT/api/health${NC}"
+echo -e "   • API Docs: ${CYAN}http://localhost:$SERVER_PORT/docs${NC}"
+echo ""
+
+echo -e "${GRAY}Useful commands:${NC}"
+echo -e "   • View logs: ${CYAN}pm2 logs${NC}"
+echo -e "   • Restart: ${CYAN}pm2 restart all${NC}"
+echo -e "   • Stop: ${CYAN}pm2 stop all${NC}"
+echo -e "   • Monitor: ${CYAN}pm2 monit${NC}"
+echo ""
+
+# Save PM2 process list
+pm2 save
+
+echo -e "${GREEN}✓ PM2 process list saved${NC}"
+echo ""
+
+
+
+
+
+
+
