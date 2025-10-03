@@ -1,0 +1,196 @@
+---
+description: Enforce documentation and mapping updates for all new scripts/commands
+alwaysApply: true
+---
+
+# Documentation Integrity Guardrails
+
+## Purpose
+Ensure that all executable paths (scripts, commands, services) are documented and mapped. Prevent drift between code and documentation.
+
+## Rules
+
+### 1. When Adding/Modifying Scripts
+
+**Scope**: Any changes to:
+- `package.json` scripts section
+- Files in `scripts/**/*.{sh,ps1,js,ts}`
+- Docker Compose files (`*.yml`, `*docker-compose*.yml`)
+- Root-level executable files (`*.sh`, `*.ps1`)
+
+**Required Actions**:
+
+a) **Update Run Paths Catalog**
+- File: `docs/50-ops/Run-Paths-Catalog.md`
+- Add or update entry with:
+  - Unique ID (RP####)
+  - Entry name
+  - Type (`npm-script`, `shell-script`, `powershell-script`, `docker-service`)
+  - Status (`canonical`, `active`, `deprecated`, `shim`, `duplicate`)
+  - Description
+  - If deprecated: "Replaced By" pointing to canonical command
+
+b) **Update Project Overview**
+- File: `docs/00-foundation/Project-Overview.md`
+- Section: "Run Workflows (One-Command)"
+- Add/update/remove commands as appropriate
+- Ensure canonical commands are prominent
+
+c) **Update Module Architecture** (if behavior changes)
+- File: `docs/10-architecture/Modules.md`
+- Update relevant module sections if script interacts with code modules
+
+d) **Update Docker/Service Docs** (if Docker-related)
+- Files: `docs/50-ops/Docker-Services.md`, `docs/50-ops/Service-Health.md`
+- Add/update service entries, health checks, ports, configurations
+
+### 2. Regenerate Documentation
+
+After making changes, you MUST run:
+
+```bash
+pnpm docs:all
+```
+
+This regenerates:
+- Dependency maps (`docs/maps/`)
+- TypeDoc API docs (`docs/api/`)
+- OpenAPI specification (`docs/20-backend/openapi.json`)
+
+### 3. Verify Integrity
+
+Run the documentation integrity checker:
+
+```bash
+pnpm check:docs
+```
+
+This validates:
+- All scripts in `package.json` are documented in Run-Paths-Catalog
+- All script files in `scripts/**` are documented
+- No deprecated scripts are referenced in docs
+- All Docker services are documented
+
+### 4. No Standalone Summary Docs
+
+**NEVER** create standalone "summary" or "complete" docs like:
+- `FEATURE_COMPLETE.md`
+- `MIGRATION_GUIDE.md` (unless temporary)
+- `REFACTOR_SUMMARY.md`
+- `SETUP_GUIDE.md`
+
+Instead:
+- Edit **canonical docs** directly (Project-Overview.md, Modules.md, Docker-Services.md, etc.)
+- If you create a temporary summary for a complex change:
+  1. Merge content into canonical docs
+  2. Move summary to `docs/_archive/` with a banner pointing to canonical locations
+  3. Update the banner to reference specific sections
+
+**Banner Template** for archived docs:
+```markdown
+> **⚠️ ARCHIVED**: This document has been merged into canonical docs
+> 
+> See:
+> - [Project Overview](../00-foundation/Project-Overview.md#external-services)
+> - [Module Architecture](../10-architecture/Modules.md#external-integrations)
+> - [Docker Services](../50-ops/Docker-Services.md)
+```
+
+### 5. Run Paths Catalog Format
+
+Each entry must include:
+
+| Field | Description | Required |
+|-------|-------------|----------|
+| ID | Unique identifier (RP####) | ✅ |
+| Entry | Command/script name | ✅ |
+| Type | npm-script, shell-script, powershell-script, docker-service | ✅ |
+| Status | canonical, active, deprecated, shim, duplicate | ✅ |
+| Refs | Reference count (grep usage) | Optional |
+| Recent | Last commit touching this path | Optional |
+| Boot | Is it a bootstrap/entry point? | Optional |
+| Overlap | Percentage overlap with other entries | Optional |
+| Platform | cross, windows, linux, darwin | Optional |
+| Replaced By | Canonical command (if deprecated) | Required for deprecated |
+
+### 6. Enforcement Points
+
+**Pre-commit** (via `pnpm precommit`):
+- Runs `pnpm check:docs` to catch missing documentation
+
+**CI Pipeline** (`.github/workflows/docs-and-smoke-min.yml`):
+- Runs `pnpm docs:all` to regenerate all docs
+- Runs `pnpm check:deps` to validate dependencies
+- Runs `pnpm check:docs` to validate documentation integrity
+
+**Cursor AI** (this rule):
+- Enforces documentation updates before code changes are "complete"
+- Refuses to mark tasks done until docs are updated
+- Shows diffs for all documentation changes
+
+## Examples
+
+### Good: Adding a New Script
+
+```typescript
+// 1. Add to package.json
+"scripts": {
+  "deploy:prod": "node scripts/production/deploy.js"
+}
+
+// 2. Update docs/50-ops/Run-Paths-Catalog.md
+| RP0150 | `deploy:prod` | npm-script | canonical | - | - | - | - | cross | - |
+
+// 3. Update docs/00-foundation/Project-Overview.md
+### Production Deployment
+```bash
+pnpm deploy:prod
+```
+
+// 4. Run
+pnpm docs:all
+pnpm check:docs
+
+// 5. Show diffs and verify
+```
+
+### Bad: Creating Standalone Summary
+
+```markdown
+<!-- ❌ BAD: Created DEPLOYMENT_COMPLETE.md -->
+# Deployment System Complete
+
+Successfully implemented...
+
+<!-- ✅ GOOD: Edit canonical docs instead -->
+Edit docs/00-foundation/Project-Overview.md → Add deployment section
+Edit docs/50-ops/Run-Paths-Catalog.md → Add deployment scripts
+```
+
+### Good: Deprecating a Script
+
+```typescript
+// 1. Mark as deprecated in Run-Paths-Catalog.md
+| RP0042 | `start-local.ps1` | powershell-script | deprecated | - | - | - | - | windows | `scripts/win/start-local.ps1` |
+
+// 2. Update script to redirect
+Write-Host "⚠️ DEPRECATED: Use scripts/win/start-local.ps1 instead"
+& scripts/win/start-local.ps1 @args
+
+// 3. Update Project-Overview.md to remove from main workflows
+// 4. Run integrity check
+pnpm check:docs
+```
+
+## Consequences of Non-Compliance
+
+- **CI Failure**: Pipeline fails if `check:docs` detects undocumented scripts
+- **Review Rejection**: PRs without documentation updates will be rejected
+- **Drift Detection**: Automated sweeps will flag undocumented commands
+
+## See Also
+
+- [Run Paths Catalog](../../docs/50-ops/Run-Paths-Catalog.md)
+- [Project Overview](../../docs/00-foundation/Project-Overview.md)
+- [Module Architecture](../../docs/10-architecture/Modules.md)
+- [Audit Scripts](../../scripts/audit/README.md)
