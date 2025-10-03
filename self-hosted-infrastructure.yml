@@ -100,7 +100,8 @@ services:
     environment:
       POSTGRES_DB: reactive_resume
       POSTGRES_USER: reactive_resume
-      POSTGRES_PASSWORD: reactive_resume_password_change_this
+      POSTGRES_PASSWORD: reactive_resume_2024  # Match local config
+      POSTGRES_INITDB_ARGS: "--auth-host=md5"  # Ensure md5 password auth
     volumes:
       - reactive_resume_db_data:/var/lib/postgresql/data
     restart: unless-stopped
@@ -119,7 +120,7 @@ services:
       - reactive-resume-redis
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=postgresql://reactive_resume:reactive_resume_password_change_this@reactive-resume-db:5432/reactive_resume
+      - DATABASE_URL=postgresql://reactive_resume:reactive_resume_2024@reactive-resume-db:5432/reactive_resume?sslmode=disable
       - REDIS_URL=redis://reactive-resume-redis:6379
       - JWT_SECRET=your-jwt-secret-change-this
       - OLLAMA_URL=http://ollama:11434

@@ -87,6 +87,14 @@ export const configSchema = z.object({
   // LLM API Keys (Optional)
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_MODEL: z.string().default("gpt-4-turbo-preview").optional(),
+
+  // Skyvern Integration (Optional, External Service)
+  SKYVERN_ENABLED: z
+    .string()
+    .default("false")
+    .transform((s) => s === "true" || s === "1"),
+  SKYVERN_BASE_URL: z.string().url().default("https://api.skyvern.com"),
+  SKYVERN_TIMEOUT_MS: z.coerce.number().default(30000),
 });
 
 export type Config = z.infer<typeof configSchema>;

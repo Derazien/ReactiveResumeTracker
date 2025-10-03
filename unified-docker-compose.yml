@@ -3,14 +3,15 @@ version: '3.8'
 services:
   # ReactiveResume PostgreSQL Database
   postgres-main:
-    image: postgres:16-alpine
+    image: postgres:15  # Match server version exactly
     container_name: reactive-resume-postgres
     environment:
       POSTGRES_DB: reactive_resume
       POSTGRES_USER: reactive_resume
-      POSTGRES_PASSWORD: reactive_resume_2024
+      POSTGRES_PASSWORD: reactive_resume_2024  # Standardized password (same as server)
+      POSTGRES_INITDB_ARGS: "--auth-host=md5"  # Ensure md5 password auth
     ports:
-      - "5432:5432"
+      - "55432:5432"  # Local: 55432 (avoids Windows Postgres conflict), Server: 5432
     volumes:
       - postgres_main_data:/var/lib/postgresql/data
     restart: unless-stopped
@@ -72,90 +73,15 @@ services:
       timeout: 10s
       retries: 3
 
-  # Skyvern PostgreSQL (Existing)
-  skyvern-postgres:
-    image: postgres:14-alpine
-    container_name: skyvern-postgres
-    environment:
-      POSTGRES_USER: skyvern
-      POSTGRES_PASSWORD: skyvern123
-      POSTGRES_DB: skyvern
-    ports:
-      - "5433:5432"
-    volumes:
-      - skyvern_postgres_data:/var/lib/postgresql/data
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U skyvern -d skyvern"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-
-  # Skyvern Redis (Existing)
-  skyvern-redis:
-    image: redis:alpine
-    container_name: skyvern-redis
-    ports:
-      - "6380:6379"
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-
-  # Skyvern API (Existing)
-  skyvern:
-    image: public.ecr.aws/skyvern/skyvern:latest
-    container_name: skyvern-api
-    environment:
-      DATABASE_STRING: postgresql+psycopg://skyvern:skyvern123@skyvern-postgres:5432/skyvern
-      REDIS_URL: redis://skyvern-redis:6379
-      BROWSER_TYPE: chromium-headful
-      CHROME_USER_DATA_DIR: /tmp/chrome-user-data
-      ENABLE_CODE_BLOCK: "true"
-      ENABLE_ANTHROPIC: "true"
-      LLM_KEY: ANTHROPIC_CLAUDE3.5_HAIKU
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
-      SKYVERN_API_KEY: ${SKYVERN_API_KEY}
-      SKYVERN_TELEMETRY: "false"
-      ALLOWED_HOSTS: '["66.96.83.44", "localhost", "127.0.0.1"]'
-      BLOCKED_HOSTS: "[]"
-      API_PORT: "8000"
-    ports:
-      - "8000:8000"    # API
-      - "9222:9222"    # Chrome debugging
-      - "5900:5900"    # VNC access
-    depends_on:
-      - skyvern-postgres
-      - skyvern-redis
-    volumes:
-      - skyvern_data:/app/data
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8000/docs"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-
-  # Skyvern UI (Existing)
-  skyvern-ui:
-    image: public.ecr.aws/skyvern/skyvern-ui:latest
-    container_name: skyvern-ui
-    ports:
-      - "8081:8080"
-      - "9091:9090"    # Artifact server
-    environment:
-      VITE_API_BASE_URL: http://localhost:8000/api/v1
-      VITE_WSS_BASE_URL: ws://localhost:8000/api/v1
-      VITE_ARTIFACT_API_BASE_URL: http://localhost:9091
-      VITE_SKYVERN_API_KEY: ${SKYVERN_API_KEY}
-      SKYVERN_API_URL: http://skyvern:8000
-    depends_on:
-      - skyvern
-    restart: unless-stopped
-
-  # Ollama LLM Service
+  # ============================================
+  # Ollama Local LLM (Optional - Can use cloud LLMs instead)
+  # ============================================
+  # NOTE: Skyvern automation is now a SEPARATE external service
+  # Run Skyvern independently from its own directory (not in this compose file)
+  # Configure via: SKYVERN_ENABLED=true, SKYVERN_BASE_URL=http://localhost:8000
+  # See: docs/00-foundation/Project-Overview.md#skyvern-integration-external-service
+  # ============================================
+  
   ollama:
     image: ollama/ollama:latest
     container_name: ollama
@@ -169,8 +95,6 @@ volumes:
   postgres_main_data:
   redis_data:
   minio_data:
-  skyvern_postgres_data:
-  skyvern_data:
   ollama_data:
 
 networks:

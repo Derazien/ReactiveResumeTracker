@@ -12,6 +12,7 @@ import { User } from '@/server/user/decorators/user.decorator';
 import { JobApplicationService } from '@/server/job-application/job-application.service';
 import { CompanyService } from '@/server/company/company.service';
 import { ContactService } from '@/server/contact/contact.service';
+import { SkyvernClient } from '@/server/integrations/skyvern';
 
 @ApiTags('Automation Integration')
 @Controller('automation')
@@ -22,6 +23,7 @@ export class AutomationIntegrationController {
     private readonly jobApplicationService: JobApplicationService,
     private readonly companyService: CompanyService,
     private readonly contactService: ContactService,
+    private readonly skyvernClient: SkyvernClient,
   ) {}
 
   @Post('create-job-application')
@@ -704,7 +706,7 @@ export class AutomationIntegrationController {
         max_steps: 200, // More steps for comprehensive extraction + manual login time
         max_retries_per_step: 5, // More retries to handle login pauses
         llm_key: 'ANTHROPIC_CLAUDE3_HAIKU',
-        webhook_callback_url: `http://host.docker.internal:3000/api/automation/process-linkedin-jobs?userId=${encodeURIComponent(userId)}`,
+        webhook_callback_url: this.skyvernClient.getWebhookCallbackUrl(userId),
         max_steps_per_run: 100
       };
 
@@ -721,7 +723,7 @@ export class AutomationIntegrationController {
         max_jobs: body.maxJobs || 5,
         linkedin_username: body.linkedinUsername || '', // User can provide credentials
         linkedin_password: body.linkedinPassword || '', // Or we'll prompt dynamically
-        webhook_callback_url: `http://host.docker.internal:3000/api/automation/process-linkedin-jobs?userId=${encodeURIComponent(userId)}`
+        webhook_callback_url: this.skyvernClient.getWebhookCallbackUrl(userId)
       };
 
       // For now, use task API with workflow-like behavior
@@ -919,6 +921,7 @@ export class AutomationIntegrationController {
 
   /**
    * Get user's Skyvern settings from database
+   * Falls back to server config if user hasn't set custom base URL
    */
   private async getUserSkyvernSettings(userId: string) {
     const userSettings = await this.prisma.userLLMSettings.findFirst({
@@ -930,9 +933,10 @@ export class AutomationIntegrationController {
       }
     });
 
-      return { 
+    return { 
       skyvernApiKey: userSettings?.skyvernApiKey || null,
-      skyvernBaseUrl: userSettings?.skyvernBaseUrl || 'http://localhost:8000',
+      // Use user's custom URL if set, otherwise fall back to server config
+      skyvernBaseUrl: userSettings?.skyvernBaseUrl || this.skyvernClient.getBaseUrl(),
       skyvernEnabled: userSettings?.skyvernEnabled || false,
     };
   }
@@ -1117,7 +1121,7 @@ export class AutomationIntegrationController {
         title: body.templateName || `LinkedIn Jobs - ${userName}`,
         description: body.description || 'Automated LinkedIn job search with dynamic assistance and credential management',
         proxy_location: "RESIDENTIAL",
-        webhook_callback_url: `http://host.docker.internal:3000/api/automation/process-linkedin-jobs?userId=${userId}`,
+        webhook_callback_url: this.skyvernClient.getWebhookCallbackUrl(userId),
         persist_browser_session: true,
         browser_session_id: `linkedin-session-${userId}`,
         workflow_definition: {
@@ -1375,7 +1379,7 @@ SHARE URL: Must click the Share button/icon to extract the proper LinkedIn job U
               label: "send_extracted_jobs_to_webhook",
               block_type: "http_request",  // ⭐ HTTP_REQUEST BLOCK FOR GUARANTEED DELIVERY!
               method: "POST",
-              url: `http://host.docker.internal:3000/api/automation/process-linkedin-jobs?userId=${userId}`,
+              url: this.skyvernClient.getWebhookCallbackUrl(userId),
               headers: {
                 "Content-Type": "application/json",
                 "X-User-Api-Key": userSettings.skyvernApiKey,
@@ -1644,7 +1648,7 @@ SHARE URL: Must click the Share button/icon to extract the proper LinkedIn job U
         },
         body: JSON.stringify({
           data: body.parameters,
-          webhook_callback_url: `http://host.docker.internal:3000/api/automation/process-linkedin-jobs?userId=${userId}`
+          webhook_callback_url: this.skyvernClient.getWebhookCallbackUrl(userId)
         })
       });
 
@@ -1810,12 +1814,12 @@ SHARE URL: Must click the Share button/icon to extract the proper LinkedIn job U
       // Create a user-specific organization in Skyvern
       const orgName = `ReactiveResume-${userName}-${Date.now()}`;
       
-      const response = await fetch('http://localhost:8000/internal/create-organization', {
+      const response = await fetch(`${this.skyvernClient.getBaseUrl()}/internal/create-organization`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           organization_name: orgName,
-          webhook_callback_url: `http://host.docker.internal:3000/api/automation/process-linkedin-jobs?userId=${userId}`
+          webhook_callback_url: this.skyvernClient.getWebhookCallbackUrl(userId)
         })
       });
 

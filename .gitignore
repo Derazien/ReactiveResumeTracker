@@ -56,3 +56,8 @@ apps/client/src/locales/*/messages.*js
 
 .cursor\rules\nx-rules.mdc
 .github\instructions\nx.instructions.md
+
+# Scratch/temp files (archived during Phase E)
+_scratch/temp-scripts/*
+_scratch/data/*
+!_scratch/README.md

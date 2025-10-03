@@ -22,6 +22,7 @@ import { DatabaseModule } from "./database/database.module";
 import { EmbeddingModule } from "./embedding/embedding.module";
 import { FeatureModule } from "./feature/feature.module";
 import { HealthModule } from "./health/health.module";
+import { SkyvernModule } from "./integrations/skyvern";
 import { JobApplicationModule } from "./job-application/job-application.module";
 import { JobApplicationService } from "./job-application/job-application.service";
 import { JobApplicationQuestionModule } from "./job-application-question/job-application-question.module";
@@ -64,6 +65,9 @@ import { UserModule } from "./user/user.module";
     TranslationModule,
     ContributorsModule,
     EmbeddingModule,
+
+    // External Integrations
+    SkyvernModule,
 
     // Static Assets
     ServeStaticModule.forRoot({
