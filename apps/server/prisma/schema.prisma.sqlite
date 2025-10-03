@@ -1,0 +1,484 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Provider {
+  email
+  github
+  google
+  openid
+}
+
+enum UserType {
+  GENERAL_CONSUMER
+  DEVELOPER
+}
+
+enum Visibility {
+  public
+  private
+}
+
+enum ApplicationStatus {
+  DRAFT
+  APPLIED
+  INTERVIEW_SCHEDULED
+  INTERVIEWED
+  OFFER_RECEIVED
+  REJECTED
+  ACCEPTED
+  WITHDRAWN
+}
+
+enum LLMProvider {
+  OPENAI
+  ANTHROPIC
+  GOOGLE
+  OLLAMA
+}
+
+enum CoverLetterContentType {
+  PARAGRAPH_ANALYTICS
+  PARAGRAPH_DIVERSITY
+  PARAGRAPH_LEADERSHIP
+  PARAGRAPH_TECH
+  PARAGRAPH_CHALLENGE
+  PARAGRAPH_COLLABORATION
+  PARAGRAPH_INNOVATION
+  PARAGRAPH_IMPACT
+  PARAGRAPH_GROWTH
+  PARAGRAPH_VALUES
+}
+
+model User {
+  id               String   @id @default(cuid())
+  name             String
+  picture          String?
+  username         String   @unique
+  email            String   @unique
+  locale           String   @default("en-US")
+  emailVerified    Boolean  @default(false)
+  twoFactorEnabled Boolean  @default(false)
+  userType         UserType @default(GENERAL_CONSUMER)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  provider         Provider
+  secrets          Secrets?
+  resumes          Resume[]
+  content          Content[]
+  jobApplications  JobApplication[]
+  tags             Tag[]
+  llmSettings      UserLLMSettings?
+  storyBlocks      StoryBlock[]
+  answerSnippets   AnswerSnippet[]
+  coverLetterContents CoverLetterContent[]
+  contacts         Contact[]
+}
+
+model Secrets {
+  id                   String   @id @default(cuid())
+  password             String?
+  lastSignedIn         DateTime @default(now())
+  verificationToken    String?
+  twoFactorSecret      String?
+  twoFactorBackupCodes String   @default("[]")
+  refreshToken         String?
+  resetToken           String?  @unique
+  userId               String   @unique
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, id])
+}
+
+model UserLLMSettings {
+  id          String       @id @default(cuid())
+  provider    LLMProvider  @default(OPENAI)
+  
+  // System Fallback Settings
+  useSystemDefaultAsBackup Boolean  @default(false)  // Use system as backup when user keys fail
+  
+  // OpenAI Settings
+  openaiApiKey    String?
+  openaiModel     String?  @default("gpt-4-turbo-preview")
+  openaiBaseUrl   String?  // For custom OpenAI endpoints
+  
+  // Anthropic Settings
+  anthropicApiKey String?
+  anthropicModel  String?  @default("claude-3-5-sonnet-20241022")
+  
+  // Ollama/Local Settings
+  ollamaApiKey    String?  @default("sk-1234567890abcdef")
+  ollamaBaseUrl   String?  @default("http://localhost:11434/v1")
+  ollamaModel     String?  @default("llama3:8b")
+  
+  // Skyvern Automation Settings
+  skyvernApiKey   String?  // User's Skyvern API key from their Skyvern UI settings
+  skyvernBaseUrl  String?  @default("http://localhost:8000") // Skyvern API URL
+  skyvernEnabled  Boolean  @default(false) // Whether user has enabled Skyvern automation
+  
+  // Common Settings
+  maxTokens       Int      @default(4000)
+  temperature     Float    @default(0.1)
+  
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@unique([userId, id])
+}
+
+model Resume {
+  id              String          @id @default(cuid())
+  title           String
+  slug            String
+  data            String          @default("{}")
+  visibility      Visibility      @default(private)
+  locked          Boolean         @default(false)
+  statistics      Statistics?
+  userId          String
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobApplicationId String?
+  jobApplication  JobApplication? @relation(fields: [jobApplicationId], references: [id])
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@unique([userId, id])
+  @@unique([userId, slug])
+  @@index(fields: [userId])
+}
+
+model Statistics {
+  id        String   @id @default(cuid())
+  views     Int      @default(0)
+  downloads Int      @default(0)
+  resumeId  String   @unique
+  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([resumeId, id])
+}
+
+model Section {
+  id               String    @id @default(cuid())
+  key              String    @unique
+  name             String
+  description      String?
+  icon             String?
+  schema           String    @default("{}")
+  validation       String    @default("{}")
+  order            Int       @default(0)
+  isActive         Boolean   @default(true)
+  isDefault        Boolean   @default(false)
+  isCustomizable   Boolean   @default(true)
+  content          Content[]
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  
+  @@index(fields: [key])
+  @@index(fields: [order])
+}
+
+model Content {
+  id          String        @id @default(cuid())
+  title       String
+  description String?
+  sectionId   String
+  section     Section       @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Variant/Master relationship
+  sourceContentId String?   // Points to master content if this is a variant
+  sourceContent   Content?  @relation("ContentVariants", fields: [sourceContentId], references: [id], onDelete: Cascade)
+  variants        Content[] @relation("ContentVariants")
+  
+  // RAG-ready transformation fields
+  data                String    @default("{}")  // Structured JSON data according to section schema
+  embedding           String?   // Vector embedding for RAG (JSON array)
+  embeddingHash       String?   // Hash of embedding for deduplication
+  transformationDate  DateTime? // When the content was transformed
+  transformationNotes String?   // Metadata about the transformation process
+  
+  tags        ContentTag[]
+  coverLetterContents CoverLetterContent[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  @@index(fields: [userId, sectionId])
+  @@index(fields: [userId, createdAt])
+  @@index(fields: [sourceContentId])
+}
+
+model Tag {
+  id        String       @id @default(cuid())
+  name      String
+  color     String?      // Hex color for UI
+  userId    String
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   ContentTag[]
+  createdAt DateTime     @default(now())
+  
+  @@unique([userId, name])
+  @@index(fields: [userId])
+}
+
+model ContentTag {
+  id        String  @id @default(cuid())
+  contentId String
+  tagId     String
+  content   Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  
+  @@unique([contentId, tagId])
+}
+
+model JobApplication {
+  id                String            @id @default(cuid())
+  title             String            // Job title
+  companyName       String            // Company name (legacy field, kept for backward compatibility)
+  description       String?           // Job description
+  requirements      String            @default("[]")
+  extractedTags     String            @default("[]")
+  url               String?           // Job posting URL
+  status            ApplicationStatus @default(DRAFT)
+  appliedDate       DateTime?
+  notes             String?
+  createdViaAutomation Boolean         @default(false)  // Flag to track automation-created job applications
+  // --- RAG fields start ---
+  embedding           String?   // Vector embeddings for content matching
+  embeddingHash       String?   // Embedding cache hash (for caching)
+  // --- RAG fields end ---
+  userId            String
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resumes           Resume[]
+  coverLetters      CoverLetter[]
+  interviews        Interview[]
+  companyId         String?           // Company relation ID
+  company           Company?          @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  contacts          Contact[]
+  questions         JobApplicationQuestion[]
+  contactMessages   ContactMessage[]
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  
+  @@index(fields: [userId, status])
+  @@index(fields: [userId, createdAt])
+}
+
+model CoverLetter {
+  id               String         @id @default(cuid())
+  content          String         // Final generated cover letter content
+  templateName     String?        // Reference to static template file (e.g., "professional", "creative")
+  generatedFrom    String         @default("[]")  // JSON array of StoryBlock IDs used in generation
+  tone             String         @default("neutral")  // Tone used during generation
+  jobApplicationId String
+  jobApplication   JobApplication @relation(fields: [jobApplicationId], references: [id], onDelete: Cascade)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  
+  @@index(fields: [jobApplicationId])
+}
+
+model Interview {
+  id               String         @id @default(cuid())
+  type             String         // "voice", "text", "video"
+  content          String?        // Interview transcript/notes
+  audioUrl         String?        // URL to audio file if voice interview
+  insights         String?        // AI-generated insights
+  jobApplicationId String
+  jobApplication   JobApplication @relation(fields: [jobApplicationId], references: [id], onDelete: Cascade)
+  createdAt        DateTime       @default(now())
+  
+  @@index(fields: [jobApplicationId])
+}
+
+model StoryBlock {
+  id          String   @id @default(cuid())
+  text        String   // The actual story/experience text
+  tags        String   @default("[]")  // JSON array of tags
+  skillTheme  String   // Primary skill/competency this story demonstrates
+  tone        String   @default("neutral")  // professional, casual, enthusiastic, etc.
+  embedding   String?  // Vector embedding JSON string (matches existing pattern)
+  embeddingHash String? // Cache hash for embedding
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index(fields: [userId, skillTheme])
+  @@index(fields: [userId, createdAt])
+}
+
+model AnswerSnippet {
+  id          String   @id @default(cuid())
+  text        String   // The answer text
+  questionTag String   // Type of question this answers (e.g., "why_company", "strength", "weakness")
+  tags        String   @default("[]")  // JSON array of tags
+  skillTheme  String   // Primary skill/competency this demonstrates
+  tone        String   @default("neutral")
+  embedding   String?  // Vector embedding JSON string
+  embeddingHash String? // Cache hash for embedding
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index(fields: [userId, questionTag])
+  @@index(fields: [userId, skillTheme])
+  @@index(fields: [userId, createdAt])
+}
+
+model CoverLetterContent {
+  id          String                @id @default(cuid())
+  
+  // Story Classification
+  contentType CoverLetterContentType
+  
+  // Content Relationship
+  contentId   String                // References Content.id (experience/project/skill)
+  content     Content               @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  
+  // User's Narrative
+  storyText   String                // 3-5 sentence story format
+  skillTheme  String                // What this demonstrates (leadership, analytical thinking, etc.)
+  tone        String                @default("professional") // professional, enthusiastic, confident
+  
+  // Targeting & Matching
+  tags        String                @default("[]")  // JSON array of additional context tags
+  embedding   String?               // Vector embedding for semantic matching
+  embeddingHash String?             // Cache hash for embedding
+  
+  // Metadata
+  userId      String
+  user        User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+  
+  @@index(fields: [contentId, contentType])
+  @@index(fields: [userId, contentType])
+  @@index(fields: [userId, skillTheme])
+  @@index(fields: [userId, createdAt])
+}
+
+model Company {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  website     String?
+  logo        String?  // URL to company logo
+  industry    String?
+  size        String?  // e.g., "10-50", "100-500", "1000+"
+  location    String?
+  values      String   @default("[]")  // JSON array of company values
+  mission     String?
+  culture     String?  // Company culture description
+  linkedinUrl String?
+  twitterUrl  String?
+  facebookUrl String?
+  instagramUrl String?
+  youtubeUrl  String?
+  githubUrl   String?
+  
+  // Relationships
+  contacts    Contact[]
+  jobApplications JobApplication[]
+  
+  // Metadata
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index(fields: [name])
+  @@index(fields: [industry])
+  @@index(fields: [createdAt])
+}
+
+model Contact {
+  id          String   @id @default(cuid())
+  name        String
+  title       String?  // Job title
+  email       String?
+  phone       String?
+  linkedinUrl String?
+  twitterUrl  String?
+  githubUrl   String?
+  website     String?
+  bio         String?  // Brief bio or description
+  
+  // Company Relationship
+  companyId   String?
+  company     Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  
+  // Job Application Relationship
+  jobApplicationId String?
+  jobApplication   JobApplication? @relation(fields: [jobApplicationId], references: [id], onDelete: SetNull)
+  
+  // User Relationship
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Message History
+  messages    ContactMessage[]
+  
+  // Metadata
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index(fields: [companyId])
+  @@index(fields: [jobApplicationId])
+  @@index(fields: [userId])
+  @@index(fields: [name])
+  @@index(fields: [createdAt])
+}
+
+model JobApplicationQuestion {
+  id          String   @id @default(cuid())
+  question    String
+  answer      String?
+  questionType String  @default("general") // general, technical, behavioral, etc.
+  priority    Int      @default(1) // 1-5 priority level
+  
+  // Job Application Relationship
+  jobApplicationId String
+  jobApplication   JobApplication @relation(fields: [jobApplicationId], references: [id], onDelete: Cascade)
+  
+  // Metadata
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index(fields: [jobApplicationId])
+  @@index(fields: [questionType])
+  @@index(fields: [priority])
+}
+
+model ContactMessage {
+  id          String   @id @default(cuid())
+  type        String   // email, linkedin, twitter, etc.
+  subject     String?
+  content     String   // Generated message content
+  instructions String? // User's custom instructions for generation
+  status      String   @default("draft") // draft, sent, failed
+  
+  // Contact Relationship
+  contactId   String
+  contact     Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  
+  // Job Application Relationship
+  jobApplicationId String?
+  jobApplication   JobApplication? @relation(fields: [jobApplicationId], references: [id], onDelete: SetNull)
+  
+  // Metadata
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index(fields: [contactId])
+  @@index(fields: [jobApplicationId])
+  @@index(fields: [status])
+  @@index(fields: [createdAt])
+}
