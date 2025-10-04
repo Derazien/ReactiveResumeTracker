@@ -284,10 +284,12 @@ if ! command -v pm2 &> /dev/null; then
     exit 1
 fi
 
-# Start development servers (same as start-local.ps1 - runs both server and client together)
-echo -e "   ${GRAY}Starting development servers: $PM2_DEV_NAME${NC}"
-echo -e "      ${GRAY}This will start both server and client together (same as local)${NC}"
-pm2 start npm --name "$PM2_DEV_NAME" -- run dev --update-env
+# Start development servers separately for better debugging
+echo -e "   ${GRAY}Starting server: reactive_resume_server${NC}"
+pm2 start npm --name "reactive_resume_server" -- run dev:server --update-env
+
+echo -e "   ${GRAY}Starting client: reactive_resume_client${NC}"
+pm2 start npm --name "reactive_resume_client" -- run dev:client --update-env
 
 # Wait for services to be ready
 echo -e "   ${GRAY}Waiting for services to be ready...${NC}"
@@ -316,6 +318,15 @@ echo -e "${YELLOW}📊 Step 8: Service Status${NC}"
 echo ""
 
 pm2 list
+
+# Show individual process logs for debugging
+echo ""
+echo -e "${GRAY}📋 Recent logs from both processes:${NC}"
+echo -e "${GRAY}Server logs:${NC}"
+pm2 logs reactive_resume_server --lines 5 --nostream
+echo ""
+echo -e "${GRAY}Client logs:${NC}"
+pm2 logs reactive_resume_client --lines 5 --nostream
 
 echo ""
 echo -e "${GREEN}═══════════════════════════════════════════════════════${NC}"
