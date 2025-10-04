@@ -15,21 +15,21 @@
 $ErrorActionPreference = "Continue"
 
 Write-Host "=======================================================" -ForegroundColor Cyan
-Write-Host "  📤 PostgreSQL Compatible Database Export" -ForegroundColor Cyan
+Write-Host "  PostgreSQL Compatible Database Export" -ForegroundColor Cyan
 Write-Host "=======================================================" -ForegroundColor Cyan
 Write-Host ""
 
 # Check if PostgreSQL container is running
-Write-Host "🔍 Checking PostgreSQL container..." -ForegroundColor Yellow
+Write-Host "Checking PostgreSQL container..." -ForegroundColor Yellow
 $containerStatus = docker ps --filter "name=reactive-resume-postgres" --format "table {{.Status}}" | Select-Object -Skip 1
 
 if (-not $containerStatus -or $containerStatus -notmatch "Up") {
-    Write-Host "❌ PostgreSQL container is not running" -ForegroundColor Red
+    Write-Host "PostgreSQL container is not running" -ForegroundColor Red
     Write-Host "  Start it with: docker compose -f unified-docker-compose.yml up -d postgres-main" -ForegroundColor Gray
     exit 1
 }
 
-Write-Host "✓ PostgreSQL container is running" -ForegroundColor Green
+Write-Host "PostgreSQL container is running" -ForegroundColor Green
 Write-Host ""
 
 # Create backup directory
@@ -42,24 +42,26 @@ if (-not (Test-Path $backupDir)) {
 $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
 $backupFile = "$backupDir\postgres-compatible-$timestamp.dump"
 
-Write-Host "📥 Creating compatible PostgreSQL dump..." -ForegroundColor Yellow
+Write-Host "Creating compatible PostgreSQL dump..." -ForegroundColor Yellow
 Write-Host "  Output file: $backupFile" -ForegroundColor Gray
 
 # Method 1: Try pg_dump with compatibility options
 Write-Host "  Attempting pg_dump with compatibility flags..." -ForegroundColor Gray
+$success = $false
+
 try {
     # Use pg_dump with version compatibility
     docker exec reactive-resume-postgres pg_dump -U reactive_resume -d reactive_resume --format=custom --no-owner --no-privileges --verbose > $backupFile
     
     if ($LASTEXITCODE -eq 0 -and (Test-Path $backupFile) -and (Get-Item $backupFile).Length -gt 0) {
-        Write-Host "✓ Database exported successfully with pg_dump" -ForegroundColor Green
+        Write-Host "Database exported successfully with pg_dump" -ForegroundColor Green
         $success = $true
     } else {
-        Write-Host "⚠ pg_dump failed, trying SQL export..." -ForegroundColor Yellow
+        Write-Host "pg_dump failed, trying SQL export..." -ForegroundColor Yellow
         $success = $false
     }
 } catch {
-    Write-Host "⚠ pg_dump failed, trying SQL export..." -ForegroundColor Yellow
+    Write-Host "pg_dump failed, trying SQL export..." -ForegroundColor Yellow
     $success = $false
 }
 
@@ -73,25 +75,25 @@ if (-not $success) {
         docker exec reactive-resume-postgres pg_dump -U reactive_resume -d reactive_resume --no-owner --no-privileges --inserts > $sqlFile
         
         if ($LASTEXITCODE -eq 0 -and (Test-Path $sqlFile) -and (Get-Item $sqlFile).Length -gt 0) {
-            Write-Host "✓ Database exported successfully as SQL" -ForegroundColor Green
+            Write-Host "Database exported successfully as SQL" -ForegroundColor Green
             $backupFile = $sqlFile
             $success = $true
         }
     } catch {
-        Write-Host "❌ SQL export also failed" -ForegroundColor Red
+        Write-Host "SQL export also failed" -ForegroundColor Red
         $success = $false
     }
 }
 
 if (-not $success) {
-    Write-Host "❌ All export methods failed" -ForegroundColor Red
+    Write-Host "All export methods failed" -ForegroundColor Red
     exit 1
 }
 
 # Show file info
 $fileSize = [math]::Round((Get-Item $backupFile).Length / 1KB, 2)
 Write-Host ""
-Write-Host "✅ Export Complete!" -ForegroundColor Green
+Write-Host "Export Complete!" -ForegroundColor Green
 Write-Host "  File: $backupFile" -ForegroundColor Gray
 Write-Host "  Size: $fileSize KB" -ForegroundColor Gray
 Write-Host ""
@@ -103,10 +105,10 @@ if ($backupFile.EndsWith(".sql")) {
 }
 
 Copy-Item $backupFile $projectRootFile -Force
-Write-Host "📋 Copied to project root: $projectRootFile" -ForegroundColor Cyan
+Write-Host "Copied to project root: $projectRootFile" -ForegroundColor Cyan
 Write-Host ""
 
-Write-Host "🚀 Ready for deployment!" -ForegroundColor Green
+Write-Host "Ready for deployment!" -ForegroundColor Green
 Write-Host "  Upload $projectRootFile to your server and run:" -ForegroundColor Gray
 Write-Host "  ./scripts/production/import-database.sh" -ForegroundColor Gray
 Write-Host ""
