@@ -186,6 +186,10 @@ echo -e "   ${GRAY}Ensuring Prisma client is properly installed...${NC}"
 rm -rf node_modules/.pnpm/@prisma* 2>/dev/null || true
 pnpm install @prisma/client prisma --force 2>/dev/null || true
 
+# Fix nestjs-prisma compatibility
+echo -e "   ${GRAY}Fixing nestjs-prisma compatibility...${NC}"
+pnpm install nestjs-prisma@0.24.0 --force 2>/dev/null || true
+
 # Approve build scripts for Prisma (required for proper generation)
 echo -e "   ${GRAY}Approving build scripts for Prisma...${NC}"
 echo -e "      ${GRAY}Auto-selecting all packages for build...${NC}"
@@ -228,6 +232,25 @@ if [ "$SKIP_BUILD" = false ]; then
     npx prisma generate
     
     cd ../..
+    
+    # NUCLEAR FIX: Force rebuild Prisma client in the correct location
+    echo -e "      ${GRAY}Applying nuclear Prisma fix...${NC}"
+    rm -rf node_modules/@prisma/client 2>/dev/null || true
+    rm -rf node_modules/.prisma 2>/dev/null || true
+    rm -rf node_modules/.pnpm/@prisma* 2>/dev/null || true
+    
+    # Install exact versions and generate
+    pnpm install @prisma/client@6.16.3 prisma@6.16.3 --force
+    cd apps/server
+    npx prisma generate --force || npx prisma generate
+    cd ../..
+    
+    # Copy generated client to the right place
+    if [ -d "apps/server/node_modules/@prisma/client" ]; then
+        echo -e "      ${GRAY}Copying Prisma client to root node_modules...${NC}"
+        cp -r apps/server/node_modules/@prisma/client node_modules/ 2>/dev/null || true
+        cp -r apps/server/node_modules/.prisma node_modules/ 2>/dev/null || true
+    fi
     
     echo -e "   ${GRAY}Building all apps...${NC}"
     # Build with error handling - continue even if some builds fail
