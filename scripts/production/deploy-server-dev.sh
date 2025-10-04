@@ -15,7 +15,7 @@ set -e
 # 7. Verifies health
 #
 # Environment: Production Linux server (Development mode)
-# PM2 Process Names: reactive_resume_server_dev, reactive_resume_client_dev
+# PM2 Process Name: reactive_resume_dev (runs both server and client together)
 # ============================================================================
 
 # Colors for output
@@ -27,8 +27,7 @@ GRAY='\033[0;37m'
 NC='\033[0m' # No Color
 
 # Configuration
-PM2_BACKEND_NAME="${PM2_BACKEND_NAME:-reactive_resume_server_dev}"
-PM2_FRONTEND_NAME="${PM2_FRONTEND_NAME:-reactive_resume_client_dev}"
+PM2_DEV_NAME="${PM2_DEV_NAME:-reactive_resume_dev}"
 SERVER_PORT="${SERVER_PORT:-3000}"
 CLIENT_PORT="${CLIENT_PORT:-5173}"
 COMPOSE_FILE="unified-docker-compose.yml"
@@ -102,15 +101,11 @@ echo -e "${YELLOW}📦 Step 1: Stopping PM2 processes...${NC}"
 echo ""
 
 if command -v pm2 &> /dev/null; then
-    echo -e "   ${GRAY}Stopping $PM2_BACKEND_NAME...${NC}"
-    pm2 stop $PM2_BACKEND_NAME 2>/dev/null || echo -e "      ${GRAY}(not running)${NC}"
+    echo -e "   ${GRAY}Stopping $PM2_DEV_NAME...${NC}"
+    pm2 stop $PM2_DEV_NAME 2>/dev/null || echo -e "      ${GRAY}(not running)${NC}"
     
-    echo -e "   ${GRAY}Stopping $PM2_FRONTEND_NAME...${NC}"
-    pm2 stop $PM2_FRONTEND_NAME 2>/dev/null || echo -e "      ${GRAY}(not running)${NC}"
-    
-    echo -e "   ${GRAY}Deleting old PM2 processes...${NC}"
-    pm2 delete $PM2_BACKEND_NAME 2>/dev/null || true
-    pm2 delete $PM2_FRONTEND_NAME 2>/dev/null || true
+    echo -e "   ${GRAY}Deleting old PM2 process...${NC}"
+    pm2 delete $PM2_DEV_NAME 2>/dev/null || true
     
     echo -e "   ${GREEN}✓ PM2 processes stopped${NC}"
 else
@@ -286,13 +281,14 @@ if ! command -v pm2 &> /dev/null; then
     exit 1
 fi
 
-# Start backend in development mode (same as start-local.ps1)
-echo -e "   ${GRAY}Starting backend in DEV mode: $PM2_BACKEND_NAME${NC}"
-pm2 start npm --name "$PM2_BACKEND_NAME" -- run start:dev --update-env
+# Start development servers (same as start-local.ps1 - runs both server and client together)
+echo -e "   ${GRAY}Starting development servers: $PM2_DEV_NAME${NC}"
+echo -e "      ${GRAY}This will start both server and client together (same as local)${NC}"
+pm2 start npm --name "$PM2_DEV_NAME" -- run dev --update-env
 
-# Wait for backend to be ready
-echo -e "   ${GRAY}Waiting for backend to be ready...${NC}"
-sleep 10
+# Wait for services to be ready
+echo -e "   ${GRAY}Waiting for services to be ready...${NC}"
+sleep 15
 
 # Verify backend is running
 if curl -f http://localhost:$SERVER_PORT/api/health >/dev/null 2>&1; then
@@ -300,14 +296,6 @@ if curl -f http://localhost:$SERVER_PORT/api/health >/dev/null 2>&1; then
 else
     echo -e "   ${YELLOW}⚠ Backend health check failed (may still be starting)${NC}"
 fi
-
-# Start frontend in development mode
-echo -e "   ${GRAY}Starting frontend in DEV mode: $PM2_FRONTEND_NAME${NC}"
-pm2 start npm --name "$PM2_FRONTEND_NAME" -- run dev --update-env
-
-# Wait for frontend to be ready
-echo -e "   ${GRAY}Waiting for frontend to be ready...${NC}"
-sleep 10
 
 # Verify frontend is running
 if curl -f http://localhost:$CLIENT_PORT >/dev/null 2>&1; then
