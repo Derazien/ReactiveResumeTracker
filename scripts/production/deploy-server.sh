@@ -64,6 +64,17 @@ echo -e "${CYAN}  🚀 Reactive Resume - Production Deployment${NC}"
 echo -e "${CYAN}═══════════════════════════════════════════════════════${NC}"
 echo ""
 
+# Check Node version compatibility
+NODE_VERSION=$(node --version | cut -d'v' -f2)
+echo -e "${GRAY}Node version: v$NODE_VERSION${NC}"
+
+if [[ "$(printf '%s\n' "22.13.1" "$NODE_VERSION" | sort -V | head -n1)" != "22.13.1" ]]; then
+    echo -e "${YELLOW}⚠ WARNING: Node version v$NODE_VERSION is below recommended v22.13.1${NC}"
+    echo -e "${YELLOW}  This may cause Prisma client generation issues${NC}"
+    echo -e "${GRAY}  Update with: curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - && sudo apt-get install -y nodejs${NC}"
+    echo ""
+fi
+
 # Function to check if port is in use
 check_port() {
     local port=$1
@@ -157,6 +168,11 @@ fi
 echo -e "${YELLOW}📦 Step 4: Installing dependencies...${NC}"
 echo ""
 
+# Check Node version
+NODE_VERSION=$(node --version | cut -d'v' -f2)
+REQUIRED_NODE="22.13.1"
+echo -e "   ${GRAY}Current Node version: v$NODE_VERSION${NC}"
+
 if [ "$CLEAN_INSTALL" = true ]; then
     echo -e "   ${GRAY}Clean install: Removing node_modules and lock file...${NC}"
     rm -rf node_modules pnpm-lock.yaml
@@ -164,6 +180,11 @@ fi
 
 echo -e "   ${GRAY}Running: pnpm install --no-frozen-lockfile${NC}"
 pnpm install --no-frozen-lockfile
+
+# Fix Prisma client if needed
+echo -e "   ${GRAY}Ensuring Prisma client is properly installed...${NC}"
+rm -rf node_modules/.pnpm/@prisma* 2>/dev/null || true
+pnpm install @prisma/client prisma --force 2>/dev/null || true
 
 echo ""
 echo -e "   ${GREEN}✓ Dependencies installed${NC}"
@@ -175,7 +196,22 @@ if [ "$SKIP_BUILD" = false ]; then
     echo ""
     
     echo -e "   ${GRAY}Generating Prisma client...${NC}"
-    pnpm prisma:generate
+    
+    # Try Prisma generation with error handling
+    if ! pnpm prisma:generate; then
+        echo -e "      ${YELLOW}⚠ Prisma generation failed, trying fixes...${NC}"
+        
+        # Clean and reinstall Prisma
+        rm -rf node_modules/.pnpm/@prisma* 2>/dev/null || true
+        pnpm install @prisma/client prisma --force
+        
+        # Try generation again
+        if ! pnpm prisma:generate; then
+            echo -e "      ${RED}❌ Prisma generation failed after fixes${NC}"
+            echo -e "      ${GRAY}Try updating Node.js: curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - && sudo apt-get install -y nodejs${NC}"
+            exit 1
+        fi
+    fi
     
     echo -e "   ${GRAY}Building all apps...${NC}"
     pnpm build
