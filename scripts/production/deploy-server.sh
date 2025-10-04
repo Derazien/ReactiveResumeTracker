@@ -210,10 +210,10 @@ if [ "$SKIP_BUILD" = false ]; then
     echo -e "      ${GRAY}Adding Linux binary targets to schema...${NC}"
     cp prisma/schema.prisma prisma/schema.prisma.backup
     
-    # Add binary targets to the generator block
+    # Add binary targets to the generator block (using correct target names)
     sed -i '/generator client {/,/}/ {
         /}/ i\
-  binaryTargets = ["native", "linux-x64-openssl-1.1.x", "linux-x64-openssl-3.0.x", "linux-arm64-openssl-1.1.x", "linux-arm64-openssl-3.0.x"]
+  binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x", "linux-arm64-openssl-1.1.x", "linux-arm64-openssl-3.0.x"]
     }' prisma/schema.prisma
     
     # Generate with the updated schema
