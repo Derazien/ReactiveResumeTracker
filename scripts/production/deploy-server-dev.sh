@@ -101,13 +101,16 @@ echo -e "${YELLOW}📦 Step 1: Stopping PM2 processes...${NC}"
 echo ""
 
 if command -v pm2 &> /dev/null; then
-    echo -e "   ${GRAY}Stopping $PM2_DEV_NAME...${NC}"
-    pm2 stop $PM2_DEV_NAME 2>/dev/null || echo -e "      ${GRAY}(not running)${NC}"
+    echo -e "   ${GRAY}Stopping ALL PM2 processes...${NC}"
+    pm2 stop all 2>/dev/null || echo -e "      ${GRAY}(no processes running)${NC}"
     
-    echo -e "   ${GRAY}Deleting old PM2 process...${NC}"
-    pm2 delete $PM2_DEV_NAME 2>/dev/null || true
+    echo -e "   ${GRAY}Deleting ALL PM2 processes...${NC}"
+    pm2 delete all 2>/dev/null || true
     
-    echo -e "   ${GREEN}✓ PM2 processes stopped${NC}"
+    echo -e "   ${GRAY}Clearing PM2 cache...${NC}"
+    pm2 kill 2>/dev/null || true
+    
+    echo -e "   ${GREEN}✓ All PM2 processes cleared${NC}"
 else
     echo -e "   ${YELLOW}⚠ PM2 not installed - skipping${NC}"
 fi
@@ -171,8 +174,9 @@ echo -e "   ${GRAY}Ensuring Prisma client is properly installed...${NC}"
 rm -rf node_modules/.pnpm/@prisma* 2>/dev/null || true
 pnpm install @prisma/client prisma --force 2>/dev/null || true
 
-# Note: nestjs-prisma has been replaced with direct Prisma client usage
-echo -e "   ${GRAY}Using direct Prisma client (no nestjs-prisma needed)...${NC}"
+# Install compatible nestjs-prisma version
+echo -e "   ${GRAY}Installing compatible nestjs-prisma...${NC}"
+pnpm install nestjs-prisma@0.25.0 --force 2>/dev/null || true
 
 # Approve build scripts for Prisma (required for proper generation)
 echo -e "   ${GRAY}Approving build scripts for Prisma...${NC}"
