@@ -131,6 +131,10 @@ if [ "$SKIP_DOCKER" = false ]; then
     echo -e "   ${GRAY}Stopping existing containers...${NC}"
     docker compose -f $COMPOSE_FILE down 2>/dev/null || true
     
+    echo -e "   ${GRAY}Removing any remaining containers with same names...${NC}"
+    docker stop reactive-resume-postgres reactive-resume-redis reactive-resume-minio reactive-resume-chrome ollama 2>/dev/null || true
+    docker rm reactive-resume-postgres reactive-resume-redis reactive-resume-minio reactive-resume-chrome ollama 2>/dev/null || true
+    
     echo -e "   ${GRAY}Starting infrastructure services...${NC}"
     docker compose -f $COMPOSE_FILE up -d
     
