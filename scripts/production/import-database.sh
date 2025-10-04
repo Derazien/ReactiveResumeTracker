@@ -71,19 +71,58 @@ echo ""
 echo -e "${YELLOW}📥 Importing database from postgres-backup.dump...${NC}"
 echo -e "${GRAY}  This may take a few minutes depending on data size...${NC}"
 
-# Use pg_restore to import the dump
-if docker exec -i reactive-resume-postgres pg_restore -U reactive_resume -d reactive_resume --clean --if-exists --no-owner --no-privileges < postgres-backup.dump; then
-    echo -e "${GREEN}✓ Database import completed successfully${NC}"
+# Check dump file version and handle compatibility
+echo -e "${GRAY}  Checking dump file format...${NC}"
+
+# Try to extract dump info first
+DUMP_INFO=$(docker exec -i reactive-resume-postgres pg_restore --list postgres-backup.dump 2>&1 | head -5)
+echo -e "${GRAY}  Dump info: $DUMP_INFO${NC}"
+
+# Method 1: Try pg_restore with version compatibility
+echo -e "${GRAY}  Attempting pg_restore import...${NC}"
+if docker exec -i reactive-resume-postgres pg_restore -U reactive_resume -d reactive_resume --clean --if-exists --no-owner --no-privileges --disable-triggers < postgres-backup.dump 2>/dev/null; then
+    echo -e "${GREEN}✓ Database import completed successfully with pg_restore${NC}"
 else
-    echo -e "${RED}❌ Database import failed${NC}"
-    echo -e "${GRAY}  Check the error messages above for details${NC}"
+    echo -e "${YELLOW}⚠ pg_restore failed, trying direct SQL import...${NC}"
     
-    # Try alternative import method
-    echo -e "${YELLOW}⚠ Trying alternative import method...${NC}"
-    if docker exec -i reactive-resume-postgres psql -U reactive_resume -d reactive_resume < postgres-backup.dump; then
-        echo -e "${GREEN}✓ Database import completed with alternative method${NC}"
+    # Method 2: Convert to SQL and import
+    echo -e "${GRAY}  Converting dump to SQL format...${NC}"
+    
+    # Create a temporary SQL file
+    TEMP_SQL="/tmp/import.sql"
+    
+    # Try to convert the dump to SQL (this often works even with version mismatches)
+    if docker exec -i reactive-resume-postgres pg_restore --no-owner --no-privileges --schema-only postgres-backup.dump > "$TEMP_SQL" 2>/dev/null; then
+        echo -e "${GRAY}  Schema converted, importing structure...${NC}"
+        docker exec -i reactive-resume-postgres psql -U reactive_resume -d reactive_resume < "$TEMP_SQL" 2>/dev/null
+        
+        # Now try data import
+        echo -e "${GRAY}  Importing data...${NC}"
+        if docker exec -i reactive-resume-postgres pg_restore --no-owner --no-privileges --data-only --disable-triggers postgres-backup.dump | docker exec -i reactive-resume-postgres psql -U reactive_resume -d reactive_resume 2>/dev/null; then
+            echo -e "${GREEN}✓ Database import completed with SQL conversion method${NC}"
+        else
+            echo -e "${YELLOW}⚠ Data import failed, trying manual SQL extraction...${NC}"
+            
+            # Method 3: Extract as plain SQL
+            if docker exec -i reactive-resume-postgres pg_restore --no-owner --no-privileges --disable-triggers --inserts postgres-backup.dump > "$TEMP_SQL" 2>/dev/null; then
+                echo -e "${GRAY}  Importing plain SQL dump...${NC}"
+                if docker exec -i reactive-resume-postgres psql -U reactive_resume -d reactive_resume < "$TEMP_SQL" 2>/dev/null; then
+                    echo -e "${GREEN}✓ Database import completed with plain SQL method${NC}"
+                else
+                    echo -e "${RED}❌ All import methods failed${NC}"
+                    echo -e "${GRAY}  The dump file may be corrupted or incompatible${NC}"
+                    rm -f "$TEMP_SQL"
+                    exit 1
+                fi
+            else
+                echo -e "${RED}❌ Could not convert dump to SQL format${NC}"
+                rm -f "$TEMP_SQL"
+                exit 1
+            fi
+        fi
+        rm -f "$TEMP_SQL"
     else
-        echo -e "${RED}❌ Both import methods failed${NC}"
+        echo -e "${RED}❌ Could not extract schema from dump file${NC}"
         exit 1
     fi
 fi
