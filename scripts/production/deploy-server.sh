@@ -201,29 +201,34 @@ if [ "$SKIP_BUILD" = false ]; then
     
     echo -e "   ${GRAY}Generating Prisma client...${NC}"
     
-    # Generate Prisma client (force binary download)
-    echo -e "   ${GRAY}Generating Prisma client (forcing binary download)...${NC}"
+    # Generate Prisma client (with Linux binary targets)
+    echo -e "   ${GRAY}Generating Prisma client (with Linux targets)...${NC}"
     
     cd apps/server
     
-    # Try different Linux binary targets
-    echo -e "      ${GRAY}Trying linux-x64-openssl-1.1.x...${NC}"
-    if npx prisma generate --binary-targets linux-x64-openssl-1.1.x; then
-        echo -e "      ${GREEN}✓ Success with linux-x64-openssl-1.1.x${NC}"
+    # Add Linux binary targets to schema temporarily
+    echo -e "      ${GRAY}Adding Linux binary targets to schema...${NC}"
+    cp prisma/schema.prisma prisma/schema.prisma.backup
+    
+    # Add binary targets to the generator block
+    sed -i '/generator client {/,/}/ {
+        /}/ i\
+  binaryTargets = ["native", "linux-x64-openssl-1.1.x", "linux-x64-openssl-3.0.x", "linux-arm64-openssl-1.1.x", "linux-arm64-openssl-3.0.x"]
+    }' prisma/schema.prisma
+    
+    # Generate with the updated schema
+    if npx prisma generate; then
+        echo -e "      ${GREEN}✓ Prisma client generated successfully${NC}"
     else
-        echo -e "      ${YELLOW}⚠ Trying linux-x64-openssl-3.0.x...${NC}"
-        if npx prisma generate --binary-targets linux-x64-openssl-3.0.x; then
-            echo -e "      ${GREEN}✓ Success with linux-x64-openssl-3.0.x${NC}"
-        else
-            echo -e "      ${YELLOW}⚠ Trying linux-arm64-openssl-1.1.x...${NC}"
-            if npx prisma generate --binary-targets linux-arm64-openssl-1.1.x; then
-                echo -e "      ${GREEN}✓ Success with linux-arm64-openssl-1.1.x${NC}"
-            else
-                echo -e "      ${YELLOW}⚠ Trying linux-arm64-openssl-3.0.x...${NC}"
-                npx prisma generate --binary-targets linux-arm64-openssl-3.0.x
-            fi
-        fi
+        echo -e "      ${YELLOW}⚠ Trying without binary targets...${NC}"
+        # Restore original schema and try without binary targets
+        cp prisma/schema.prisma.backup prisma/schema.prisma
+        npx prisma generate
     fi
+    
+    # Restore original schema
+    cp prisma/schema.prisma.backup prisma/schema.prisma
+    rm prisma/schema.prisma.backup
     
     cd ../..
     
