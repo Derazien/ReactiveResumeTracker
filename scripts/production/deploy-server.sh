@@ -309,7 +309,7 @@ if ! command -v pm2 &> /dev/null; then
     exit 1
 fi
 
-# Start backend
+# Start backend (using built version, no migrations)
 echo -e "   ${GRAY}Starting backend: $PM2_BACKEND_NAME${NC}"
 pm2 start npm --name "$PM2_BACKEND_NAME" -- run start --update-env
 
