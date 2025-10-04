@@ -162,8 +162,8 @@ if [ "$CLEAN_INSTALL" = true ]; then
     rm -rf node_modules pnpm-lock.yaml
 fi
 
-echo -e "   ${GRAY}Running: pnpm install --frozen-lockfile${NC}"
-pnpm install --frozen-lockfile
+echo -e "   ${GRAY}Running: pnpm install --no-frozen-lockfile${NC}"
+pnpm install --no-frozen-lockfile
 
 echo ""
 echo -e "   ${GREEN}✓ Dependencies installed${NC}"
