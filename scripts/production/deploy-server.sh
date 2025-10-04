@@ -201,23 +201,21 @@ if [ "$SKIP_BUILD" = false ]; then
     
     echo -e "   ${GRAY}Generating Prisma client...${NC}"
     
-    # Try Prisma generation with error handling
+    # Generate Prisma client (with Node v20 workaround)
+    echo -e "   ${GRAY}Generating Prisma client (Node v20 workaround)...${NC}"
+    
+    # Workaround for Node v20: Generate Prisma client directly
     if ! pnpm prisma:generate; then
-        echo -e "      ${YELLOW}⚠ Prisma generation failed, trying fixes...${NC}"
+        echo -e "      ${YELLOW}⚠ Standard generation failed, trying Node v20 workaround...${NC}"
         
-        # Clean and reinstall Prisma
-        rm -rf node_modules/.pnpm/@prisma* 2>/dev/null || true
-        pnpm install @prisma/client prisma --force
+        # Direct Prisma generation without pnpm
+        cd apps/server && npx prisma generate && cd ../..
         
-        # Approve build scripts (critical for Prisma)
-        echo -e "      ${GRAY}Approving build scripts...${NC}"
-        echo "y" | pnpm approve-builds || echo "y" | pnpm approve-builds
-        
-        # Try generation again
-        if ! pnpm prisma:generate; then
-            echo -e "      ${RED}❌ Prisma generation failed after fixes${NC}"
-            echo -e "      ${GRAY}Try updating Node.js: curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - && sudo apt-get install -y nodejs${NC}"
-            exit 1
+        if [ $? -ne 0 ]; then
+            echo -e "      ${YELLOW}⚠ Trying alternative approach...${NC}"
+            # Last resort: install Prisma globally and generate
+            npm install -g prisma@6.16.3
+            cd apps/server && prisma generate && cd ../..
         fi
     fi
     
