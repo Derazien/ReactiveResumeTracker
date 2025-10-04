@@ -31,7 +31,7 @@ PM2_BACKEND_NAME="${PM2_BACKEND_NAME:-imin_backend_dev}"
 PM2_FRONTEND_NAME="${PM2_FRONTEND_NAME:-imin_frontend_dev}"
 SERVER_PORT="${SERVER_PORT:-3000}"
 CLIENT_PORT="${CLIENT_PORT:-5173}"
-COMPOSE_FILE="self-hosted-infrastructure.yml"
+COMPOSE_FILE="unified-docker-compose.yml"
 
 # Parse arguments
 SKIP_BUILD=false

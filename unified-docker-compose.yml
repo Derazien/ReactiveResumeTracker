@@ -11,7 +11,7 @@ services:
       POSTGRES_PASSWORD: reactive_resume_2024  # Standardized password (same as server)
       POSTGRES_INITDB_ARGS: "--auth-host=md5"  # Ensure md5 password auth
     ports:
-      - "55432:5432"  # Local: 55432 (avoids Windows Postgres conflict), Server: 5432
+      - "5432:5432"  # Server: 5432 (standard PostgreSQL port)
     volumes:
       - postgres_main_data:/var/lib/postgresql/data
     restart: unless-stopped
