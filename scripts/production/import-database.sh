@@ -94,26 +94,21 @@ echo -e "${GRAY}  This may take a few minutes depending on data size...${NC}"
 # Check dump file version and handle compatibility
 echo -e "${GRAY}  Checking dump file format...${NC}"
 
-# Determine file type and copy into container
-if [[ "$DUMP_FILE" == *.sql ]]; then
-    echo -e "${GRAY}  Copying SQL file into PostgreSQL container...${NC}"
-    CONTAINER_DUMP_PATH="/tmp/postgres-backup.sql"
-else
-    echo -e "${GRAY}  Copying dump file into PostgreSQL container...${NC}"
-    CONTAINER_DUMP_PATH="/tmp/postgres-backup.dump"
-fi
-docker cp "$DUMP_FILE" reactive-resume-postgres:"$CONTAINER_DUMP_PATH"
-
-# Handle SQL files differently
+# Handle SQL files differently (no need to copy to container)
 if [[ "$DUMP_FILE" == *.sql ]]; then
     echo -e "${GRAY}  Importing SQL file directly...${NC}"
-    if docker exec -i reactive-resume-postgres psql -U reactive_resume -d reactive_resume < "$CONTAINER_DUMP_PATH" 2>/dev/null; then
+    if docker exec -i reactive-resume-postgres psql -U reactive_resume -d reactive_resume < "$DUMP_FILE" 2>/dev/null; then
         echo -e "${GREEN}✓ Database import completed successfully with SQL file${NC}"
     else
         echo -e "${RED}❌ SQL import failed${NC}"
         exit 1
     fi
 else
+    # For dump files, copy into container first
+    echo -e "${GRAY}  Copying dump file into PostgreSQL container...${NC}"
+    CONTAINER_DUMP_PATH="/tmp/postgres-backup.dump"
+    docker cp "$DUMP_FILE" reactive-resume-postgres:"$CONTAINER_DUMP_PATH"
+
     # Try to extract dump info first
     DUMP_INFO=$(docker exec reactive-resume-postgres pg_restore --list "$CONTAINER_DUMP_PATH" 2>&1 | head -5)
     echo -e "${GRAY}  Dump info: $DUMP_INFO${NC}"
