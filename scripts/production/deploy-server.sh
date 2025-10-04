@@ -203,34 +203,29 @@ if [ "$SKIP_BUILD" = false ]; then
     
     echo -e "   ${GRAY}Generating Prisma client...${NC}"
     
-    # Generate Prisma client (with Linux binary targets)
-    echo -e "   ${GRAY}Generating Prisma client (with Linux targets)...${NC}"
+    # Generate Prisma client (nuclear approach - force consistent versions)
+    echo -e "   ${GRAY}Generating Prisma client (forcing consistent versions)...${NC}"
     
+    # Step 1: Force install exact matching versions
+    echo -e "      ${GRAY}Installing exact matching Prisma versions...${NC}"
     cd apps/server
     
-    # Add Linux binary targets to schema temporarily
-    echo -e "      ${GRAY}Adding Linux binary targets to schema...${NC}"
-    cp prisma/schema.prisma prisma/schema.prisma.backup
+    # Remove existing Prisma installations
+    rm -rf node_modules/.pnpm/@prisma* 2>/dev/null || true
+    rm -rf node_modules/.pnpm/prisma* 2>/dev/null || true
     
-    # Add binary targets to the generator block (using correct target names)
-    sed -i '/generator client {/,/}/ {
-        /}/ i\
-  binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x", "linux-arm64-openssl-1.1.x", "linux-arm64-openssl-3.0.x"]
-    }' prisma/schema.prisma
+    # Install exact versions that match
+    pnpm install @prisma/client@6.16.3 prisma@6.16.3 --force --no-frozen-lockfile
     
-    # Generate with the updated schema
-    if npx prisma generate; then
-        echo -e "      ${GREEN}✓ Prisma client generated successfully${NC}"
-    else
-        echo -e "      ${YELLOW}⚠ Trying without binary targets...${NC}"
-        # Restore original schema and try without binary targets
-        cp prisma/schema.prisma.backup prisma/schema.prisma
-        npx prisma generate
-    fi
+    # Step 2: Force rebuild the client from scratch
+    echo -e "      ${GRAY}Forcing Prisma client rebuild...${NC}"
     
-    # Restore original schema
-    cp prisma/schema.prisma.backup prisma/schema.prisma
-    rm prisma/schema.prisma.backup
+    # Remove any existing generated client
+    rm -rf node_modules/@prisma/client 2>/dev/null || true
+    rm -rf node_modules/.prisma 2>/dev/null || true
+    
+    # Generate with fresh installation
+    npx prisma generate --force
     
     cd ../..
     
