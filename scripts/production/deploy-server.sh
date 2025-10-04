@@ -225,7 +225,7 @@ if [ "$SKIP_BUILD" = false ]; then
     rm -rf node_modules/.prisma 2>/dev/null || true
     
     # Generate with fresh installation
-    npx prisma generate --force
+    npx prisma generate
     
     cd ../..
     
