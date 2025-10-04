@@ -188,7 +188,9 @@ pnpm install @prisma/client prisma --force 2>/dev/null || true
 
 # Approve build scripts for Prisma (required for proper generation)
 echo -e "   ${GRAY}Approving build scripts for Prisma...${NC}"
-echo "y" | pnpm approve-builds 2>/dev/null || echo "y" | pnpm approve-builds || true
+echo -e "      ${GRAY}Auto-selecting all packages for build...${NC}"
+# Auto-select all packages by piping 'a' (select all) then 'Enter' to confirm
+printf "a\n" | pnpm approve-builds 2>/dev/null || printf "a\n" | pnpm approve-builds || true
 
 echo ""
 echo -e "   ${GREEN}✓ Dependencies installed${NC}"
