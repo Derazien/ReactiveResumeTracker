@@ -90,7 +90,7 @@ pnpm dev
 ```
 
 **What it does**:
-1. ✅ Stops existing PM2 processes (`imin_backend_dev`, `imin_frontend_dev`)
+1. ✅ Stops existing PM2 processes (`reactive_resume_server`, `reactive_resume_client`)
 2. ✅ Cleans up ports (kills conflicting processes)
 3. ✅ Stops and restarts Docker containers
 4. ✅ Installs dependencies (`pnpm install --frozen-lockfile`)
@@ -102,8 +102,8 @@ pnpm dev
 
 **Configuration via Environment Variables**:
 ```bash
-export PM2_BACKEND_NAME="imin_backend_dev"    # Default
-export PM2_FRONTEND_NAME="imin_frontend_dev"  # Default
+export PM2_BACKEND_NAME="reactive_resume_server"    # Default
+export PM2_FRONTEND_NAME="reactive_resume_client"  # Default
 export SERVER_PORT="3000"
 export CLIENT_PORT="5173"
 ```
@@ -185,7 +185,7 @@ git pull origin main
 pm2 logs
 
 # Specific process
-pm2 logs imin_backend_dev
+pm2 logs reactive_resume_server
 
 # Last 100 lines
 pm2 logs --lines 100
@@ -202,7 +202,7 @@ pm2 monit
 pm2 restart all
 
 # Restart specific
-pm2 restart imin_backend_dev
+pm2 restart reactive_resume_server
 ```
 
 ### Stop Services
@@ -211,7 +211,7 @@ pm2 restart imin_backend_dev
 pm2 stop all
 
 # Stop specific
-pm2 stop imin_backend_dev
+pm2 stop reactive_resume_server
 ```
 
 ### View Status

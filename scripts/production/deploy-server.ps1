@@ -37,8 +37,8 @@ param(
 $ErrorActionPreference = "Continue"
 
 # Configuration
-$PM2_BACKEND_NAME = $env:PM2_BACKEND_NAME ?? "imin_backend_dev"
-$PM2_FRONTEND_NAME = $env:PM2_FRONTEND_NAME ?? "imin_frontend_dev"
+$PM2_BACKEND_NAME = $env:PM2_BACKEND_NAME ?? "reactive_resume_server"
+$PM2_FRONTEND_NAME = $env:PM2_FRONTEND_NAME ?? "reactive_resume_client"
 $SERVER_PORT = $env:SERVER_PORT ?? 3000
 $CLIENT_PORT = $env:CLIENT_PORT ?? 5173
 
