@@ -45,44 +45,26 @@ $backupFile = "$backupDir\postgres-compatible-$timestamp.dump"
 Write-Host "Creating compatible PostgreSQL dump..." -ForegroundColor Yellow
 Write-Host "  Output file: $backupFile" -ForegroundColor Gray
 
-# Method 1: Try pg_dump with compatibility options
-Write-Host "  Attempting pg_dump with compatibility flags..." -ForegroundColor Gray
+# Force SQL format for maximum compatibility
+Write-Host "  Creating plain SQL dump for maximum compatibility..." -ForegroundColor Gray
+$sqlFile = "$backupDir\postgres-compatible-$timestamp.sql"
 $success = $false
 
 try {
-    # Use pg_dump with version compatibility
-    docker exec reactive-resume-postgres pg_dump -U reactive_resume -d reactive_resume --format=custom --no-owner --no-privileges --verbose > $backupFile
+    # Create plain SQL dump
+    docker exec reactive-resume-postgres pg_dump -U reactive_resume -d reactive_resume --no-owner --no-privileges --inserts > $sqlFile
     
-    if ($LASTEXITCODE -eq 0 -and (Test-Path $backupFile) -and (Get-Item $backupFile).Length -gt 0) {
-        Write-Host "Database exported successfully with pg_dump" -ForegroundColor Green
+    if ($LASTEXITCODE -eq 0 -and (Test-Path $sqlFile) -and (Get-Item $sqlFile).Length -gt 0) {
+        Write-Host "Database exported successfully as SQL" -ForegroundColor Green
+        $backupFile = $sqlFile
         $success = $true
     } else {
-        Write-Host "pg_dump failed, trying SQL export..." -ForegroundColor Yellow
+        Write-Host "SQL export failed" -ForegroundColor Red
         $success = $false
     }
 } catch {
-    Write-Host "pg_dump failed, trying SQL export..." -ForegroundColor Yellow
+    Write-Host "SQL export failed" -ForegroundColor Red
     $success = $false
-}
-
-# Method 2: Fallback to plain SQL if pg_dump fails
-if (-not $success) {
-    Write-Host "  Creating plain SQL dump as fallback..." -ForegroundColor Gray
-    $sqlFile = "$backupDir\postgres-compatible-$timestamp.sql"
-    
-    try {
-        # Create plain SQL dump
-        docker exec reactive-resume-postgres pg_dump -U reactive_resume -d reactive_resume --no-owner --no-privileges --inserts > $sqlFile
-        
-        if ($LASTEXITCODE -eq 0 -and (Test-Path $sqlFile) -and (Get-Item $sqlFile).Length -gt 0) {
-            Write-Host "Database exported successfully as SQL" -ForegroundColor Green
-            $backupFile = $sqlFile
-            $success = $true
-        }
-    } catch {
-        Write-Host "SQL export also failed" -ForegroundColor Red
-        $success = $false
-    }
 }
 
 if (-not $success) {
