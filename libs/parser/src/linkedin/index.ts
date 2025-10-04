@@ -33,7 +33,7 @@ export class LinkedInParser implements Parser<JSZip, LinkedIn> {
     this.schema = linkedInSchema;
   }
 
-  async readFile(file: File): Promise<JSZip> {
+  async readFile(file: File): Promise<any> {
     const data = await JSZip.loadAsync(file);
 
     if (Object.keys(data.files).length === 0) {
@@ -43,7 +43,7 @@ export class LinkedInParser implements Parser<JSZip, LinkedIn> {
     return data;
   }
 
-  async validate(data: JSZip) {
+  async validate(data: any) {
     const result: Json = {};
 
     for (const [name, file] of Object.entries(data.files)) {
