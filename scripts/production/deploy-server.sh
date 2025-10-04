@@ -301,6 +301,21 @@ else
     echo -e "   ${YELLOW}⚠ Backend health check failed (may still be starting)${NC}"
 fi
 
+# Start frontend
+echo -e "   ${GRAY}Starting frontend: $PM2_FRONTEND_NAME${NC}"
+pm2 start npm --name "$PM2_FRONTEND_NAME" -- run dev --update-env
+
+# Wait for frontend to be ready
+echo -e "   ${GRAY}Waiting for frontend to be ready...${NC}"
+sleep 5
+
+# Verify frontend is running
+if curl -f http://localhost:$CLIENT_PORT >/dev/null 2>&1; then
+    echo -e "   ${GREEN}✓ Frontend is healthy${NC}"
+else
+    echo -e "   ${YELLOW}⚠ Frontend health check failed (may still be starting)${NC}"
+fi
+
 echo ""
 echo -e "   ${GREEN}✓ Services started${NC}"
 echo ""
@@ -318,6 +333,7 @@ echo -e "${GREEN}═════════════════════
 echo ""
 
 echo -e "${CYAN}Service URLs:${NC}"
+echo -e "   • Frontend App: ${CYAN}http://localhost:$CLIENT_PORT${NC}"
 echo -e "   • Backend API: ${CYAN}http://localhost:$SERVER_PORT${NC}"
 echo -e "   • Health Check: ${CYAN}http://localhost:$SERVER_PORT/api/health${NC}"
 echo -e "   • API Docs: ${CYAN}http://localhost:$SERVER_PORT/docs${NC}"
