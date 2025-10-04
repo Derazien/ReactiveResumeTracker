@@ -171,9 +171,8 @@ echo -e "   ${GRAY}Ensuring Prisma client is properly installed...${NC}"
 rm -rf node_modules/.pnpm/@prisma* 2>/dev/null || true
 pnpm install @prisma/client prisma --force 2>/dev/null || true
 
-# Fix nestjs-prisma compatibility
-echo -e "   ${GRAY}Fixing nestjs-prisma compatibility...${NC}"
-pnpm install nestjs-prisma@0.24.0 --force 2>/dev/null || true
+# Note: nestjs-prisma has been replaced with direct Prisma client usage
+echo -e "   ${GRAY}Using direct Prisma client (no nestjs-prisma needed)...${NC}"
 
 # Approve build scripts for Prisma (required for proper generation)
 echo -e "   ${GRAY}Approving build scripts for Prisma...${NC}"
