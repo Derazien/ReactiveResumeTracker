@@ -34,8 +34,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 DUMP_FILE=""
 
-# Look for the dump file in common locations
-for path in "$PROJECT_ROOT/postgres-backup.dump" "$SCRIPT_DIR/postgres-backup.dump" "./postgres-backup.dump" "postgres-backup.dump"; do
+# Look for the dump file in common locations (both .dump and .sql)
+for path in "$PROJECT_ROOT/postgres-backup.dump" "$SCRIPT_DIR/postgres-backup.dump" "./postgres-backup.dump" "postgres-backup.dump" "$PROJECT_ROOT/postgres-backup.sql" "$SCRIPT_DIR/postgres-backup.sql" "./postgres-backup.sql" "postgres-backup.sql"; do
     if [ -f "$path" ]; then
         DUMP_FILE="$path"
         break
@@ -43,16 +43,19 @@ for path in "$PROJECT_ROOT/postgres-backup.dump" "$SCRIPT_DIR/postgres-backup.du
 done
 
 if [ -z "$DUMP_FILE" ]; then
-    echo -e "${RED}❌ postgres-backup.dump file not found${NC}"
+    echo -e "${RED}❌ postgres-backup.dump or postgres-backup.sql file not found${NC}"
     echo -e "${GRAY}  Searched in:${NC}"
     echo -e "${GRAY}    - $PROJECT_ROOT/postgres-backup.dump${NC}"
     echo -e "${GRAY}    - $SCRIPT_DIR/postgres-backup.dump${NC}"
     echo -e "${GRAY}    - ./postgres-backup.dump${NC}"
+    echo -e "${GRAY}    - $PROJECT_ROOT/postgres-backup.sql${NC}"
+    echo -e "${GRAY}    - $SCRIPT_DIR/postgres-backup.sql${NC}"
+    echo -e "${GRAY}    - ./postgres-backup.sql${NC}"
     echo -e "${GRAY}  Make sure the dump file exists in one of these locations${NC}"
     exit 1
 fi
 
-echo -e "${GREEN}✓ Found postgres-backup.dump at: $DUMP_FILE${NC}"
+echo -e "${GREEN}✓ Found dump file at: $DUMP_FILE${NC}"
 echo -e "${GREEN}✓ File size: $(du -h "$DUMP_FILE" | cut -f1)${NC}"
 echo ""
 
@@ -91,21 +94,36 @@ echo -e "${GRAY}  This may take a few minutes depending on data size...${NC}"
 # Check dump file version and handle compatibility
 echo -e "${GRAY}  Checking dump file format...${NC}"
 
-# Copy dump file into container for processing
-echo -e "${GRAY}  Copying dump file into PostgreSQL container...${NC}"
-CONTAINER_DUMP_PATH="/tmp/postgres-backup.dump"
+# Determine file type and copy into container
+if [[ "$DUMP_FILE" == *.sql ]]; then
+    echo -e "${GRAY}  Copying SQL file into PostgreSQL container...${NC}"
+    CONTAINER_DUMP_PATH="/tmp/postgres-backup.sql"
+else
+    echo -e "${GRAY}  Copying dump file into PostgreSQL container...${NC}"
+    CONTAINER_DUMP_PATH="/tmp/postgres-backup.dump"
+fi
 docker cp "$DUMP_FILE" reactive-resume-postgres:"$CONTAINER_DUMP_PATH"
 
-# Try to extract dump info first
-DUMP_INFO=$(docker exec reactive-resume-postgres pg_restore --list "$CONTAINER_DUMP_PATH" 2>&1 | head -5)
-echo -e "${GRAY}  Dump info: $DUMP_INFO${NC}"
-
-# Method 1: Try pg_restore with version compatibility
-echo -e "${GRAY}  Attempting pg_restore import...${NC}"
-if docker exec reactive-resume-postgres pg_restore -U reactive_resume -d reactive_resume --clean --if-exists --no-owner --no-privileges --disable-triggers "$CONTAINER_DUMP_PATH" 2>/dev/null; then
-    echo -e "${GREEN}✓ Database import completed successfully with pg_restore${NC}"
+# Handle SQL files differently
+if [[ "$DUMP_FILE" == *.sql ]]; then
+    echo -e "${GRAY}  Importing SQL file directly...${NC}"
+    if docker exec -i reactive-resume-postgres psql -U reactive_resume -d reactive_resume < "$CONTAINER_DUMP_PATH" 2>/dev/null; then
+        echo -e "${GREEN}✓ Database import completed successfully with SQL file${NC}"
+    else
+        echo -e "${RED}❌ SQL import failed${NC}"
+        exit 1
+    fi
 else
-    echo -e "${YELLOW}⚠ pg_restore failed, trying direct SQL import...${NC}"
+    # Try to extract dump info first
+    DUMP_INFO=$(docker exec reactive-resume-postgres pg_restore --list "$CONTAINER_DUMP_PATH" 2>&1 | head -5)
+    echo -e "${GRAY}  Dump info: $DUMP_INFO${NC}"
+
+    # Method 1: Try pg_restore with version compatibility
+    echo -e "${GRAY}  Attempting pg_restore import...${NC}"
+    if docker exec reactive-resume-postgres pg_restore -U reactive_resume -d reactive_resume --clean --if-exists --no-owner --no-privileges --disable-triggers "$CONTAINER_DUMP_PATH" 2>/dev/null; then
+        echo -e "${GREEN}✓ Database import completed successfully with pg_restore${NC}"
+    else
+        echo -e "${YELLOW}⚠ pg_restore failed, trying direct SQL import...${NC}"
     
     # Method 2: Convert to SQL and import
     echo -e "${GRAY}  Converting dump to SQL format...${NC}"
@@ -148,6 +166,7 @@ else
         exit 1
     fi
 fi
+fi  # End of SQL vs dump file handling
 
 echo ""
 
