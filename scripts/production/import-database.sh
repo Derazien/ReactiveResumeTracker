@@ -91,13 +91,18 @@ echo -e "${GRAY}  This may take a few minutes depending on data size...${NC}"
 # Check dump file version and handle compatibility
 echo -e "${GRAY}  Checking dump file format...${NC}"
 
+# Copy dump file into container for processing
+echo -e "${GRAY}  Copying dump file into PostgreSQL container...${NC}"
+CONTAINER_DUMP_PATH="/tmp/postgres-backup.dump"
+docker cp "$DUMP_FILE" reactive-resume-postgres:"$CONTAINER_DUMP_PATH"
+
 # Try to extract dump info first
-DUMP_INFO=$(docker exec -i reactive-resume-postgres pg_restore --list "$DUMP_FILE" 2>&1 | head -5)
+DUMP_INFO=$(docker exec reactive-resume-postgres pg_restore --list "$CONTAINER_DUMP_PATH" 2>&1 | head -5)
 echo -e "${GRAY}  Dump info: $DUMP_INFO${NC}"
 
 # Method 1: Try pg_restore with version compatibility
 echo -e "${GRAY}  Attempting pg_restore import...${NC}"
-if docker exec -i reactive-resume-postgres pg_restore -U reactive_resume -d reactive_resume --clean --if-exists --no-owner --no-privileges --disable-triggers < "$DUMP_FILE" 2>/dev/null; then
+if docker exec reactive-resume-postgres pg_restore -U reactive_resume -d reactive_resume --clean --if-exists --no-owner --no-privileges --disable-triggers "$CONTAINER_DUMP_PATH" 2>/dev/null; then
     echo -e "${GREEN}✓ Database import completed successfully with pg_restore${NC}"
 else
     echo -e "${YELLOW}⚠ pg_restore failed, trying direct SQL import...${NC}"
@@ -109,19 +114,19 @@ else
     TEMP_SQL="/tmp/import.sql"
     
     # Try to convert the dump to SQL (this often works even with version mismatches)
-    if docker exec -i reactive-resume-postgres pg_restore --no-owner --no-privileges --schema-only "$DUMP_FILE" > "$TEMP_SQL" 2>/dev/null; then
+    if docker exec reactive-resume-postgres pg_restore --no-owner --no-privileges --schema-only "$CONTAINER_DUMP_PATH" > "$TEMP_SQL" 2>/dev/null; then
         echo -e "${GRAY}  Schema converted, importing structure...${NC}"
         docker exec -i reactive-resume-postgres psql -U reactive_resume -d reactive_resume < "$TEMP_SQL" 2>/dev/null
         
         # Now try data import
         echo -e "${GRAY}  Importing data...${NC}"
-        if docker exec -i reactive-resume-postgres pg_restore --no-owner --no-privileges --data-only --disable-triggers "$DUMP_FILE" | docker exec -i reactive-resume-postgres psql -U reactive_resume -d reactive_resume 2>/dev/null; then
+        if docker exec reactive-resume-postgres pg_restore --no-owner --no-privileges --data-only --disable-triggers "$CONTAINER_DUMP_PATH" | docker exec -i reactive-resume-postgres psql -U reactive_resume -d reactive_resume 2>/dev/null; then
             echo -e "${GREEN}✓ Database import completed with SQL conversion method${NC}"
         else
             echo -e "${YELLOW}⚠ Data import failed, trying manual SQL extraction...${NC}"
             
             # Method 3: Extract as plain SQL
-            if docker exec -i reactive-resume-postgres pg_restore --no-owner --no-privileges --disable-triggers --inserts "$DUMP_FILE" > "$TEMP_SQL" 2>/dev/null; then
+            if docker exec reactive-resume-postgres pg_restore --no-owner --no-privileges --disable-triggers --inserts "$CONTAINER_DUMP_PATH" > "$TEMP_SQL" 2>/dev/null; then
                 echo -e "${GRAY}  Importing plain SQL dump...${NC}"
                 if docker exec -i reactive-resume-postgres psql -U reactive_resume -d reactive_resume < "$TEMP_SQL" 2>/dev/null; then
                     echo -e "${GREEN}✓ Database import completed with plain SQL method${NC}"
@@ -168,6 +173,11 @@ if [ -n "$TABLE_COUNT" ] && [ "$TABLE_COUNT" -gt 0 ]; then
 else
     echo -e "${YELLOW}⚠ Could not verify table count (database may be empty)${NC}"
 fi
+
+# Cleanup
+echo -e "${GRAY}  Cleaning up temporary files...${NC}"
+docker exec reactive-resume-postgres rm -f "$CONTAINER_DUMP_PATH" 2>/dev/null || true
+rm -f "$TEMP_SQL" 2>/dev/null || true
 
 echo ""
 echo -e "${CYAN}═══════════════════════════════════════════════════════${NC}"
