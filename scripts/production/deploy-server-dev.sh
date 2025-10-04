@@ -289,7 +289,7 @@ echo -e "   ${GRAY}Starting server: reactive_resume_server${NC}"
 pm2 start npm --name "reactive_resume_server" -- run dev:server --update-env
 
 echo -e "   ${GRAY}Starting client: reactive_resume_client${NC}"
-pm2 start npm --name "reactive_resume_client" -- run dev:client --update-env
+pm2 start npx --name "reactive_resume_client" -- nx serve client --update-env
 
 # Wait for services to be ready
 echo -e "   ${GRAY}Waiting for services to be ready...${NC}"
