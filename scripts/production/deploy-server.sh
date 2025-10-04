@@ -188,7 +188,7 @@ pnpm install @prisma/client prisma --force 2>/dev/null || true
 
 # Approve build scripts for Prisma (required for proper generation)
 echo -e "   ${GRAY}Approving build scripts for Prisma...${NC}"
-pnpm approve-builds --yes 2>/dev/null || true
+echo "y" | pnpm approve-builds 2>/dev/null || echo "y" | pnpm approve-builds || true
 
 echo ""
 echo -e "   ${GREEN}✓ Dependencies installed${NC}"
@@ -211,7 +211,7 @@ if [ "$SKIP_BUILD" = false ]; then
         
         # Approve build scripts (critical for Prisma)
         echo -e "      ${GRAY}Approving build scripts...${NC}"
-        pnpm approve-builds --yes
+        echo "y" | pnpm approve-builds || echo "y" | pnpm approve-builds
         
         # Try generation again
         if ! pnpm prisma:generate; then
