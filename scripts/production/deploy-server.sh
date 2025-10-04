@@ -201,23 +201,28 @@ if [ "$SKIP_BUILD" = false ]; then
     
     echo -e "   ${GRAY}Generating Prisma client...${NC}"
     
-    # Generate Prisma client (with Node v20 workaround)
-    echo -e "   ${GRAY}Generating Prisma client (Node v20 workaround)...${NC}"
+    # Generate Prisma client (force binary download)
+    echo -e "   ${GRAY}Generating Prisma client (forcing binary download)...${NC}"
     
-    # Workaround for Node v20: Generate Prisma client directly
-    if ! pnpm prisma:generate; then
-        echo -e "      ${YELLOW}⚠ Standard generation failed, trying Node v20 workaround...${NC}"
-        
-        # Direct Prisma generation without pnpm
-        cd apps/server && npx prisma generate && cd ../..
-        
-        if [ $? -ne 0 ]; then
-            echo -e "      ${YELLOW}⚠ Trying alternative approach...${NC}"
-            # Last resort: install Prisma globally and generate
-            npm install -g prisma@6.16.3
-            cd apps/server && prisma generate && cd ../..
-        fi
+    # Force Prisma to download the binary instead of building it
+    export PRISMA_CLI_BINARY_TARGETS="native"
+    cd apps/server
+    
+    # Try multiple approaches to get the binary
+    if ! npx prisma generate --force; then
+        echo -e "      ${YELLOW}⚠ Trying with explicit binary target...${NC}"
+        npx prisma generate --binary-targets native
     fi
+    
+    if [ $? -ne 0 ]; then
+        echo -e "      ${YELLOW}⚠ Downloading binary manually...${NC}"
+        # Download the binary directly
+        npx prisma generate --binary-targets linux-arm64-openssl-1.1.x || \
+        npx prisma generate --binary-targets linux-arm64-openssl-3.0.x || \
+        npx prisma generate --binary-targets linux-x64-openssl-1.1.x
+    fi
+    
+    cd ../..
     
     echo -e "   ${GRAY}Building all apps...${NC}"
     pnpm build
