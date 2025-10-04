@@ -174,9 +174,9 @@ echo -e "   ${GRAY}Ensuring Prisma client is properly installed...${NC}"
 rm -rf node_modules/.pnpm/@prisma* 2>/dev/null || true
 pnpm install @prisma/client prisma --force 2>/dev/null || true
 
-# Install compatible nestjs-prisma version
-echo -e "   ${GRAY}Installing compatible nestjs-prisma...${NC}"
-pnpm install nestjs-prisma@0.25.0 --force 2>/dev/null || true
+# Install exact same versions as local environment
+echo -e "   ${GRAY}Installing exact same versions as local...${NC}"
+pnpm install nestjs-prisma@0.24.0 @prisma/client@6.13.0 prisma@6.13.0 --force 2>/dev/null || true
 
 # Approve build scripts for Prisma (required for proper generation)
 echo -e "   ${GRAY}Approving build scripts for Prisma...${NC}"
@@ -196,16 +196,16 @@ echo -e "   ${GRAY}Generating Prisma client...${NC}"
 # Generate Prisma client (nuclear approach - force consistent versions)
 echo -e "   ${GRAY}Generating Prisma client (forcing consistent versions)...${NC}"
 
-# Step 1: Force install exact matching versions
-echo -e "      ${GRAY}Installing exact matching Prisma versions...${NC}"
-cd apps/server
-
-# Remove existing Prisma installations
-rm -rf node_modules/.pnpm/@prisma* 2>/dev/null || true
-rm -rf node_modules/.pnpm/prisma* 2>/dev/null || true
-
-# Install exact versions that match
-pnpm install @prisma/client@6.16.3 prisma@6.16.3 --force
+      # Step 1: Force install exact matching versions (same as local)
+      echo -e "      ${GRAY}Installing exact matching Prisma versions (same as local)...${NC}"
+      cd apps/server
+      
+      # Remove existing Prisma installations
+      rm -rf node_modules/.pnpm/@prisma* 2>/dev/null || true
+      rm -rf node_modules/.pnpm/prisma* 2>/dev/null || true
+      
+      # Install exact versions that match local environment
+      pnpm install @prisma/client@6.13.0 prisma@6.13.0 --force
 
 # Step 2: Force rebuild the client from scratch
 echo -e "      ${GRAY}Forcing Prisma client rebuild...${NC}"
@@ -225,8 +225,8 @@ rm -rf node_modules/@prisma/client 2>/dev/null || true
 rm -rf node_modules/.prisma 2>/dev/null || true
 rm -rf node_modules/.pnpm/@prisma* 2>/dev/null || true
 
-# Install exact versions and generate
-pnpm install @prisma/client@6.16.3 prisma@6.16.3 --force
+# Install exact versions and generate (same as local)
+pnpm install @prisma/client@6.13.0 prisma@6.13.0 --force
 cd apps/server
 npx prisma generate
 cd ../..
