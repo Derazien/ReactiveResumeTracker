@@ -248,8 +248,29 @@ fi
 echo -e "${YELLOW}🗄️  Step 6: Running database migrations...${NC}"
 echo ""
 
-echo -e "   ${GRAY}Running: pnpm prisma:migrate${NC}"
-pnpm prisma:migrate
+# Check if migration_lock.toml exists and has wrong provider
+if [ -f "apps/server/prisma/migrations/migration_lock.toml" ]; then
+    LOCK_PROVIDER=$(grep 'provider = ' apps/server/prisma/migrations/migration_lock.toml | cut -d'"' -f2)
+    if [ "$LOCK_PROVIDER" = "sqlite" ]; then
+        echo -e "   ${YELLOW}⚠ Detected SQLite migrations, converting to PostgreSQL baseline...${NC}"
+        echo -e "      ${GRAY}Removing old SQLite migration directory...${NC}"
+        rm -rf apps/server/prisma/migrations
+        
+        echo -e "      ${GRAY}Creating PostgreSQL baseline migration...${NC}"
+        cd apps/server
+        npx prisma migrate deploy --skip-generate || {
+            echo -e "      ${YELLOW}Creating baseline with prisma db push...${NC}"
+            npx prisma db push --skip-generate --accept-data-loss
+        }
+        cd ../..
+    else
+        echo -e "   ${GRAY}Running: pnpm prisma:migrate${NC}"
+        pnpm prisma:migrate
+    fi
+else
+    echo -e "   ${GRAY}Running: pnpm prisma:migrate${NC}"
+    pnpm prisma:migrate
+fi
 
 echo ""
 echo -e "   ${GREEN}✓ Migrations complete${NC}"
