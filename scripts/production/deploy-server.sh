@@ -204,22 +204,25 @@ if [ "$SKIP_BUILD" = false ]; then
     # Generate Prisma client (force binary download)
     echo -e "   ${GRAY}Generating Prisma client (forcing binary download)...${NC}"
     
-    # Force Prisma to download the binary instead of building it
-    export PRISMA_CLI_BINARY_TARGETS="native"
     cd apps/server
     
-    # Try multiple approaches to get the binary
-    if ! npx prisma generate --force; then
-        echo -e "      ${YELLOW}⚠ Trying with explicit binary target...${NC}"
-        npx prisma generate --binary-targets native
-    fi
-    
-    if [ $? -ne 0 ]; then
-        echo -e "      ${YELLOW}⚠ Downloading binary manually...${NC}"
-        # Download the binary directly
-        npx prisma generate --binary-targets linux-arm64-openssl-1.1.x || \
-        npx prisma generate --binary-targets linux-arm64-openssl-3.0.x || \
-        npx prisma generate --binary-targets linux-x64-openssl-1.1.x
+    # Try different Linux binary targets
+    echo -e "      ${GRAY}Trying linux-x64-openssl-1.1.x...${NC}"
+    if npx prisma generate --binary-targets linux-x64-openssl-1.1.x; then
+        echo -e "      ${GREEN}✓ Success with linux-x64-openssl-1.1.x${NC}"
+    else
+        echo -e "      ${YELLOW}⚠ Trying linux-x64-openssl-3.0.x...${NC}"
+        if npx prisma generate --binary-targets linux-x64-openssl-3.0.x; then
+            echo -e "      ${GREEN}✓ Success with linux-x64-openssl-3.0.x${NC}"
+        else
+            echo -e "      ${YELLOW}⚠ Trying linux-arm64-openssl-1.1.x...${NC}"
+            if npx prisma generate --binary-targets linux-arm64-openssl-1.1.x; then
+                echo -e "      ${GREEN}✓ Success with linux-arm64-openssl-1.1.x${NC}"
+            else
+                echo -e "      ${YELLOW}⚠ Trying linux-arm64-openssl-3.0.x...${NC}"
+                npx prisma generate --binary-targets linux-arm64-openssl-3.0.x
+            fi
+        fi
     fi
     
     cd ../..
