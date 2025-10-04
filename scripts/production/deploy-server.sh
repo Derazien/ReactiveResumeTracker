@@ -215,7 +215,7 @@ if [ "$SKIP_BUILD" = false ]; then
     rm -rf node_modules/.pnpm/prisma* 2>/dev/null || true
     
     # Install exact versions that match
-    pnpm install @prisma/client@6.16.3 prisma@6.16.3 --force --no-frozen-lockfile
+    pnpm install @prisma/client@6.16.3 prisma@6.16.3 --force
     
     # Step 2: Force rebuild the client from scratch
     echo -e "      ${GRAY}Forcing Prisma client rebuild...${NC}"
