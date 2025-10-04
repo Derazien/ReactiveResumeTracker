@@ -34,8 +34,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 DUMP_FILE=""
 
-# Look for the dump file in common locations (both .dump and .sql)
-for path in "$PROJECT_ROOT/postgres-backup.dump" "$SCRIPT_DIR/postgres-backup.dump" "./postgres-backup.dump" "postgres-backup.dump" "$PROJECT_ROOT/postgres-backup.sql" "$SCRIPT_DIR/postgres-backup.sql" "./postgres-backup.sql" "postgres-backup.sql"; do
+# Look for the dump file in common locations (prioritize .sql files)
+for path in "$PROJECT_ROOT/postgres-backup.sql" "$SCRIPT_DIR/postgres-backup.sql" "./postgres-backup.sql" "postgres-backup.sql" "$PROJECT_ROOT/postgres-backup.dump" "$SCRIPT_DIR/postgres-backup.dump" "./postgres-backup.dump" "postgres-backup.dump"; do
     if [ -f "$path" ]; then
         DUMP_FILE="$path"
         break
