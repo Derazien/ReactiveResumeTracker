@@ -22,11 +22,31 @@ msgstr ""
 msgid "You have enabled two-factor authentication successfully."
 msgstr "U hebt tweefactorauthenticatie succesvol ingeschakeld."
 
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:152
+msgid "\"{companyName}\" has been created and will be researched automatically."
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/content-selection-dialog.tsx:389
+msgid "{0} item(s) selected"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:120
+msgid "{0}. Task ID: {1}"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/style.tsx:100
+msgid "{0}{1} Color"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/new/_components/manual-job-form.tsx:90
+msgid "{companyName} has been created and will be researched automatically."
+msgstr ""
+
 #: apps/client/src/pages/home/sections/features/index.tsx:57
 msgid "{templatesCount} resume templates to choose from"
 msgstr "{templatesCount} CV-sjablonen om uit te kiezen"
 
-#: apps/client/src/pages/builder/sidebars/left/sections/shared/section-options.tsx:142
+#: apps/client/src/pages/builder/sidebars/left/sections/shared/section-options.tsx:150
 msgid "{value, plural, one {Column} other {Columns}}"
 msgstr "{value, plural, one {Kolom} other {Kolommen}}"
 
@@ -38,9 +58,9 @@ msgstr "<0>Ik heb Reactive Resume grotendeels zelf gebouwd in mijn vrije tijd, m
 msgid "<0>I'm sure the app is not perfect, but I'd like for it to be.</0><1>If you faced any issues while creating your resume, or have an idea that would help you and other users in creating your resume more easily, drop an issue on the repository or send me an email about it.</1>"
 msgstr "<0>Ik weet zeker dat de app niet perfect is, maar dat zou ik wel graag willen.</0><1>Als u problemen ondervond bij het maken van uw cv, of een idee hebt dat u en andere gebruikers zou helpen bij het gemakkelijker maken van uw cv, stuur dan een bericht naar de repository of stuur mij een e-mail hierover.</1>"
 
-#: apps/client/src/pages/dashboard/settings/_sections/openai.tsx:201
-msgid "<0>Note: </0>By utilizing the OpenAI API, you acknowledge and accept the <1>terms of use</1> and <2>privacy policy</2> outlined by OpenAI. Please note that Reactive Resume bears no responsibility for any improper or unauthorized utilization of the service, and any resulting repercussions or liabilities solely rest on the user."
-msgstr "<0>Opmerking: </0>Door gebruik te maken van de OpenAI API, erkent en aanvaardt u de <1>gebruiksvoorwaarden</1> en <2>het privacybeleid</2> van OpenAI. Houd er rekening mee dat Reactive Resume geen verantwoordelijkheid draagt voor onjuist of ongeautoriseerd gebruik van de service, en dat alle daaruit voortvloeiende gevolgen of aansprakelijkheden uitsluitend op de gebruiker rusten."
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:453
+msgid "<0>Security: </0>Your API keys are encrypted and stored securely. They are only used for your AI requests and are never shared with third parties."
+msgstr ""
 
 #: apps/client/src/pages/builder/sidebars/right/sections/information.tsx:85
 msgid "<0>The community has spent a lot of time writing the documentation for Reactive Resume, and I'm sure it will help you get started with the app.</0><1>There are also a lot of examples to help you get started, and features that you might not know about which could help you build your perfect resume.</1>"
@@ -54,24 +74,32 @@ msgstr "<0>Tweefactorauthenticatie is momenteel uitgeschakeld.</0> U kunt dit in
 msgid "<0>Two-factor authentication is enabled.</0> You will be asked to enter a code every time you sign in."
 msgstr "<0>Tweefactorauthenticatie is ingeschakeld.</0> Elke keer dat u zich aanmeldt, wordt u gevraagd een code in te voeren."
 
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:585
+msgid "✅ LinkedIn credentials already saved. Just configure search parameters and run!"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:576
+msgid "💡 Providing credentials creates a reusable workflow template. You can run it multiple times with different search parameters without re-entering login details."
+msgstr ""
+
 #: apps/client/src/pages/home/page.tsx:24
 #: apps/client/src/pages/home/sections/hero/index.tsx:40
 msgid "A free and open-source resume builder"
 msgstr "Een gratis en open-source cv-bouwer"
 
-#: apps/client/src/pages/home/components/footer.tsx:21
+#: apps/client/src/pages/home/components/footer.tsx:20
 #: apps/client/src/pages/home/sections/hero/index.tsx:45
 msgid "A free and open-source resume builder that simplifies the process of creating, updating, and sharing your resume."
 msgstr "Een gratis en open-source cv-bouwer die het proces van het maken, bijwerken en delen van uw cv vereenvoudigt."
 
-#: apps/client/src/pages/builder/_components/toolbar.tsx:59
+#: apps/client/src/pages/builder/_components/toolbar.tsx:104
 #: apps/client/src/pages/builder/sidebars/right/sections/sharing.tsx:29
 msgid "A link has been copied to your clipboard."
 msgstr "Er is een link naar uw klembord gekopieerd."
 
 #: apps/client/src/components/copyright.tsx:29
-msgid "A passion project by <0>Amruth Pillai</0>"
-msgstr "Een passieproject van <0>Amruth Pillai</0>"
+msgid "A passion project by Raed Zein, inspired by <0>Amruth Pillai's</0> open source project"
+msgstr ""
 
 #: apps/client/src/pages/auth/forgot-password/page.tsx:57
 msgid "A password reset link should have been sent to your inbox, if an account existed with the email you provided."
@@ -81,13 +109,26 @@ msgstr "Er zou een link om het wachtwoord opnieuw in te stellen naar uw Postvak 
 msgid "A resume with this slug already exists, please pick a different unique identifier."
 msgstr "Er bestaat al een cv met deze slug, kies een andere unieke identificatie."
 
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:142
+msgid "A tailored CV has been created with {0} relevant content pieces. Opening resume builder..."
+msgstr ""
+
 #: apps/client/src/services/errors/translate-error.ts:10
 msgid "A user with this email address and/or username already exists."
 msgstr "Er bestaat al een gebruiker met dit e-mailadres en/of deze gebruikersnaam."
 
 #: apps/client/src/pages/builder/sidebars/right/sections/page.tsx:43
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/style.tsx:132
 msgid "A4"
 msgstr "A4"
+
+#: apps/client/src/pages/dashboard/job-applications/_components/job-application-card.tsx:95
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-filter.tsx:36
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-table.tsx:93
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:52
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:99
+msgid "Accepted"
+msgstr ""
 
 #. Helper text to let the user know what filetypes are accepted. {accept} can be .pdf or .json.
 #: apps/client/src/pages/dashboard/resumes/_dialogs/import.tsx:270
@@ -98,17 +139,37 @@ msgstr "Accepteert alleen {accept} bestanden"
 msgid "Account"
 msgstr "Account"
 
-#: apps/client/src/pages/builder/sidebars/left/sections/custom/section.tsx:175
+#: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:293
+msgid "Achievements"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-table.tsx:349
+msgid "Actions"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/interview.tsx:64
+msgid "Active"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/automation/page.tsx:374
+msgid "Active Runs"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:313
+msgid "Add"
+msgstr ""
+
+#: apps/client/src/pages/builder/sidebars/left/sections/custom/section.tsx:68
 msgid "Add a custom field"
 msgstr "Aangepast veld toevoegen"
 
-#: apps/client/src/pages/builder/sidebars/left/sections/shared/section-base.tsx:119
-#: apps/client/src/pages/builder/sidebars/left/sections/shared/section-base.tsx:170
+#: apps/client/src/pages/builder/sidebars/left/sections/shared/section-base.tsx:195
+#: apps/client/src/pages/builder/sidebars/left/sections/shared/section-base.tsx:248
 msgctxt "For example, add a new work experience, or add a new profile."
 msgid "Add a new item"
 msgstr "Een nieuw item toevoegen"
 
-#: apps/client/src/pages/builder/sidebars/left/sections/shared/section-options.tsx:91
+#: apps/client/src/pages/builder/sidebars/left/sections/shared/section-options.tsx:95
 msgid "Add a new item"
 msgstr "Een nieuw item toevoegen"
 
@@ -117,17 +178,178 @@ msgstr "Een nieuw item toevoegen"
 msgid "Add a new section"
 msgstr "Een nieuwe sectie toevoegen"
 
+#: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:306
+msgid "Add a tag..."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/voice-stories/page.tsx:100
+msgid "Add Answer"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:503
+#: apps/client/src/pages/dashboard/job-applications/new/_components/manual-job-form.tsx:273
+msgid "Add any personal notes about this opportunity..."
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/settings.tsx:119
+msgid "Add any specific instructions for the AI to follow when generating your cover letter..."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/page.tsx:112
+#: apps/client/src/pages/dashboard/companies/page.tsx:314
+msgid "Add Company"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/contacts.tsx:13
+msgid "Add Contact"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/contacts.tsx:29
+msgid "Add contacts to generate personalized messages"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/content-library/_components/content-edit-dialog.tsx:805
+msgid "Add Content"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:168
+msgid "Add Job Application"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/toolbar.tsx:56
+msgid "Add more technical skills and keywords for software engineering"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/content-library/_components/content-edit-dialog.tsx:652
+msgid "Add New Content"
+msgstr ""
+
 #: apps/client/src/pages/builder/sidebars/right/sections/layout.tsx:261
 msgid "Add New Page"
 msgstr "Eigen Pagina toevoegen"
 
-#: apps/client/src/components/ai-actions.tsx:79
+#: apps/client/src/pages/builder/_components/toolbar.tsx:59
+msgid "Add quantifiable achievements to my work experience"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:463
+msgid "Add relevant tags or skills extracted from the job posting"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:454
+#: apps/client/src/pages/dashboard/job-applications/new/_components/manual-job-form.tsx:263
+msgid "Add Requirement"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/content-selection-dialog.tsx:377
+msgid "Add some content to your library first"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/content.tsx:228
+#: apps/client/src/pages/dashboard/voice-stories/page.tsx:89
+msgid "Add Story"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:493
+msgid "Add Tag"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/content-relationship-indicator.tsx:120
+msgid "Add to Content Library"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/content-selection-dialog.tsx:401
+msgid "Add to Resume"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:372
+msgid "Add Value"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/content-selection-dialog.tsx:164
+msgid "Added {0} item(s) to your {sectionName} section"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/content-selection-dialog.tsx:163
+msgid "Added {0} item(s) to your {sectionName} section. {skippedCount} item(s) were already in your resume."
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/content-relationship-indicator.tsx:43
+msgid "Added from Content Library"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/content-relationship-indicator.tsx:44
+#: apps/client/src/pages/builder/_components/content-selection-dialog.tsx:264
+msgid "Added from Library"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/settings.tsx:117
+msgid "Additional Instructions"
+msgstr ""
+
+#: apps/client/src/components/ai-actions.tsx:124
 msgid "AI"
 msgstr "AI"
+
+#: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:149
+msgid "AI is analyzing your CV and extracting content..."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:264
+msgid "AI is analyzing your CV..."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:219
+msgid "AI Provider"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/toolbar.tsx:225
+msgid "AI Resume Editor"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/toolbar.tsx:362
+msgid "AI will preserve your resume structure while making improvements."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:173
+msgid "AI-Powered CV Content Extraction"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:204
+msgid "AI/LLM Integration"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:395
+msgid "All analysis and content matching data"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/page.tsx:144
+msgid "All Industries"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/toolbar.tsx:36
+msgid "All Sections"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/content-selection-dialog.tsx:131
+msgid "All selected items are already in your resume"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-filter.tsx:30
+msgid "All Status"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:351
+msgid "Allow automated job searching and application creation using Skyvern."
+msgstr ""
 
 #: apps/client/src/pages/auth/register/page.tsx:71
 msgid "Already have an account?"
 msgstr "Heeft u al een account?"
+
+#: apps/client/src/pages/builder/_components/content-selection-dialog.tsx:181
+msgid "An error occurred while adding content"
+msgstr ""
 
 #: apps/client/src/pages/dashboard/resumes/_dialogs/import.tsx:144
 msgid "An error occurred while validating the file."
@@ -141,26 +363,130 @@ msgstr ""
 msgid "An unexpected error occurred."
 msgstr ""
 
+#: apps/client/src/pages/builder/_components/toolbar.tsx:184
+msgid "An unexpected error occurred. Please try again."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/page.tsx:216
+msgid "Analysis in Progress"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/page.tsx:221
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:623
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:744
+msgid "Analyze Company"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:756
+msgid "Analyze company information and manage contacts for networking."
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/company.tsx:105
+msgid "Analyze company to extract values"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/new/_components/job-url-form.tsx:102
+msgid "Analyze Job Posting"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/new/_components/job-url-form.tsx:83
+msgid "Analyze Job Posting from URL"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:293
+msgid "Analyzing company information..."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:618
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:739
+#: apps/client/src/pages/dashboard/job-applications/new/_components/job-url-form.tsx:102
+msgid "Analyzing..."
+msgstr ""
+
 #: apps/client/src/pages/home/sections/features/index.tsx:134
 msgid "and many more..."
 msgstr "en nog veel meer..."
+
+#: apps/client/src/pages/dashboard/voice-stories/page.tsx:61
+#: apps/client/src/pages/dashboard/voice-stories/page.tsx:97
+msgid "Answer Snippets"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:276
+msgid "Anthropic API Key"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:487
+msgid "Any"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:506
+msgid "Any time"
+msgstr ""
 
 #: apps/client/src/pages/builder/sidebars/right/sections/sharing.tsx:57
 msgid "Anyone with the link can view and download the resume."
 msgstr "Iedereen met de link kan het CV bekijken en downloaden."
 
-#: apps/client/src/pages/builder/_components/toolbar.tsx:60
+#: apps/client/src/pages/builder/_components/toolbar.tsx:105
 #: apps/client/src/pages/builder/sidebars/right/sections/sharing.tsx:30
 msgid "Anyone with this link can view and download the resume. Share it on your profile or with recruiters."
 msgstr "Iedereen met deze link kan het CV bekijken en downloaden. Deel het op je profiel of met recruiters."
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:371
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:659
+msgid "Application Status"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/page.tsx:289
+msgid "applications"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/job-application-card.tsx:83
+#: apps/client/src/pages/dashboard/job-applications/_components/job-application-card.tsx:230
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-filter.tsx:32
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-table.tsx:81
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:44
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:308
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:87
+msgid "Applied"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-table.tsx:337
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:396
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:674
+msgid "Applied Date"
+msgstr ""
 
 #: apps/client/src/pages/builder/sidebars/right/sections/css.tsx:41
 msgid "Apply Custom CSS"
 msgstr "Aangepaste CSS toepassen"
 
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:390
+msgid "Are you sure you want to delete \"{0}\" at {1}? This action cannot be undone and will permanently remove:"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/job-application-card.tsx:195
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-table.tsx:251
+msgid "Are you sure you want to delete \"{0}\" at {1}? This action cannot be undone."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:184
+#: apps/client/src/pages/dashboard/companies/page.tsx:243
+msgid "Are you sure you want to delete \"{0}\"? This action cannot be undone."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:827
+msgid "Are you sure you want to delete this cover letter? This action cannot be undone."
+msgstr ""
+
 #: apps/client/src/pages/builder/sidebars/left/sections/shared/section-dialog.tsx:128
 msgid "Are you sure you want to delete this item?"
 msgstr "Weet u zeker dat u dit item wilt verwijderen?"
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:879
+msgid "Are you sure you want to delete this resume? This action cannot be undone."
+msgstr ""
 
 #: apps/client/src/pages/dashboard/resumes/_dialogs/resume.tsx:149
 msgid "Are you sure you want to delete your resume?"
@@ -182,30 +508,90 @@ msgstr "Weet u zeker dat u deze cv wilt ontgrendelen?"
 msgid "Are you sure?"
 msgstr "Weet je het zeker?"
 
-#. For example, Computer Science or Business Administration
-#: apps/client/src/pages/builder/sidebars/left/dialogs/education.tsx:73
-msgid "Area of Study"
-msgstr "Studierichting"
-
 #: apps/client/src/pages/builder/sidebars/left/sections/picture/options.tsx:79
 msgid "Aspect Ratio"
 msgstr "Verhouding"
+
+#: apps/client/src/pages/dashboard/cover-letter-stories/_components/story-interview-dialog.tsx:144
+msgid "Audio Transcribed"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:392
+msgid "Auto-Generate"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/automation/page.tsx:308
+msgid "Automated job search for software developer positions..."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:429
+msgid "Automatically fall back to the system's configured AI provider if your personal API keys fail or are unavailable. System provider is determined by server configuration."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:135
+msgid "Automation Failed"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:669
+msgid "Automation Instructions"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:167
+msgid "Automation Offline"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:167
+msgid "Automation Ready"
+msgstr ""
+
+#: apps/client/src/components/chrome-remote-control.tsx:166
+msgid "Automation resumes automatically after manual interaction"
+msgstr ""
+
+#: apps/client/src/components/chrome-remote-control.tsx:151
+msgid "Automation Running - Browser Control Available"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:119
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:348
+msgid "Automation Started"
+msgstr ""
+
+#: apps/client/src/components/chrome-remote-control.tsx:87
+msgid "Available"
+msgstr ""
 
 #: apps/client/src/pages/home/sections/features/index.tsx:51
 msgid "Available in {languagesCount} languages"
 msgstr "Beschikbaar in {languagesCount} talen"
 
-#: apps/client/src/pages/builder/sidebars/left/dialogs/awards.tsx:53
-msgid "Awarder"
-msgstr "Prijsuitreiker"
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/content.tsx:235
+msgid "Available Stories"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/toolbar.tsx:42
+msgid "Awards"
+msgstr ""
 
 #: apps/client/src/pages/auth/backup-otp/page.tsx:99
 #: apps/client/src/pages/auth/forgot-password/page.tsx:100
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:210
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:148
 #: apps/client/src/pages/dashboard/settings/_dialogs/two-factor.tsx:243
 msgid "Back"
 msgstr "Terug"
 
-#: apps/client/src/pages/builder/sidebars/right/sections/theme.tsx:73
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:196
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:134
+msgid "Back to Companies"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:270
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:326
+msgid "Back to Job Applications"
+msgstr ""
+
+#: apps/client/src/pages/builder/sidebars/right/sections/theme.tsx:103
 msgid "Background Color"
 msgstr "Achtergrondkleur"
 
@@ -217,18 +603,30 @@ msgstr "Back-up code"
 msgid "Backup Codes may contain only lowercase letters or numbers, and must be exactly 10 characters."
 msgstr "Back-upcodes mogen alleen kleine letters of cijfers bevatten en moeten exact 10 tekens lang zijn."
 
-#: apps/client/src/pages/dashboard/settings/_sections/openai.tsx:132
-msgid "Base URL"
-msgstr "Basis URL"
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:225
+msgid "Basic Information"
+msgstr ""
 
 #: apps/client/src/pages/builder/sidebars/left/index.tsx:55
 msgctxt "The basics section of a resume consists of User's Picture, Full Name, Location etc."
 msgid "Basics"
 msgstr "Basisgegevens"
 
-#: apps/client/src/pages/builder/sidebars/left/sections/basics.tsx:21
+#: apps/client/src/pages/builder/sidebars/left/sections/basics.tsx:26
 msgid "Basics"
 msgstr "Basisgegevens"
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/interview.tsx:159
+msgid "Be honest and authentic in your responses"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/interview.tsx:155
+msgid "Be specific and provide concrete examples"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/automation/page.tsx:416
+msgid "Berlin"
+msgstr ""
 
 #: apps/client/src/pages/builder/sidebars/left/sections/picture/options.tsx:191
 msgid "Border"
@@ -237,6 +635,10 @@ msgstr "Rand"
 #: apps/client/src/pages/builder/sidebars/left/sections/picture/options.tsx:124
 msgid "Border Radius"
 msgstr "Grensradius"
+
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:278
+msgid "Brief description of the company"
+msgstr ""
 
 #: apps/client/src/pages/public/page.tsx:93
 msgid "Built with"
@@ -247,28 +649,55 @@ msgstr "Ontwikkeld met"
 msgid "By the community, for the community."
 msgstr "Door de gemeenschap, voor de gemeenschap."
 
+#: apps/client/src/pages/builder/_components/content-selection-dialog.tsx:394
 #: apps/client/src/pages/builder/sidebars/left/sections/shared/section-dialog.tsx:135
+#: apps/client/src/pages/dashboard/automation/page.tsx:361
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:460
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:188
+#: apps/client/src/pages/dashboard/companies/page.tsx:247
+#: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:241
+#: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:390
+#: apps/client/src/pages/dashboard/job-applications/_components/job-application-card.tsx:199
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-table.tsx:255
+#: apps/client/src/pages/dashboard/job-applications/[id]/_components/content-selection-panel.tsx:168
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:526
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:400
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:831
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:883
 #: apps/client/src/pages/dashboard/resumes/_dialogs/lock.tsx:49
 #: apps/client/src/pages/dashboard/resumes/_dialogs/resume.tsx:156
 #: apps/client/src/pages/dashboard/settings/_dialogs/two-factor.tsx:137
 msgid "Cancel"
 msgstr "Annuleren"
 
-#: apps/client/src/components/ai-actions.tsx:103
-#: apps/client/src/components/ai-actions.tsx:106
+#: apps/client/src/pages/dashboard/voice-stories/page.tsx:30
+msgid "Capture your experiences and answers with voice recordings"
+msgstr ""
+
+#: apps/client/src/components/ai-actions.tsx:253
+#: apps/client/src/components/ai-actions.tsx:256
+#: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:273
 msgid "Casual"
 msgstr "Gewoontjes"
 
-#: apps/client/src/pages/builder/_components/toolbar.tsx:130
+#: apps/client/src/pages/builder/_components/toolbar.tsx:430
 msgid "Center Artboard"
 msgstr "Artboard centreren"
+
+#: apps/client/src/pages/builder/_components/toolbar.tsx:43
+msgid "Certifications"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:292
+msgid "Challenges"
+msgstr ""
 
 #: apps/client/src/pages/auth/reset-password/page.tsx:99
 #: apps/client/src/pages/dashboard/settings/_sections/security.tsx:115
 msgid "Change Password"
 msgstr "Wachtwoord Wijzigen"
 
-#: apps/client/src/components/ai-actions.tsx:97
+#: apps/client/src/components/ai-actions.tsx:242
 msgid "Change Tone"
 msgstr "Wijzig Toon"
 
@@ -276,13 +705,73 @@ msgstr "Wijzig Toon"
 msgid "Changed your mind about the name? Give it a new one."
 msgstr "Ben je van gedachten veranderd over de naam? Geef het een nieuwe."
 
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/content.tsx:195
+msgid "characters"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/preview.tsx:88
+msgid "Characters"
+msgstr ""
+
 #: apps/client/src/pages/dashboard/settings/_sections/account.tsx:70
 msgid "Check your email for the confirmation link to update your email address."
 msgstr "Controleer uw e-mail voor de bevestigingslink om uw e-mailadres bij te werken."
 
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/settings.tsx:63
+msgid "Choose a template"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/settings.tsx:160
+msgid "Choose a template that matches the company culture"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/settings.tsx:90
+msgid "Choose a tone"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/content-selection-dialog.tsx:201
+msgid "Choose content from your library to add to your resume. Selected items will be added with a link to your content library."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/new/page.tsx:40
+msgid "Choose how you'd like to add the job details"
+msgstr ""
+
+#: apps/client/src/components/chrome-remote-control.tsx:164
+msgid "Chrome DevTools connects to this port for full browser control"
+msgstr ""
+
+#: apps/client/src/components/chrome-remote-control.tsx:84
+msgid "Chrome Remote Control"
+msgstr ""
+
 #: apps/client/src/pages/builder/sidebars/left/sections/picture/options.tsx:144
 msgid "Circle"
 msgstr "Cirkel"
+
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:291
+msgid "claude-3-5-sonnet-20241022"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/content-selection-dialog.tsx:235
+msgid "Clear"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-filter.tsx:97
+msgid "Clear Filters"
+msgstr ""
+
+#: apps/client/src/components/chrome-remote-control.tsx:154
+msgid "Click \"Open Chrome DevTools\" above to control the automation browser for manual login."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:229
+msgid "Click to start recording your response"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:206
+msgid "Click to upload your CV"
+msgstr ""
 
 #: apps/client/src/pages/dashboard/settings/_dialogs/two-factor.tsx:249
 msgid "Close"
@@ -296,29 +785,225 @@ msgstr "Code"
 msgid "Code must be exactly 6 digits long."
 msgstr "De code moet exact 6 cijfers lang zijn."
 
-#: apps/client/src/pages/builder/sidebars/left/sections/shared/section-options.tsx:136
+#: apps/client/src/pages/builder/sidebars/right/sections/page.tsx:67
+msgid "Column Split"
+msgstr ""
+
+#: apps/client/src/pages/builder/sidebars/left/sections/shared/section-options.tsx:144
 msgid "Columns"
 msgstr "Kolommen"
 
-#: apps/client/src/pages/builder/sidebars/left/dialogs/experience.tsx:39
+#: apps/client/src/pages/cover-letter-builder/_components/toolbar.tsx:160
+#: apps/client/src/pages/cover-letter-builder/_components/toolbar.tsx:168
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/contacts.tsx:50
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/contacts.tsx:56
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/contacts.tsx:62
+msgid "Coming Soon"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/_components/sidebar.tsx:148
+#: apps/client/src/pages/dashboard/companies/page.tsx:105
+msgid "Companies"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/index.tsx:31
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:339
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:708
+#: apps/client/src/pages/dashboard/job-applications/new/_components/job-url-form.tsx:122
+#: apps/client/src/pages/dashboard/job-applications/new/_components/manual-job-form.tsx:181
 msgid "Company"
 msgstr "Bedrijf"
 
-#: apps/client/src/components/ai-actions.tsx:115
-#: apps/client/src/components/ai-actions.tsx:118
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:702
+msgid "Company & Contacts"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:292
+msgid "Company Analysis"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/contacts.tsx:22
+msgid "Company Contacts"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:151
+#: apps/client/src/pages/dashboard/job-applications/new/_components/manual-job-form.tsx:89
+msgid "Company Created"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/new/_components/manual-job-form.tsx:78
+msgid "Company created from job application"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:333
+msgid "Company Culture"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:65
+#: apps/client/src/pages/dashboard/companies/page.tsx:78
+msgid "Company deleted successfully"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/content.tsx:178
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/company.tsx:24
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:152
+msgid "Company Details"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/company.tsx:16
+msgid "Company Information"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:46
+msgid "Company information has been updated with the latest research."
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/company.tsx:116
+msgid "Company Links"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/company.tsx:165
+msgid "Company links will be displayed here"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:231
+msgid "Company Name"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:192
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:130
+msgid "Company not found"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:247
+msgid "Company Overview"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:253
+msgid "Company Size"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/company.tsx:73
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:349
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:336
+msgid "Company Values"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/company.tsx:104
+msgid "Company values will be displayed here"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/content.tsx:181
+msgid "Company:"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:327
+msgid "Company's mission and purpose"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/interview.tsx:138
+msgid "Conduct an AI-powered interview to extract relevant stories and experiences for your cover letter."
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/_components/toolbar.tsx:193
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:604
+msgid "Conduct Interview"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:342
+msgid "confidence"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:214
+msgid "Confidence: {0}"
+msgstr ""
+
+#: apps/client/src/components/ai-actions.tsx:275
+#: apps/client/src/components/ai-actions.tsx:278
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/settings.tsx:38
+#: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:275
 msgid "Confident"
 msgstr "Zelfzeker"
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:83
+msgid "Configuration Required"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:336
+msgid "Configure Skyvern to automate job searching on LinkedIn and other platforms."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:207
+msgid "Configure your preferred AI provider to enable intelligent job analysis, content matching, and resume generation."
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/interview.tsx:157
+msgid "Connect your experiences to the job requirements"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/toolbar.tsx:50
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/content.tsx:136
+#: apps/client/src/pages/dashboard/content-library/_components/content-edit-dialog.tsx:102
+#: apps/client/src/pages/dashboard/content-library/_components/content-edit-dialog.tsx:108
+msgid "Contact Information"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/_components/toolbar.tsx:161
+msgid "Contact message generation will be available soon"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/_components/toolbar.tsx:209
+msgid "Contact Messages"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/page.tsx:284
+msgid "contacts"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/index.tsx:37
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/contacts.tsx:10
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:364
+msgid "Contacts"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/index.tsx:47
+msgid "Content"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/content-selection-dialog.tsx:168
+msgid "Content Added Successfully"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/_components/sidebar.tsx:136
+msgid "Content Library"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:118
+msgid "Content Saved Successfully"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/_components/content-selection-panel.tsx:60
+msgid "Content selection updated successfully!"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:155
+msgid "Content successfully added to your library!"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:415
+msgid "Content Successfully Added!"
+msgstr ""
 
 #: apps/client/src/pages/dashboard/settings/_dialogs/two-factor.tsx:234
 #: apps/client/src/pages/dashboard/settings/_dialogs/two-factor.tsx:246
 msgid "Continue"
 msgstr "Hervatten"
 
-#: apps/client/src/pages/builder/sidebars/left/sections/shared/section-list-item.tsx:96
+#: apps/client/src/pages/builder/sidebars/left/sections/shared/section-list-item.tsx:104
 msgid "Copy"
 msgstr "Kopiëren"
 
-#: apps/client/src/pages/builder/_components/toolbar.tsx:164
+#: apps/client/src/pages/builder/_components/toolbar.tsx:464
 msgid "Copy Link to Resume"
 msgstr "Link naar CV Kopiëren"
 
@@ -326,10 +1011,73 @@ msgstr "Link naar CV Kopiëren"
 msgid "Copy to Clipboard"
 msgstr "Naar Klembord Kopiëren"
 
+#: apps/client/src/pages/dashboard/cover-letter-stories/_components/story-interview-dialog.tsx:107
+msgid "Could not access microphone. Please check permissions and try again."
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/_components/header.tsx:55
+#: apps/client/src/pages/dashboard/job-applications/_components/job-application-card.tsx:246
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-table.tsx:198
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:563
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:643
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:808
+msgid "Cover Letter"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/_components/header.tsx:56
+msgid "Cover Letter Builder"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:223
+msgid "Cover Letter Deleted"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/_components/toolbar.tsx:169
+msgid "Cover letter export will be available soon"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/_components/toolbar.tsx:59
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:197
+msgid "Cover Letter Generated Successfully"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/_components/toolbar.tsx:90
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:208
+msgid "Cover Letter Generation Failed"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/preview.tsx:21
+msgid "Cover Letter Preview"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/settings.tsx:47
+msgid "Cover Letter Settings"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/content.tsx:220
+#: apps/client/src/pages/dashboard/_components/sidebar.tsx:142
+msgid "Cover Letter Stories"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/job-application-card.tsx:246
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-table.tsx:343
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:797
+#: apps/client/src/pages/dashboard/voice-stories/page.tsx:72
+msgid "Cover Letters"
+msgstr ""
+
 #: apps/client/src/pages/builder/sidebars/left/sections/shared/section-dialog.tsx:179
 #: apps/client/src/pages/dashboard/resumes/_dialogs/resume.tsx:244
 msgid "Create"
 msgstr "Aanmaken"
+
+#: apps/client/src/components/company-autocomplete.tsx:108
+msgid "Create \"{searchQuery}\""
+msgstr ""
+
+#: apps/client/src/components/company-autocomplete.tsx:150
+msgid "Create \"{searchQuery}\" as new company"
+msgstr ""
 
 #: apps/client/src/pages/auth/register/page.tsx:64
 #: apps/client/src/pages/auth/register/page.tsx:69
@@ -346,6 +1094,26 @@ msgstr "Maak een nieuw item aan"
 msgid "Create a new resume"
 msgstr "Maak een nieuwe CV aan"
 
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:568
+msgid "Create a tailored cover letter for this job application using AI-powered story extraction and company analysis."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:510
+msgid "Create a tailored CV for this job application using your content library and AI optimization."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/automation/page.tsx:258
+msgid "Create and manage automated job search workflows"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/new/_components/manual-job-form.tsx:287
+msgid "Create Application"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/new/_components/job-url-form.tsx:174
+msgid "Create Job Application"
+msgstr ""
+
 #: apps/client/src/pages/auth/login/page.tsx:65
 msgctxt "This is a link to create a new account"
 msgid "Create one now"
@@ -355,15 +1123,108 @@ msgstr "Maak er nu één aan"
 msgid "Create Sample Resume"
 msgstr "Maak een Voorbeeld CV aan"
 
+#: apps/client/src/pages/dashboard/automation/page.tsx:363
+msgid "Create Workflow"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/automation/page.tsx:271
+msgid "Create Workflow Template"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:192
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:204
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:216
+msgid "Create workflows"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-table.tsx:319
+#: apps/client/src/pages/dashboard/job-applications/page.tsx:128
+msgid "Create Your First Application"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/automation/page.tsx:537
+msgid "Create your first automation workflow to get started"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:369
+#: apps/client/src/pages/dashboard/job-applications/_components/job-application-card.tsx:221
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-table.tsx:346
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:361
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:682
+msgid "Created"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:198
+msgid "Created tailored cover letter with {0} relevant stories. Opening editor..."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/new/_components/job-url-form.tsx:174
+msgid "Creating Application..."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:349
+#: apps/client/src/pages/dashboard/job-applications/new/_components/manual-job-form.tsx:191
+msgid "Creating company and researching details..."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/automation/page.tsx:363
+#: apps/client/src/pages/dashboard/job-applications/new/_components/manual-job-form.tsx:287
+msgid "Creating..."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/automation/page.tsx:142
+msgid "Creation Failed"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/settings.tsx:31
+msgid "Creative"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/company.tsx:96
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:324
+msgid "Culture"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/preview.tsx:33
+msgid "Current Content"
+msgstr ""
+
 #: apps/client/src/pages/dashboard/settings/_sections/security.tsx:82
 msgid "Current Password"
 msgstr ""
 
-#: apps/client/src/pages/builder/sidebars/right/index.tsx:93
+#: apps/client/src/pages/dashboard/job-applications/[id]/_components/content-selection-panel.tsx:222
+msgid "Current Position"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/interview.tsx:84
+msgid "Current Question"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:663
+msgid "Current Status"
+msgstr ""
+
+#: apps/client/src/components/ai-actions.tsx:132
+#: apps/client/src/components/ai-actions.tsx:306
+msgid "Custom Action"
+msgstr ""
+
+#: apps/client/src/pages/builder/sidebars/right/index.tsx:90
 #: apps/client/src/pages/builder/sidebars/right/sections/css.tsx:27
 #: apps/client/src/pages/builder/sidebars/right/sections/css.tsx:28
 msgid "Custom CSS"
 msgstr "Aangepaste CSS"
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/settings.tsx:112
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/settings.tsx:147
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/preview.tsx:67
+msgid "Custom Instructions"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:215
+msgid "Custom Jobs"
+msgstr ""
 
 #: apps/client/src/pages/home/sections/features/index.tsx:62
 msgid "Custom resume sections"
@@ -381,6 +1242,14 @@ msgstr "Aanpasbare kleurpaletten"
 msgid "Customisable layouts"
 msgstr "Aanpasbare lay-outs"
 
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:141
+msgid "CV Generated Successfully"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:72
+msgid "CV Processing Failed"
+msgstr ""
+
 #: apps/client/src/pages/dashboard/settings/_sections/danger.tsx:62
 msgid "Danger Zone"
 msgstr "Gevarenzone"
@@ -389,21 +1258,33 @@ msgstr "Gevarenzone"
 msgid "Dark"
 msgstr "Donker"
 
-#: apps/client/src/pages/builder/sidebars/left/dialogs/awards.tsx:67
-#: apps/client/src/pages/builder/sidebars/left/dialogs/certifications.tsx:67
-#: apps/client/src/pages/builder/sidebars/left/dialogs/publications.tsx:67
-msgid "Date"
-msgstr "Datum"
-
-#: apps/client/src/pages/builder/sidebars/left/dialogs/custom-section.tsx:87
-#: apps/client/src/pages/builder/sidebars/left/dialogs/education.tsx:110
-#: apps/client/src/pages/builder/sidebars/left/dialogs/experience.tsx:72
-#: apps/client/src/pages/builder/sidebars/left/dialogs/projects.tsx:101
-#: apps/client/src/pages/builder/sidebars/left/dialogs/volunteer.tsx:67
+#: apps/client/src/pages/builder/sidebars/left/dialogs/custom-section.tsx:106
 msgid "Date or Date Range"
 msgstr "Datum of Datumbereik"
 
+#: apps/client/src/pages/dashboard/automation/page.tsx:433
+msgid "Date Posted"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/automation/page.tsx:339
+msgid "Default Keywords"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/automation/page.tsx:348
+msgid "Default Location"
+msgstr ""
+
 #: apps/client/src/pages/builder/sidebars/left/sections/shared/section-dialog.tsx:137
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:194
+#: apps/client/src/pages/dashboard/companies/page.tsx:233
+#: apps/client/src/pages/dashboard/companies/page.tsx:253
+#: apps/client/src/pages/dashboard/job-applications/_components/job-application-card.tsx:185
+#: apps/client/src/pages/dashboard/job-applications/_components/job-application-card.tsx:205
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-table.tsx:244
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-table.tsx:261
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:380
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:836
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:888
 #: apps/client/src/pages/dashboard/resumes/_dialogs/resume.tsx:158
 #: apps/client/src/pages/dashboard/resumes/_layouts/grid/_components/resume-card.tsx:121
 #: apps/client/src/pages/dashboard/resumes/_layouts/list/_components/resume-item.tsx:127
@@ -416,17 +1297,74 @@ msgstr "Verwijderen"
 msgid "Delete Account"
 msgstr "Account Verwijderen"
 
-#: apps/client/src/pages/builder/sidebars/left/dialogs/custom-section.tsx:73
-#: apps/client/src/pages/builder/sidebars/left/dialogs/languages.tsx:50
-#: apps/client/src/pages/builder/sidebars/left/dialogs/projects.tsx:87
-#: apps/client/src/pages/builder/sidebars/left/dialogs/references.tsx:53
-#: apps/client/src/pages/builder/sidebars/left/dialogs/skills.tsx:63
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:174
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:181
+#: apps/client/src/pages/dashboard/companies/page.tsx:240
+msgid "Delete Company"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:825
+msgid "Delete Cover Letter"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:232
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:253
+msgid "Delete Failed"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/job-application-card.tsx:192
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-table.tsx:249
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:387
+msgid "Delete Job Application"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:405
+msgid "Delete Permanently"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:877
+msgid "Delete Resume"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:194
+#: apps/client/src/pages/dashboard/companies/page.tsx:253
+#: apps/client/src/pages/dashboard/job-applications/_components/job-application-card.tsx:205
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-table.tsx:261
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:380
+msgid "Deleting..."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/automation/page.tsx:225
+msgid "Deletion Failed"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/toolbar.tsx:282
+msgid "Describe how you want to improve your resume..."
+msgstr ""
+
+#: apps/client/src/pages/builder/sidebars/left/dialogs/custom-section.tsx:74
+#: apps/client/src/pages/dashboard/automation/page.tsx:303
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:273
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:287
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:443
 msgid "Description"
 msgstr "Beschrijving"
+
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:338
+msgid "Description of company culture and values"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:303
+msgid "Deselect All"
+msgstr ""
 
 #: apps/client/src/pages/home/sections/features/index.tsx:58
 msgid "Design single/multi page resumes"
 msgstr "Ontwerp CV's met één of meerdere pagina's"
+
+#: apps/client/src/components/chrome-remote-control.tsx:96
+msgid "Direct DevTools Access Blocked"
+msgstr ""
 
 #: apps/client/src/pages/dashboard/settings/_dialogs/two-factor.tsx:139
 msgid "Disable"
@@ -463,21 +1401,37 @@ msgstr "Zie je je taal niet? <0>Help de app te vertalen.</0>"
 msgid "Donate to Reactive Resume"
 msgstr "Doneer aan Reactive Resume"
 
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/export.tsx:54
+msgid "Download a JSON snapshot of your cover letter. This file can be used to backup or share your cover letter data."
+msgstr ""
+
 #: apps/client/src/pages/builder/sidebars/right/sections/export.tsx:56
 msgid "Download a JSON snapshot of your resume. This file can be used to import your resume in the future, or can even be shared with others to collaborate."
 msgstr "Download een JSON-versie van uw cv. Met dit bestand kan u in de toekomst uw cv terug importeren of delen met anderen om te bewerken."
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/export.tsx:72
+msgid "Download a PDF of your cover letter. This file can be used to print your cover letter, send it to recruiters, or include with job applications."
+msgstr ""
 
 #: apps/client/src/pages/builder/sidebars/right/sections/export.tsx:74
 msgid "Download a PDF of your resume. This file can be used to print your resume, send it to recruiters, or upload on job portals."
 msgstr "Download een PDF van uw CV. Dit bestand kan worden gebruikt om uw CV af te drukken, naar recruiters te sturen of te uploaden op vacaturesites."
 
-#: apps/client/src/pages/builder/_components/toolbar.tsx:176
+#: apps/client/src/pages/builder/_components/toolbar.tsx:476
 msgid "Download PDF"
 msgstr "Download PDF"
 
 #: apps/client/src/pages/builder/sidebars/right/sections/statistics.tsx:58
 msgid "Downloads"
 msgstr "Downloads"
+
+#: apps/client/src/pages/dashboard/job-applications/_components/job-application-card.tsx:80
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-filter.tsx:31
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-table.tsx:78
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:43
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:84
+msgid "Draft"
+msgstr ""
 
 #: apps/client/src/pages/builder/sidebars/left/sections/shared/section-dialog.tsx:181
 #: apps/client/src/pages/dashboard/resumes/_dialogs/resume.tsx:246
@@ -495,9 +1449,80 @@ msgstr "Een bestaand item dupliceren"
 msgid "Duplicate an existing resume"
 msgstr "Een bestaand cv dupliceren"
 
-#: apps/client/src/pages/builder/sidebars/left/sections/shared/section-list-item.tsx:92
+#: apps/client/src/pages/dashboard/job-applications/new/_components/manual-job-form.tsx:243
+msgid "e.g. 5+ years of React experience"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:434
+msgid "e.g. 5+ years of React experience, Bachelor's degree, etc."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:258
+msgid "e.g. 50-200 employees"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:358
+msgid "e.g. Innovation, Integrity, Excellence"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:471
+msgid "e.g. React, TypeScript, AWS, etc."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:267
+#: apps/client/src/pages/dashboard/job-applications/new/_components/manual-job-form.tsx:203
+msgid "e.g. San Francisco, CA"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:332
+#: apps/client/src/pages/dashboard/job-applications/new/_components/manual-job-form.tsx:174
+msgid "e.g. Senior Frontend Developer"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:236
+msgid "e.g. TechCorp Solutions"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:246
+msgid "e.g. Technology, Healthcare"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:258
+msgid "e.g., Leadership, Problem Solving"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/automation/page.tsx:516
+msgid "Easy Apply jobs only"
+msgstr ""
+
+#: apps/client/src/pages/builder/sidebars/left/sections/shared/section-list-item.tsx:100
+#: apps/client/src/pages/dashboard/job-applications/_components/job-application-card.tsx:172
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-table.tsx:231
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:372
 msgid "Edit"
 msgstr "Wijzigen"
+
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:213
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:165
+#: apps/client/src/pages/dashboard/companies/page.tsx:210
+msgid "Edit Company"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/content-library/_components/content-edit-dialog.tsx:652
+msgid "Edit Content"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:285
+msgid "Edit Job Application"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/content.tsx:116
+msgid "Editor"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/toolbar.tsx:39
+msgid "Education"
+msgstr ""
 
 #: apps/client/src/pages/builder/sidebars/left/sections/picture/options.tsx:169
 msgid "Effects"
@@ -506,41 +1531,94 @@ msgstr "Effecten"
 #: apps/client/src/pages/auth/forgot-password/page.tsx:82
 #: apps/client/src/pages/auth/login/page.tsx:90
 #: apps/client/src/pages/auth/register/page.tsx:141
-#: apps/client/src/pages/builder/sidebars/left/sections/basics.tsx:54
 #: apps/client/src/pages/dashboard/settings/_sections/account.tsx:181
 msgid "Email"
 msgstr "E-mail"
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/contacts.tsx:48
+msgid "Email Messages"
+msgstr ""
 
 #: apps/client/src/pages/dashboard/settings/_sections/security.tsx:163
 msgid "Enable 2FA"
 msgstr "2FA Inschakelen"
 
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:349
+msgid "Enable Job Automation"
+msgstr ""
+
 #: apps/client/src/pages/auth/reset-password/page.tsx:67
 msgid "Enter a new password below, and make sure it's secure."
 msgstr "Voer hieronder een nieuw wachtwoord in, en zorg ervoor dat het veilig is."
+
+#: apps/client/src/pages/dashboard/job-applications/new/page.tsx:89
+msgid "Enter Manually"
+msgstr ""
 
 #: apps/client/src/pages/auth/backup-otp/page.tsx:59
 msgid "Enter one of the 10 backup codes you saved when you enabled two-factor authentication."
 msgstr "Voer één van de 10 back-upcodes in die u hebt opgeslagen toen u 2FA inschakelde."
 
-#: apps/client/src/pages/builder/sidebars/left/sections/custom/section.tsx:63
-msgid "Enter Phosphor Icon"
-msgstr "Phosphor-pictogram invoeren"
-
 #: apps/client/src/pages/dashboard/settings/_dialogs/two-factor.tsx:170
 msgid "Enter the 6-digit code from your authenticator app to verify that 2FA has been setup correctly."
 msgstr "Voer de 6-cijferige code van uw authenticator-app in om te verifiëren dat 2FA correct is ingesteld."
+
+#: apps/client/src/pages/dashboard/job-applications/new/page.tsx:43
+msgid "Enter the job details manually"
+msgstr ""
 
 #: apps/client/src/pages/auth/verify-otp/page.tsx:60
 msgid "Enter the one-time password provided by your authenticator app below."
 msgstr "Voer hieronder het eenmalige wachtwoord in dat u van uw authenticator-app hebt ontvangen."
 
+#: apps/client/src/components/ai-actions.tsx:148
+msgid "Enter your custom instructions for the AI..."
+msgstr ""
+
 #: apps/client/src/pages/auth/forgot-password/page.tsx:70
 msgid "Enter your email address and we will send you a link to reset your password if the account exists."
 msgstr "Voer uw e-mailadres in en wij sturen u een link om uw wachtwoord opnieuw in te stellen als het account bestaat."
 
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/settings.tsx:37
+#: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:274
+msgid "Enthusiastic"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/toolbar.tsx:122
+#: apps/client/src/pages/builder/_components/toolbar.tsx:176
+#: apps/client/src/pages/builder/_components/toolbar.tsx:183
+#: apps/client/src/pages/cover-letter-builder/_components/toolbar.tsx:26
+#: apps/client/src/pages/cover-letter-builder/_components/toolbar.tsx:106
+#: apps/client/src/pages/cover-letter-builder/_components/toolbar.tsx:139
+#: apps/client/src/pages/cover-letter-builder/_components/toolbar.tsx:151
+#: apps/client/src/pages/dashboard/automation/page.tsx:101
+#: apps/client/src/pages/dashboard/automation/page.tsx:154
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:73
+#: apps/client/src/pages/dashboard/companies/page.tsx:83
+#: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:181
+#: apps/client/src/pages/dashboard/job-applications/_components/job-application-card.tsx:124
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-table.tsx:129
+#: apps/client/src/pages/dashboard/job-applications/[id]/_components/content-selection-panel.tsx:65
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:157
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:242
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:155
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:178
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:276
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:298
+#: apps/client/src/pages/dashboard/job-applications/new/_components/job-url-form.tsx:46
+#: apps/client/src/pages/dashboard/job-applications/new/_components/job-url-form.tsx:71
+#: apps/client/src/pages/dashboard/job-applications/new/_components/manual-job-form.tsx:95
+#: apps/client/src/pages/dashboard/job-applications/new/_components/manual-job-form.tsx:150
+msgid "Error"
+msgstr ""
+
 #: apps/client/src/pages/public/error.tsx:46
 msgid "Error {statusCode}"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-table.tsx:288
+#: apps/client/src/pages/dashboard/job-applications/page.tsx:96
+msgid "Error loading job applications"
 msgstr ""
 
 #: apps/client/src/pages/dashboard/resumes/_dialogs/import.tsx:283
@@ -551,15 +1629,178 @@ msgstr "Fouten"
 msgid "Even if you're not in a position to contribute financially, you can still make a difference by giving the GitHub repository a star, spreading the word to your friends, or dropping a quick message to let me know how Reactive Resume has helped you. Your feedback and support are always welcome and much appreciated!"
 msgstr "Zelfs als je niet in de positie bent om financieel bij te dragen, kan je nog steeds een verschil maken door de GitHubpagina een ster te geven, het nieuws met je vrienden te delen, of een kort bericht achter te laten on me te laten weten hoe Reactive Resume je geholpen heeft. Je feedback en steun zijn altijd welkom en worden zeer gewaardeerd!"
 
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:682
+msgid "Example Instructions:"
+msgstr ""
+
+#: apps/client/src/components/ai-actions.tsx:176
+msgid "Execute Custom Action"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/toolbar.tsx:38
+msgid "Experience"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/automation/page.tsx:470
+msgid "Experience Level"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/voice-stories/page.tsx:55
+msgid "Experience stories recorded"
+msgstr ""
+
 #: apps/client/src/pages/home/sections/templates/index.tsx:12
 msgid "Explore the templates available in Reactive Resume and view the resumes crafted with them. They could also serve as examples to help guide the creation of your next resume."
 msgstr "Ontdek de sjablonen die beschikbaar zijn in Reactive Resume en bekijk de CV's die ermee zijn gemaakt. Ze kunnen ook als voorbeeld dienen om u te helpen bij het aanmaken van uw volgende CV."
 
-#: apps/client/src/pages/builder/sidebars/right/index.tsx:121
+#: apps/client/src/pages/builder/sidebars/right/index.tsx:118
 #: apps/client/src/pages/builder/sidebars/right/sections/export.tsx:39
 #: apps/client/src/pages/builder/sidebars/right/sections/export.tsx:40
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/index.tsx:25
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/export.tsx:39
 msgid "Export"
 msgstr "Exporteren"
+
+#: apps/client/src/pages/cover-letter-builder/_components/toolbar.tsx:223
+msgid "Export Cover Letter"
+msgstr ""
+
+#: apps/client/src/components/chrome-remote-control.tsx:110
+msgid "External DevTools"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:249
+msgid "Extract Content"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:635
+msgid "Extract employee contacts from LinkedIn"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/cover-letter-stories/_components/story-interview-dialog.tsx:424
+msgid "Extract Stories"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:282
+msgid "Extracted {0} pieces of content"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/new/_components/job-url-form.tsx:112
+msgid "Extracted Job Information"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/cover-letter-stories/_components/story-interview-dialog.tsx:226
+msgid "Extraction Failed"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:368
+msgid "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:108
+msgid "Facebook"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:408
+msgid "Facebook URL"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/content-selection-dialog.tsx:179
+msgid "Failed to Add Content"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:299
+msgid "Failed to analyze company. Please try again."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/new/_components/job-url-form.tsx:47
+msgid "Failed to analyze job posting. Please try again."
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/_components/toolbar.tsx:140
+msgid "Failed to conduct interview"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:158
+#: apps/client/src/pages/dashboard/job-applications/new/_components/manual-job-form.tsx:96
+msgid "Failed to create company. Please try again."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/new/_components/job-url-form.tsx:72
+#: apps/client/src/pages/dashboard/job-applications/new/_components/manual-job-form.tsx:151
+msgid "Failed to create job application. Please try again."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:74
+#: apps/client/src/pages/dashboard/companies/page.tsx:84
+msgid "Failed to delete company. Please try again."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:233
+msgid "Failed to delete cover letter. Please try again."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/job-application-card.tsx:125
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-table.tsx:130
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:179
+msgid "Failed to delete job application. Please try again."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:254
+msgid "Failed to delete resume. Please try again."
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/toolbar.tsx:177
+msgid "Failed to edit resume. Please try again."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:181
+msgid "Failed to Generate API Key"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:156
+msgid "Failed to generate CV. Please try again."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/_components/content-selection-panel.tsx:104
+msgid "Failed to load content. Please try again."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:324
+msgid "Failed to load job application"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:73
+msgid "Failed to process CV"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:153
+msgid "Failed to reset LLM settings"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:127
+msgid "Failed to save content"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:135
+msgid "Failed to save LLM settings"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:277
+msgid "Failed to start interview. Please try again."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:136
+msgid "Failed to start job automation"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/_components/content-selection-panel.tsx:66
+msgid "Failed to update content selection. Please try again."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:243
+msgid "Failed to update job application. Please try again."
+msgstr ""
 
 #: apps/client/src/pages/dashboard/resumes/_dialogs/import.tsx:255
 msgid "File"
@@ -569,19 +1810,36 @@ msgstr "Bestand"
 msgid "Filetype"
 msgstr "Bestandstype"
 
+#: apps/client/src/pages/dashboard/job-applications/new/page.tsx:93
+msgid "Fill out the job details manually if you don't have a URL or prefer to enter the information yourself."
+msgstr ""
+
 #: apps/client/src/pages/home/sections/hero/index.tsx:38
 msgid "Finally,"
 msgstr "Tenslotte,"
 
-#: apps/client/src/components/ai-actions.tsx:90
+#: apps/client/src/components/ai-actions.tsx:227
 msgid "Fix Spelling & Grammar"
 msgstr "Spelling en Grammatica Verbeteren"
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/interview.tsx:156
+msgid "Focus on achievements and measurable results"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/contacts.tsx:81
+msgid "Follow up appropriately after initial contact"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/contacts.tsx:60
+msgid "Follow-up Messages"
+msgstr ""
 
 #: apps/client/src/pages/builder/sidebars/right/sections/typography.tsx:107
 msgid "Font Family"
 msgstr "Lettertype Familie"
 
 #: apps/client/src/pages/builder/sidebars/right/sections/typography.tsx:148
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/style.tsx:62
 msgid "Font Size"
 msgstr "Tekengrootte"
 
@@ -597,10 +1855,6 @@ msgstr "Lettertypevarianten"
 msgid "For example, information regarding which companies you sent this resume to or the links to the job descriptions can be noted down here."
 msgstr "Hier kunt u bijvoorbeeld informatie noteren over naar welke bedrijven u deze CV hebt gestuurd, of de links naar de functiebeschrijvingen."
 
-#: apps/client/src/pages/dashboard/settings/_sections/openai.tsx:182
-msgid "Forget"
-msgstr "Vergeten"
-
 #: apps/client/src/pages/auth/login/page.tsx:131
 msgid "Forgot Password?"
 msgstr "Wachtwoord Vergeten?"
@@ -609,10 +1863,20 @@ msgstr "Wachtwoord Vergeten?"
 msgid "Forgot your password?"
 msgstr "Bent u uw wachtwoord vergeten?"
 
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/settings.tsx:40
+msgid "Formal"
+msgstr ""
+
 #: apps/client/src/pages/builder/sidebars/right/sections/page.tsx:32
 #: apps/client/src/pages/builder/sidebars/right/sections/page.tsx:40
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/style.tsx:121
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/style.tsx:129
 msgid "Format"
 msgstr "Formaat"
+
+#: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:285
+msgid "Found {uniqueCount} unique items and {duplicateCount} potential duplicates"
+msgstr ""
 
 #: apps/client/src/pages/builder/sidebars/right/sections/information.tsx:49
 msgid "Found a bug, or have an idea for a new feature?"
@@ -622,24 +1886,91 @@ msgstr "Heb je een bug gevonden of heb je een idee voor een nieuwe functie?"
 msgid "Free, forever"
 msgstr "Gratis, voor altijd"
 
-#: apps/client/src/components/ai-actions.tsx:121
-#: apps/client/src/components/ai-actions.tsx:124
+#: apps/client/src/components/ai-actions.tsx:286
+#: apps/client/src/components/ai-actions.tsx:289
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/settings.tsx:39
 msgid "Friendly"
 msgstr "Gebruiksvriendelijk"
 
-#: apps/client/src/pages/builder/sidebars/left/sections/basics.tsx:31
-msgid "Full Name"
-msgstr "Volledige Naam"
+#: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:295
+msgid "General"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/_components/toolbar.tsx:55
+msgid "general themes"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/preview.tsx:45
+msgid "Generate a cover letter to see the preview"
+msgstr ""
 
 #: apps/client/src/pages/dashboard/resumes/_dialogs/resume.tsx:202
 msgid "Generate a random title for your resume"
 msgstr "Genereer een willekeurige titel voor uw CV"
 
-#: apps/client/src/pages/home/sections/hero/call-to-action.tsx:32
+#: apps/client/src/pages/cover-letter-builder/_components/toolbar.tsx:179
+msgid "Generate Cover Letter"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:505
+msgid "Generate CV"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/contacts.tsx:45
+msgid "Generate personalized messages for:"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:585
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:791
+msgid "Generate Tailored Cover Letter"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:526
+msgid "Generate Tailored CV"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:781
+msgid "Generate Tailored Resume"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:632
+msgid "Generated Cover Letters"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:534
+msgid "Generated Resumes"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:393
+msgid "Generated resumes and cover letters"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/voice-stories/page.tsx:77
+msgid "Generated this month"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:521
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:580
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:781
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:791
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:387
+msgid "Generating..."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:188
+msgid "Generation Failed"
+msgstr ""
+
+#: apps/client/src/pages/home/sections/hero/call-to-action.tsx:31
 msgid "Get Started"
 msgstr "Aan De Slag"
 
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:374
+msgid "Get your API key from Skyvern UI at http://localhost:8081"
+msgstr ""
+
 #: apps/client/src/pages/auth/_components/social-auth.tsx:18
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:111
 msgid "GitHub"
 msgstr "GitHub"
 
@@ -647,12 +1978,16 @@ msgstr "GitHub"
 msgid "GitHub Stars"
 msgstr "GitHub Sterren"
 
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:440
+msgid "GitHub URL"
+msgstr ""
+
 #: apps/client/src/pages/dashboard/resumes/_dialogs/resume.tsx:187
 msgid "Give your old resume a new name."
 msgstr "Geef uw oude CV een nieuwe naam."
 
 #: apps/client/src/pages/auth/verify-email/page.tsx:67
-#: apps/client/src/pages/home/sections/hero/call-to-action.tsx:18
+#: apps/client/src/pages/home/sections/hero/call-to-action.tsx:17
 msgid "Go to Dashboard"
 msgstr "Ga naar het Dashboard"
 
@@ -660,21 +1995,26 @@ msgstr "Ga naar het Dashboard"
 msgid "Go to home"
 msgstr ""
 
+#: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:294
+msgid "Goals"
+msgstr ""
+
 #: apps/client/src/pages/auth/_components/social-auth.tsx:31
 msgid "Google"
 msgstr "Google"
+
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:260
+msgid "gpt-4-turbo-preview"
+msgstr ""
 
 #: apps/client/src/pages/builder/sidebars/left/sections/picture/options.tsx:202
 msgid "Grayscale"
 msgstr "Grijswaarden"
 
+#: apps/client/src/pages/dashboard/job-applications/page.tsx:52
 #: apps/client/src/pages/dashboard/resumes/page.tsx:43
 msgid "Grid"
 msgstr "Raster"
-
-#: apps/client/src/pages/builder/sidebars/left/sections/basics.tsx:43
-msgid "Headline"
-msgstr "Titel"
 
 #: apps/client/src/pages/dashboard/settings/_sections/account.tsx:107
 msgid "Here, you can update your account information such as your profile picture, name and username."
@@ -684,19 +2024,30 @@ msgstr "Hier kunt u uw account informatie bijwerken, zoals uw profielfoto, naam 
 msgid "Here, you can update your profile to customize and personalize your experience."
 msgstr "Hier kunt u uw profiel bijwerken om uw ervaring aan te passen en te personaliseren."
 
-#: apps/client/src/pages/builder/sidebars/left/dialogs/languages.tsx:80
-#: apps/client/src/pages/builder/sidebars/left/dialogs/skills.tsx:94
 #: apps/client/src/pages/builder/sidebars/left/sections/picture/options.tsx:180
 msgid "Hidden"
 msgstr "Verborgen"
 
-#: apps/client/src/pages/builder/sidebars/left/sections/shared/section-options.tsx:106
+#: apps/client/src/pages/builder/sidebars/left/sections/shared/section-options.tsx:114
 msgid "Hide"
 msgstr "Verbergen"
 
 #: apps/client/src/pages/builder/sidebars/right/sections/typography.tsx:192
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/style.tsx:79
 msgid "Hide Icons"
 msgstr "Pictogrammen Verbergen"
+
+#: apps/client/src/pages/cover-letter-builder/_components/toolbar.tsx:78
+msgid "Hiring Manager"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/automation/page.tsx:375
+msgid "History"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/automation/page.tsx:596
+msgid "History feature coming soon..."
+msgstr ""
 
 #: apps/client/src/pages/auth/login/page.tsx:115
 #: apps/client/src/pages/auth/register/page.tsx:168
@@ -712,14 +2063,62 @@ msgstr "Horizontaal"
 msgid "Host your resume publicly"
 msgstr "Publiceer uw CV"
 
+#: apps/client/src/components/chrome-remote-control.tsx:161
+msgid "How browser control works:"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:309
+msgid "http://localhost:11434/v1"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:408
+msgid "http://localhost:8000"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:299
+msgid "https://company.com"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:361
+#: apps/client/src/pages/dashboard/job-applications/new/_components/manual-job-form.tsx:215
+msgid "https://company.com/careers/job-123"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:309
+msgid "https://company.com/logo.png"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:414
+msgid "https://facebook.com/company"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:446
+msgid "https://github.com/company"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:424
+msgid "https://instagram.com/company"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:392
+msgid "https://linkedin.com/company/company-name"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:402
+msgid "https://twitter.com/company"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:436
+msgid "https://youtube.com/@company"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:490
+msgid "Hybrid"
+msgstr ""
+
 #: apps/client/src/pages/home/sections/testimonials/index.tsx:70
 msgid "I always love to hear from the users of Reactive Resume with feedback or support. Here are some of the messages I've received. If you have any feedback, feel free to drop me an email at <0>{email}</0>."
 msgstr "Ik hoor altijd graag feedback of ondersteuning van de gebruikers van Reactive Resume. Hier zijn enkele berichten die ik heb ontvangen. Als u feedback hebt, stuur mij dan een e-mail op <0>{email}</0>."
-
-#: apps/client/src/pages/builder/sidebars/left/dialogs/profiles.tsx:83
-#: apps/client/src/pages/builder/sidebars/left/sections/custom/section.tsx:53
-msgid "Icon"
-msgstr "Pictogram"
 
 #: apps/client/src/pages/home/sections/logo-cloud/index.tsx:47
 msgid "If this app has helped you with your job hunt, let me know by reaching out through <0>this contact form</0>."
@@ -743,7 +2142,15 @@ msgstr "Importeren"
 msgid "Import an existing resume"
 msgstr "Een bestaand cv importeren"
 
-#: apps/client/src/components/ai-actions.tsx:85
+#: apps/client/src/pages/builder/_components/toolbar.tsx:60
+msgid "Improve the overall tone to be more confident and assertive"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/toolbar.tsx:55
+msgid "Improve the summary to be more compelling and specific"
+msgstr ""
+
+#: apps/client/src/components/ai-actions.tsx:213
 msgid "Improve Writing"
 msgstr "Schrijven verbeteren"
 
@@ -759,19 +2166,92 @@ msgstr "In dit gedeelte kunt u uw wachtwoord wijzigen en verificatie met twee fa
 msgid "In this section, you can delete your account and all the data associated to your user, but please keep in mind that <0>this action is irreversible</0>."
 msgstr "In dit gedeelte kunt u uw account en alle aan uw gebruiker gekoppelde gegevens verwijderen, maar houd er rekening mee dat <0>deze actie onomkeerbaar</0> is."
 
-#: apps/client/src/pages/builder/sidebars/right/index.tsx:135
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/interview.tsx:64
+msgid "Inactive"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:617
+msgid "Include company research and website analysis"
+msgstr ""
+
+#: apps/client/src/components/ai-actions.tsx:195
+#: apps/client/src/pages/builder/_components/toolbar.tsx:354
+msgid "Include job context for better tailoring"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:203
+msgid "Indeed Jobs"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:241
+msgid "Industry"
+msgstr ""
+
+#: apps/client/src/pages/builder/sidebars/right/index.tsx:132
 #: apps/client/src/pages/builder/sidebars/right/sections/information.tsx:116
 #: apps/client/src/pages/builder/sidebars/right/sections/information.tsx:117
 msgid "Information"
 msgstr "Informatie"
 
-#: apps/client/src/pages/builder/sidebars/left/dialogs/education.tsx:39
-msgid "Institution"
-msgstr "Instituut"
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/content.tsx:361
+msgid "Insert into Letter"
+msgstr ""
 
-#: apps/client/src/pages/builder/sidebars/left/dialogs/certifications.tsx:53
-msgid "Issuer"
-msgstr "Uitgever"
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:109
+msgid "Instagram"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:418
+msgid "Instagram URL"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/toolbar.tsx:45
+msgid "Interests"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/index.tsx:53
+msgid "Interview"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/interview.tsx:62
+msgid "Interview Flow"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:270
+msgid "Interview Mode"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:900
+msgid "Interview Prep"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:394
+msgid "Interview questions and preparation materials"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/_components/toolbar.tsx:129
+msgid "Interview questions generated"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/job-application-card.tsx:86
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-filter.tsx:33
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-table.tsx:84
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:47
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:90
+msgid "Interview Scheduled"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/interview.tsx:151
+msgid "Interview Tips"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/job-application-card.tsx:89
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-filter.tsx:34
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-table.tsx:87
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:50
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:93
+msgid "Interviewed"
+msgstr ""
 
 #: apps/client/src/services/errors/translate-error.ts:7
 msgid "It doesn't look like a user exists with the credentials you provided."
@@ -801,6 +2281,99 @@ msgstr "Het lijkt erop dat het verificatietoken dat u hebt opgegeven ongeldig is
 msgid "It looks like your email address has already been verified."
 msgstr "Het lijkt erop dat uw e-mailadres al geverifiëerd is."
 
+#: apps/client/src/pages/dashboard/job-applications/new/_components/job-url-form.tsx:63
+#: apps/client/src/pages/dashboard/job-applications/new/_components/manual-job-form.tsx:143
+msgid "Job application created successfully"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/job-application-card.tsx:119
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-table.tsx:124
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:171
+msgid "Job application deleted successfully"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:392
+msgid "Job application details and notes"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:268
+msgid "Job application not found"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:235
+msgid "Job application updated successfully"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/_components/sidebar.tsx:130
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:360
+#: apps/client/src/pages/dashboard/job-applications/page.tsx:29
+#: apps/client/src/pages/dashboard/job-applications/page.tsx:42
+msgid "Job Applications"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/_components/sidebar.tsx:154
+#: apps/client/src/pages/dashboard/automation/page.tsx:256
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:159
+msgid "Job Automation"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:334
+msgid "Job Automation (Skyvern)"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:659
+msgid "Job Board URL"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:413
+#: apps/client/src/pages/dashboard/job-applications/new/_components/job-url-form.tsx:135
+#: apps/client/src/pages/dashboard/job-applications/new/_components/manual-job-form.tsx:225
+msgid "Job Description"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:321
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:421
+#: apps/client/src/pages/dashboard/job-applications/new/_components/manual-job-form.tsx:163
+msgid "Job Details"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:450
+msgid "Job Keywords"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/automation/page.tsx:155
+msgid "Job keywords and location are required"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/new/_components/job-url-form.tsx:41
+msgid "Job posting analyzed successfully"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:356
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:427
+#: apps/client/src/pages/dashboard/job-applications/new/_components/job-url-form.tsx:88
+#: apps/client/src/pages/dashboard/job-applications/new/_components/manual-job-form.tsx:210
+msgid "Job Posting URL"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/automation/page.tsx:181
+msgid "Job search automation is now running"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:328
+#: apps/client/src/pages/dashboard/job-applications/new/_components/job-url-form.tsx:118
+#: apps/client/src/pages/dashboard/job-applications/new/_components/manual-job-form.tsx:170
+msgid "Job Title"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-table.tsx:331
+msgid "Job Title & Company"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/automation/page.tsx:490
+msgid "Job Type"
+msgstr ""
+
 #: apps/client/src/pages/auth/register/page.tsx:101
 msgctxt "Localized version of a placeholder name. For example, Max Mustermann in German or Jan Kowalski in Polish."
 msgid "John Doe"
@@ -817,13 +2390,24 @@ msgid "john.doe@example.com"
 msgstr "jan.janssen@example.com"
 
 #: apps/client/src/pages/builder/sidebars/right/sections/export.tsx:54
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/export.tsx:52
 msgid "JSON"
 msgstr "JSON"
 
-#: apps/client/src/pages/builder/sidebars/left/dialogs/custom-section.tsx:159
-#: apps/client/src/pages/builder/sidebars/left/dialogs/interests.tsx:63
-#: apps/client/src/pages/builder/sidebars/left/dialogs/projects.tsx:159
-#: apps/client/src/pages/builder/sidebars/left/dialogs/skills.tsx:109
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/settings.tsx:164
+msgid "Keep custom instructions concise and focused"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/contacts.tsx:80
+msgid "Keep messages concise and professional"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/new/_components/job-url-form.tsx:158
+msgid "Key Skills & Tags"
+msgstr ""
+
+#: apps/client/src/pages/builder/sidebars/left/dialogs/custom-section.tsx:178
+#: apps/client/src/pages/dashboard/automation/page.tsx:404
 msgid "Keywords"
 msgstr "Sleutelwoorden"
 
@@ -836,29 +2420,42 @@ msgstr "Label"
 msgid "Language"
 msgstr "Taal"
 
+#: apps/client/src/pages/builder/_components/toolbar.tsx:44
+msgid "Languages"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/preview.tsx:94
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:689
+msgid "Last Updated"
+msgstr ""
+
 #: apps/client/src/pages/dashboard/resumes/_layouts/grid/_components/resume-card.tsx:83
 #: apps/client/src/pages/dashboard/resumes/_layouts/list/_components/resume-item.tsx:139
 msgid "Last updated {lastUpdated}"
 msgstr "Laatst bijgewerkt {lastUpdated}"
 
-#: apps/client/src/pages/builder/sidebars/right/index.tsx:72
+#: apps/client/src/pages/builder/sidebars/right/index.tsx:69
 #: apps/client/src/pages/builder/sidebars/right/sections/layout.tsx:197
 #: apps/client/src/pages/builder/sidebars/right/sections/layout.tsx:198
 msgid "Layout"
 msgstr "Layout"
 
-#: apps/client/src/pages/home/sections/hero/call-to-action.tsx:38
+#: apps/client/src/pages/home/sections/hero/call-to-action.tsx:37
 msgid "Learn more"
 msgstr "Kom meer te weten"
 
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:406
+msgid "Leave empty if not yet applied"
+msgstr ""
+
 #: apps/client/src/pages/builder/sidebars/right/sections/page.tsx:44
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/style.tsx:133
 msgid "Letter"
 msgstr "Brief"
 
-#: apps/client/src/pages/builder/sidebars/left/dialogs/languages.tsx:64
-#: apps/client/src/pages/builder/sidebars/left/dialogs/skills.tsx:77
-msgid "Level"
-msgstr "Niveau"
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/content.tsx:193
+msgid "Letter Content"
+msgstr ""
 
 #: apps/client/src/components/copyright.tsx:16
 msgid "Licensed under <0>MIT</0>"
@@ -872,9 +2469,48 @@ msgstr "Licht"
 msgid "Light or dark theme"
 msgstr "Licht of donker thema"
 
+#: apps/client/src/components/chrome-remote-control.tsx:87
+msgid "Limited Access"
+msgstr ""
+
 #: apps/client/src/pages/builder/sidebars/right/sections/typography.tsx:165
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/style.tsx:70
 msgid "Line Height"
 msgstr "Regelafstand"
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/company.tsx:144
+#: apps/client/src/pages/dashboard/automation/page.tsx:294
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:106
+msgid "LinkedIn"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/automation/page.tsx:314
+msgid "LinkedIn Credentials"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:533
+msgid "LinkedIn Credentials (Save for Future Use)"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:191
+msgid "LinkedIn Jobs"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/contacts.tsx:54
+msgid "LinkedIn Messages"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:550
+msgid "LinkedIn Password"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:386
+msgid "LinkedIn URL"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:537
+msgid "LinkedIn Username/Email"
+msgstr ""
 
 #: apps/client/src/pages/dashboard/resumes/_layouts/grid/_components/import-card.tsx:33
 #: apps/client/src/pages/dashboard/resumes/_layouts/list/_components/import-item.tsx:22
@@ -885,12 +2521,69 @@ msgstr "LinkedIn, JSON CV, enz."
 msgid "List"
 msgstr "Lijst"
 
-#: apps/client/src/pages/builder/sidebars/left/dialogs/custom-section.tsx:101
-#: apps/client/src/pages/builder/sidebars/left/dialogs/experience.tsx:86
-#: apps/client/src/pages/builder/sidebars/left/dialogs/volunteer.tsx:81
-#: apps/client/src/pages/builder/sidebars/left/sections/basics.tsx:93
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:427
+msgid "List the key requirements for this position to help with resume optimization"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/automation/page.tsx:376
+msgid "Live Browser"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:322
+msgid "llama3:8b"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:148
+msgid "LLM settings reset successfully"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:130
+msgid "LLM settings saved successfully"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/page.tsx:94
+msgid "Loading companies..."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:119
+msgid "Loading company details..."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:181
+msgid "Loading company..."
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/content-selection-dialog.tsx:245
+msgid "Loading content..."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:259
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:315
+msgid "Loading job application..."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-table.tsx:279
+#: apps/client/src/pages/dashboard/job-applications/page.tsx:87
+msgid "Loading job applications..."
+msgstr ""
+
+#: apps/client/src/components/chrome-remote-control.tsx:129
+msgid "Local Chrome Control"
+msgstr ""
+
+#: apps/client/src/pages/builder/sidebars/left/dialogs/custom-section.tsx:120
+#: apps/client/src/pages/dashboard/automation/page.tsx:412
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:262
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:461
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:716
+#: apps/client/src/pages/dashboard/job-applications/new/_components/job-url-form.tsx:129
+#: apps/client/src/pages/dashboard/job-applications/new/_components/manual-job-form.tsx:199
 msgid "Location"
 msgstr "Locatie"
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/content.tsx:183
+msgid "Location:"
+msgstr ""
 
 #: apps/client/src/pages/dashboard/resumes/_dialogs/lock.tsx:51
 #: apps/client/src/pages/dashboard/resumes/_layouts/grid/_components/resume-card.tsx:115
@@ -907,8 +2600,12 @@ msgstr "Vergrendel een CV om bewerking te voorkomen"
 msgid "Locking a resume will prevent any further changes to it. This is useful when you have already shared your resume with someone and you don't want to accidentally make any changes to it."
 msgstr "Een CV vergrendelen voorkomt dat er nog wijzigingen in worden aangebracht. Dit is handig wanneer u uw CV al met iemand hebt gedeeld en u er niet per ongeluk wijzigingen in wilt aanbrengen."
 
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:303
+msgid "Logo URL"
+msgstr ""
+
 #: apps/client/src/components/user-options.tsx:38
-#: apps/client/src/pages/home/sections/hero/call-to-action.tsx:23
+#: apps/client/src/pages/home/sections/hero/call-to-action.tsx:22
 msgid "Logout"
 msgstr "Uitloggen"
 
@@ -920,91 +2617,320 @@ msgstr "Bent u uw apparaat kwijt?"
 msgid "Main"
 msgstr "Algemeen"
 
+#: apps/client/src/pages/builder/_components/toolbar.tsx:54
+msgid "Make my experience section more impactful with action verbs"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/toolbar.tsx:57
+msgid "Make the language more professional and polished"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/page.tsx:107
+msgid "Manage and analyze companies for your job applications"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:751
+msgid "Manage Contacts"
+msgstr ""
+
 #: apps/client/src/pages/home/sections/features/index.tsx:59
 msgid "Manage multiple resumes"
 msgstr "Meerdere CV's beheren"
 
-#. The month and year should be uniform across all languages.
-#: apps/client/src/pages/builder/sidebars/left/dialogs/awards.tsx:71
-#: apps/client/src/pages/builder/sidebars/left/dialogs/certifications.tsx:69
-#: apps/client/src/pages/builder/sidebars/left/dialogs/publications.tsx:69
-msgid "March 2023"
-msgstr "maart 2023"
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/content.tsx:380
+msgid "Manage Stories Library"
+msgstr ""
 
-#: apps/client/src/pages/builder/sidebars/left/dialogs/education.tsx:112
-#: apps/client/src/pages/builder/sidebars/left/dialogs/experience.tsx:74
-#: apps/client/src/pages/builder/sidebars/left/dialogs/projects.tsx:103
-#: apps/client/src/pages/builder/sidebars/left/dialogs/volunteer.tsx:69
-msgid "March 2023 - Present"
-msgstr "maart 2023 - Heden"
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:594
+msgid "Manage Templates"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:52
+msgid "Manual input may be required."
+msgstr ""
 
 #: apps/client/src/pages/builder/sidebars/right/sections/page.tsx:50
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/style.tsx:140
 msgid "Margin"
 msgstr "Marge"
 
-#: apps/client/src/pages/dashboard/settings/_sections/openai.tsx:158
-msgid "Max Tokens"
-msgstr "Maximum aantal tokens"
+#: apps/client/src/pages/dashboard/automation/page.tsx:423
+msgid "Max Jobs"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:517
+msgid "Maximum Jobs to Process"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/settings.tsx:163
+msgid "Mention specific company values or projects if known"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/contacts.tsx:39
+msgid "Message Generation"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/cover-letter-stories/_components/story-interview-dialog.tsx:106
+msgid "Microphone Error"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/settings.tsx:32
+msgid "Minimal"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/company.tsx:89
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:318
+msgid "Mission"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:318
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:313
+msgid "Mission & Culture"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:322
+msgid "Mission Statement"
+msgstr ""
 
 #: apps/client/src/pages/home/sections/features/index.tsx:48
 msgid "MIT License"
 msgstr "MIT Licentie"
 
-#: apps/client/src/pages/dashboard/settings/_sections/openai.tsx:145
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:258
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:289
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:320
 msgid "Model"
 msgstr "Model"
 
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/settings.tsx:30
+msgid "Modern"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/content-relationship-indicator.tsx:62
+msgid "Modified"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/content-relationship-indicator.tsx:61
+msgid "Modified from Content Library"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/automation/page.tsx:187
+#: apps/client/src/pages/dashboard/automation/page.tsx:568
+msgid "Monitor"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:229
+msgid "Monitor progress in Skyvern UI"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:126
+msgid "Monitor Task"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:355
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:399
+msgid "Monitor Workflow"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/job-application-card.tsx:264
+msgid "more"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/automation/page.tsx:281
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:569
+msgid "My LinkedIn Job Search"
+msgstr ""
+
 #: apps/client/src/pages/auth/register/page.tsx:98
-#: apps/client/src/pages/builder/sidebars/left/dialogs/custom-section.tsx:59
-#: apps/client/src/pages/builder/sidebars/left/dialogs/interests.tsx:48
-#: apps/client/src/pages/builder/sidebars/left/dialogs/languages.tsx:36
-#: apps/client/src/pages/builder/sidebars/left/dialogs/projects.tsx:73
-#: apps/client/src/pages/builder/sidebars/left/dialogs/publications.tsx:39
-#: apps/client/src/pages/builder/sidebars/left/dialogs/references.tsx:39
-#: apps/client/src/pages/builder/sidebars/left/dialogs/skills.tsx:49
-#: apps/client/src/pages/builder/sidebars/left/sections/custom/section.tsx:88
+#: apps/client/src/pages/builder/sidebars/left/dialogs/custom-section.tsx:60
 #: apps/client/src/pages/dashboard/settings/_sections/account.tsx:153
 msgid "Name"
 msgstr "Naam"
 
-#: apps/client/src/pages/builder/sidebars/left/dialogs/certifications.tsx:39
-msgctxt "Name of the Certification"
-msgid "Name"
-msgstr "Naam"
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/contacts.tsx:74
+msgid "Networking Tips"
+msgstr ""
 
-#: apps/client/src/pages/builder/sidebars/left/dialogs/profiles.tsx:40
-msgid "Network"
-msgstr "Netwerk"
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/preview.tsx:98
+msgid "Never"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/content-relationship-indicator.tsx:71
+msgid "New"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/page.tsx:63
+msgid "New Application"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/content-relationship-indicator.tsx:70
+msgid "New Content"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/new/page.tsx:37
+msgid "New Job Application"
+msgstr ""
 
 #: apps/client/src/pages/dashboard/settings/_sections/security.tsx:96
 msgid "New Password"
 msgstr "Nieuw Wachtwoord"
 
+#: apps/client/src/pages/dashboard/automation/page.tsx:266
+msgid "New Workflow"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/cover-letter-stories/_components/story-interview-dialog.tsx:424
+#: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:349
+msgid "Next Question"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/automation/page.tsx:578
+msgid "No Active Runs"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/voice-stories/_components/answer-snippets-list.tsx:85
+msgid "No answer snippets yet"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/page.tsx:305
+msgid "No companies found"
+msgstr ""
+
+#: apps/client/src/components/company-autocomplete.tsx:99
+msgid "No companies found matching \"{searchQuery}\""
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/page.tsx:305
+msgid "No companies yet"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:710
+msgid "No company information"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/company.tsx:62
+msgid "No company information available"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/contacts.tsx:28
+msgid "No contacts found"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/content-selection-dialog.tsx:372
+msgid "No content found"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/content-selection-dialog.tsx:372
+msgid "No content matches \"{searchQuery}\""
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/content-selection-dialog.tsx:111
+#: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:103
+msgid "No Content Selected"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/preview.tsx:44
+msgid "No cover letter content yet"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/_components/toolbar.tsx:27
+#: apps/client/src/pages/cover-letter-builder/_components/toolbar.tsx:107
+#: apps/client/src/pages/cover-letter-builder/_components/toolbar.tsx:152
+msgid "No job application selected"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-table.tsx:314
+#: apps/client/src/pages/dashboard/job-applications/page.tsx:123
+msgid "No job applications yet"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/content-selection-dialog.tsx:130
+msgid "No New Content to Add"
+msgstr ""
+
 #: apps/client/src/components/locale-combobox.tsx:45
 msgid "No results found"
 msgstr "Geen resultaten gevonden"
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/content.tsx:303
+msgid "No stories selected"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/cover-letter-stories/_components/story-interview-dialog.tsx:248
+msgid "No Stories Selected"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/voice-stories/_components/story-blocks-list.tsx:74
+msgid "No story blocks yet"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:489
+msgid "No tags added yet"
+msgstr ""
 
 #: apps/client/src/pages/home/sections/features/index.tsx:49
 msgid "No user tracking or advertising"
 msgstr "Geen tracking van gebruikers en geen reclame"
 
+#: apps/client/src/pages/dashboard/automation/page.tsx:535
+msgid "No Workflow Templates"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/automation/page.tsx:580
+msgid "No workflows are currently running"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/settings.tsx:147
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/preview.tsx:68
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-table.tsx:188
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-table.tsx:208
+msgid "None"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/content.tsx:181
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/content.tsx:182
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/content.tsx:183
+msgid "Not specified"
+msgstr ""
+
 #: apps/client/src/pages/dashboard/settings/_dialogs/two-factor.tsx:133
 msgid "Note: This will make your account less secure."
 msgstr "Let op: Dit maakt uw account minder veilig."
 
-#: apps/client/src/pages/builder/sidebars/right/index.tsx:128
+#: apps/client/src/pages/builder/sidebars/right/index.tsx:125
 #: apps/client/src/pages/builder/sidebars/right/sections/notes.tsx:16
 #: apps/client/src/pages/builder/sidebars/right/sections/notes.tsx:17
 msgid "Notes"
 msgstr "Aantekeningen"
 
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/interview.tsx:74
+msgid "of"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/job-application-card.tsx:92
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-filter.tsx:35
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-table.tsx:90
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:51
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:96
+msgid "Offer Received"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:307
+msgid "Ollama Base URL"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:489
+msgid "On-site"
+msgstr ""
+
 #: apps/client/src/pages/auth/verify-otp/page.tsx:82
 msgid "One-Time Password"
 msgstr "Eenmalig Wachtwoord"
 
-#: apps/client/src/components/ai-actions.tsx:56
+#: apps/client/src/components/ai-actions.tsx:100
 #: apps/client/src/libs/axios.ts:30
 #: apps/client/src/pages/dashboard/resumes/_dialogs/import.tsx:188
+#: apps/client/src/services/cover-letter/print.tsx:26
 #: apps/client/src/services/resume/print.tsx:26
 msgid "Oops, the server returned an error."
 msgstr "Oeps, de server gaf een fout."
@@ -1015,29 +2941,39 @@ msgstr "Oeps, de server gaf een fout."
 msgid "Open"
 msgstr "Open"
 
+#: apps/client/src/components/chrome-remote-control.tsx:121
+msgid "Open Chrome DevTools"
+msgstr ""
+
 #: apps/client/src/pages/home/sections/features/index.tsx:47
 msgid "Open Source"
 msgstr "Open Source"
 
-#: apps/client/src/services/openai/change-tone.ts:35
-#: apps/client/src/services/openai/fix-grammar.ts:33
-#: apps/client/src/services/openai/improve-writing.ts:33
-msgid "OpenAI did not return any choices for your text."
-msgstr "OpenAI gaf geen keuzen voor uw text."
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:245
+msgid "OpenAI API Key"
+msgstr ""
 
 #: apps/client/src/pages/home/sections/features/index.tsx:52
 msgid "OpenAI Integration"
 msgstr "OpenAI-Integratie"
 
-#: apps/client/src/pages/dashboard/settings/_sections/openai.tsx:119
-msgid "OpenAI/Ollama API Key"
-msgstr "OpenAI/Ollama API sleutel"
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:271
+msgid "Opening interview mode to extract your stories..."
+msgstr ""
 
-#: apps/client/src/pages/dashboard/settings/_sections/openai.tsx:79
-msgid "OpenAI/Ollama Integration"
-msgstr "OpenAI/Ollama Integratie"
+#: apps/client/src/components/chrome-remote-control.tsx:113
+msgid "Opens Chrome DevTools in separate window for browser control during automation."
+msgstr ""
 
-#: apps/client/src/pages/builder/sidebars/right/sections/page.tsx:67
+#: apps/client/src/pages/builder/_components/toolbar.tsx:58
+msgid "Optimize for ATS (Applicant Tracking System) compatibility"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/settings.tsx:127
+msgid "Optional: Provide specific guidance for tone, focus areas, or unique requirements."
+msgstr ""
+
+#: apps/client/src/pages/builder/sidebars/right/sections/page.tsx:86
 #: apps/client/src/pages/builder/sidebars/right/sections/typography.tsx:182
 msgid "Options"
 msgstr "Opties"
@@ -1047,11 +2983,7 @@ msgctxt "The user can either login with email/password, or continue with GitHub 
 msgid "or continue with"
 msgstr "of ga verder met"
 
-#: apps/client/src/pages/builder/sidebars/left/dialogs/volunteer.tsx:39
-msgid "Organization"
-msgstr "Organisatie"
-
-#: apps/client/src/pages/builder/sidebars/right/index.tsx:100
+#: apps/client/src/pages/builder/sidebars/right/index.tsx:97
 #: apps/client/src/pages/builder/sidebars/right/sections/page.tsx:25
 #: apps/client/src/pages/builder/sidebars/right/sections/page.tsx:26
 msgid "Page"
@@ -1061,24 +2993,65 @@ msgstr "Pagina"
 msgid "Page {pageNumber}"
 msgstr "Pagina {pageNumber}"
 
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/style.tsx:117
+msgid "Page Settings"
+msgstr ""
+
 #: apps/client/src/pages/auth/login/page.tsx:110
 #: apps/client/src/pages/auth/register/page.tsx:163
 #: apps/client/src/pages/auth/reset-password/page.tsx:83
+#: apps/client/src/pages/dashboard/automation/page.tsx:327
 #: apps/client/src/pages/dashboard/settings/_sections/security.tsx:73
 msgid "Password"
 msgstr "Wachtwoord"
 
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:507
+msgid "Past 24 hours"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:509
+msgid "Past month"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:508
+msgid "Past week"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/new/page.tsx:66
+msgid "Paste Job URL"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:416
+#: apps/client/src/pages/dashboard/job-applications/new/_components/manual-job-form.tsx:228
+msgid "Paste or write the job description here..."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/new/page.tsx:42
+msgid "Paste the job posting URL and we'll extract the details"
+msgstr ""
+
 #: apps/client/src/pages/builder/sidebars/right/sections/export.tsx:72
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/export.tsx:70
 msgid "PDF"
 msgstr "PDF"
+
+#: apps/client/src/pages/dashboard/job-applications/new/page.tsx:96
+msgid "Perfect for referrals or offline opportunities"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:500
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:485
+#: apps/client/src/pages/dashboard/job-applications/new/_components/manual-job-form.tsx:270
+msgid "Personal Notes"
+msgstr ""
 
 #: apps/client/src/pages/home/sections/features/index.tsx:63
 msgid "Personal notes for each resume"
 msgstr "Persoonlijke notities voor elk CV"
 
-#: apps/client/src/pages/builder/sidebars/left/sections/basics.tsx:81
-msgid "Phone"
-msgstr "Telefoon"
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/contacts.tsx:79
+msgid "Personalize your messages with specific details"
+msgstr ""
 
 #: apps/client/src/pages/auth/layout.tsx:76
 msgid "Photograph by Patrick Tomasso"
@@ -1093,6 +3066,32 @@ msgstr "Kies een lettertype uit Google Fonts"
 msgid "Picture"
 msgstr "Foto"
 
+#: apps/client/src/pages/dashboard/automation/page.tsx:285
+msgid "Platform"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/_components/toolbar.tsx:92
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:210
+msgid "Please add cover letter stories to your content library first"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-table.tsx:290
+#: apps/client/src/pages/dashboard/job-applications/page.tsx:99
+msgid "Please check that the backend server is running on port 3000"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:84
+msgid "Please configure the automation parameters."
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/toolbar.tsx:123
+msgid "Please enter a prompt to edit your resume."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:515
+msgid "Please fill in the required fields: Job Title and Company"
+msgstr ""
+
 #: apps/client/src/pages/auth/verify-email/page.tsx:59
 msgid "Please note that this step is completely optional."
 msgstr "Let op: deze stap is volledig optioneel."
@@ -1100,6 +3099,18 @@ msgstr "Let op: deze stap is volledig optioneel."
 #: apps/client/src/pages/dashboard/resumes/_dialogs/import.tsx:225
 msgid "Please select a file type"
 msgstr "Selecteer een bestandstype"
+
+#: apps/client/src/pages/builder/_components/content-selection-dialog.tsx:112
+msgid "Please select at least one content item to add to your resume"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:104
+msgid "Please select at least one content item to save"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/toolbar.tsx:274
+msgid "Please select at least one section to edit."
+msgstr ""
 
 #: apps/client/src/pages/dashboard/settings/_dialogs/two-factor.tsx:228
 msgid "Please store your backup codes in a secure location. You can use one of these one-time use codes to login in case you lose access to your authenticator app."
@@ -1109,33 +3120,62 @@ msgstr "Bewaar uw back-upcodes op een veilige plaats. U kunt één van deze code
 msgid "Portrait"
 msgstr "Staand"
 
-#: apps/client/src/pages/builder/sidebars/left/dialogs/experience.tsx:54
-msgctxt "Position held at a company, for example, Software Engineer"
-msgid "Position"
-msgstr "Positie"
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/content.tsx:182
+msgid "Position:"
+msgstr ""
 
-#: apps/client/src/pages/builder/sidebars/left/dialogs/volunteer.tsx:53
-msgid "Position"
-msgstr "Positie"
+#: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:346
+msgid "Potential Duplicate"
+msgstr ""
 
 #: apps/client/src/pages/home/sections/features/index.tsx:96
 msgid "Powered by"
 msgstr "Mogelijk gemaakt door"
 
-#: apps/client/src/pages/builder/sidebars/left/dialogs/profiles.tsx:94
-msgid "Powered by <0>Simple Icons</0>"
-msgstr "Mogelijk gemaakt door <0>Simple Icons</0>"
+#: apps/client/src/pages/dashboard/voice-stories/page.tsx:66
+msgid "Prepared answers saved"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/toolbar.tsx:364
+msgid "Press Enter to submit"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/voice-stories/_components/answer-snippets-list.tsx:119
+#: apps/client/src/pages/dashboard/voice-stories/_components/story-blocks-list.tsx:108
+msgid "Preview"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:343
+msgid "Previous"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/interview.tsx:111
+msgid "Previous Answers"
+msgstr ""
 
 #: apps/client/src/pages/builder/sidebars/right/sections/theme.tsx:43
 msgid "Primary Color"
 msgstr "Primaire kleur"
 
-#: apps/client/src/pages/home/components/footer.tsx:50
+#: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:254
+msgid "Primary Skill/Theme"
+msgstr ""
+
+#: apps/client/src/pages/home/components/footer.tsx:47
 msgid "Privacy Policy"
 msgstr "Privacy Beleid"
 
-#: apps/client/src/components/ai-actions.tsx:109
-#: apps/client/src/components/ai-actions.tsx:112
+#: apps/client/src/components/ai-actions.tsx:171
+#: apps/client/src/pages/cover-letter-builder/_components/toolbar.tsx:245
+#: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:249
+msgid "Processing..."
+msgstr ""
+
+#: apps/client/src/components/ai-actions.tsx:264
+#: apps/client/src/components/ai-actions.tsx:267
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/settings.tsx:29
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/settings.tsx:36
+#: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:272
 msgid "Professional"
 msgstr "Professioneel"
 
@@ -1143,19 +3183,48 @@ msgstr "Professioneel"
 msgid "Profile"
 msgstr "Profiel"
 
+#: apps/client/src/pages/builder/_components/toolbar.tsx:49
+msgid "Profiles"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/toolbar.tsx:41
+msgid "Projects"
+msgstr ""
+
 #: apps/client/src/pages/builder/sidebars/right/sections/sharing.tsx:55
 msgid "Public"
 msgstr "Openbaar"
 
-#: apps/client/src/pages/builder/sidebars/left/dialogs/publications.tsx:53
-msgid "Publisher"
-msgstr "Uitgever"
+#: apps/client/src/pages/builder/_components/toolbar.tsx:47
+msgid "Publications"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/interview.tsx:74
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/interview.tsx:118
+msgid "Question"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:283
+msgid "Question Type"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:764
+msgid "Quick Actions"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:356
+msgid "Quick Stats"
+msgstr ""
 
 #: apps/client/src/pages/builder/sidebars/right/sections/information.tsx:69
 msgid "Raise an issue"
 msgstr "Probleem aankaarten"
 
-#: apps/client/src/components/copyright.tsx:35
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:456
+msgid "React Developer"
+msgstr ""
+
+#: apps/client/src/components/copyright.tsx:36
 #: apps/client/src/pages/auth/backup-otp/page.tsx:52
 #: apps/client/src/pages/auth/forgot-password/page.tsx:49
 #: apps/client/src/pages/auth/login/page.tsx:55
@@ -1163,10 +3232,11 @@ msgstr "Probleem aankaarten"
 #: apps/client/src/pages/auth/reset-password/page.tsx:60
 #: apps/client/src/pages/auth/verify-email/page.tsx:43
 #: apps/client/src/pages/auth/verify-otp/page.tsx:52
-#: apps/client/src/pages/builder/page.tsx:60
+#: apps/client/src/pages/builder/page.tsx:62
+#: apps/client/src/pages/dashboard/job-applications/page.tsx:29
 #: apps/client/src/pages/dashboard/resumes/page.tsx:20
-#: apps/client/src/pages/dashboard/settings/page.tsx:16
-#: apps/client/src/pages/home/components/footer.tsx:18
+#: apps/client/src/pages/dashboard/settings/page.tsx:18
+#: apps/client/src/pages/home/components/footer.tsx:17
 #: apps/client/src/pages/home/page.tsx:24
 #: apps/client/src/pages/public/page.tsx:74
 #: apps/client/src/pages/public/page.tsx:95
@@ -1189,12 +3259,73 @@ msgstr "Reactief Resume is een passieproject van meer dan 3 jaar hard werk, en d
 msgid "Reactive Resume thrives thanks to its vibrant community. This project owes its progress to numerous individuals who've dedicated their time and skills. Below, we celebrate the coders who've enhanced its features on GitHub and the linguists whose translations on Crowdin have made it accessible to a broader audience."
 msgstr "Reactive Resume is succesvol dankzij de levendige gemeenschap. Dit project dankt zijn vooruitgang aan de talloze mensen die hier hun tijd en vaardigheden aan hebben toegewijd. Hieronder vieren we de programmeurs die de functies op GitHub hebben verbeterd, en de linguïsten wiens vertalingen op Crowdin alles toegankelijker hebben gemaakt voor een breder publiek."
 
-#: apps/client/src/pages/builder/_components/toolbar.tsx:89
+#: apps/client/src/pages/dashboard/voice-stories/page.tsx:41
+msgid "Record Answer"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:190
+msgid "Record Answer Snippet"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/voice-stories/_components/answer-snippets-list.tsx:87
+msgid "Record answers to common interview questions"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:190
+msgid "Record Experience Story"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/voice-stories/page.tsx:37
+msgid "Record Story"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:228
+msgid "Recording... Click to stop"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/toolbar.tsx:389
 msgid "Redo"
 msgstr "Opnieuw"
 
-#: apps/client/src/pages/builder/sidebars/left/sections/shared/section-list-item.tsx:100
-#: apps/client/src/pages/builder/sidebars/left/sections/shared/section-options.tsx:157
+#: apps/client/src/pages/builder/_components/toolbar.tsx:48
+msgid "References"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/preview.tsx:24
+msgid "Refresh"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/content.tsx:296
+msgid "Regenerate"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/content.tsx:296
+msgid "Regenerating..."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/job-application-card.tsx:98
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-filter.tsx:37
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-table.tsx:96
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:53
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:102
+msgid "Rejected"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:488
+msgid "Remote"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:476
+msgid "Remote Status"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/automation/page.tsx:450
+msgid "Remote Type"
+msgstr ""
+
+#: apps/client/src/pages/builder/sidebars/left/sections/shared/section-list-item.tsx:108
+#: apps/client/src/pages/builder/sidebars/left/sections/shared/section-options.tsx:165
+#: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:232
 msgid "Remove"
 msgstr "Verwijderen"
 
@@ -1202,18 +3333,50 @@ msgstr "Verwijderen"
 msgid "Remove Page"
 msgstr "Pagina verwijderen"
 
-#: apps/client/src/pages/builder/sidebars/left/sections/shared/section-options.tsx:111
+#: apps/client/src/pages/builder/sidebars/left/sections/shared/section-options.tsx:119
 #: apps/client/src/pages/dashboard/resumes/_layouts/grid/_components/resume-card.tsx:101
 #: apps/client/src/pages/dashboard/resumes/_layouts/list/_components/resume-item.tsx:86
 #: apps/client/src/pages/dashboard/resumes/_layouts/list/_components/resume-item.tsx:152
 msgid "Rename"
 msgstr "Hernoemen"
 
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:425
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:455
+#: apps/client/src/pages/dashboard/job-applications/new/_components/job-url-form.tsx:145
+#: apps/client/src/pages/dashboard/job-applications/new/_components/manual-job-form.tsx:237
+msgid "Requirements"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:162
+msgid "Research Company"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:45
+msgid "Research Complete"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:208
+msgid "Research Completed"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/contacts.tsx:78
+msgid "Research contacts before reaching out"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:51
+msgid "Research Failed"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:162
+msgid "Researching..."
+msgstr ""
+
 #: apps/client/src/pages/dashboard/settings/_sections/account.tsx:199
 msgid "Resend email confirmation link"
 msgstr "Bevestigingslink opnieuw verzenden"
 
-#: apps/client/src/pages/builder/sidebars/left/sections/shared/section-options.tsx:152
+#: apps/client/src/pages/builder/sidebars/left/sections/shared/section-options.tsx:160
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:445
 msgid "Reset"
 msgstr "Resetten"
 
@@ -1226,11 +3389,27 @@ msgstr "Lay-out Resetten"
 msgid "Reset your password"
 msgstr "Reset je wachtwoord"
 
-#: apps/client/src/pages/builder/_components/toolbar.tsx:124
+#: apps/client/src/pages/builder/_components/toolbar.tsx:424
 msgid "Reset Zoom"
 msgstr "Zoom Herstellen"
 
-#: apps/client/src/pages/dashboard/_components/sidebar.tsx:86
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:445
+msgid "Resetting..."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/job-application-card.tsx:240
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:860
+msgid "Resume"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:244
+msgid "Resume Deleted"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/_components/sidebar.tsx:124
+#: apps/client/src/pages/dashboard/job-applications/_components/job-application-card.tsx:240
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-table.tsx:340
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:849
 #: apps/client/src/pages/dashboard/resumes/page.tsx:20
 #: apps/client/src/pages/dashboard/resumes/page.tsx:37
 msgid "Resumes"
@@ -1240,6 +3419,19 @@ msgstr "CV's"
 msgid "Resumes Generated"
 msgstr "CV's Gegenereerd"
 
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-table.tsx:298
+#: apps/client/src/pages/dashboard/job-applications/page.tsx:107
+msgid "Retry"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/content-relationship-indicator.tsx:129
+msgid "Revert to Original"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:152
+msgid "Review and edit the extracted content"
+msgstr ""
+
 #: apps/client/src/pages/home/sections/features/index.tsx:105
 msgid "Rich in features, not in pricing."
 msgstr "Rijk aan functies, niet aan prijzen."
@@ -1248,37 +3440,96 @@ msgstr "Rijk aan functies, niet aan prijzen."
 msgid "Rounded"
 msgstr "Afgeronde hoeken"
 
+#: apps/client/src/pages/dashboard/automation/page.tsx:197
+msgid "Run Failed"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/automation/page.tsx:525
+msgid "Run Workflow"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:723
+msgid "Salary"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/automation/page.tsx:353
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:467
+msgid "San Francisco, CA"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:440
+msgid "Save"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:354
+msgid "Save {0}"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:400
+msgid "Save {selectedCount} Selected Items"
+msgstr ""
+
 #: apps/client/src/pages/builder/sidebars/left/sections/shared/section-dialog.tsx:180
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:463
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:535
 #: apps/client/src/pages/dashboard/resumes/_dialogs/resume.tsx:245
 #: apps/client/src/pages/dashboard/settings/_sections/account.tsx:217
 #: apps/client/src/pages/dashboard/settings/_sections/profile.tsx:131
 msgid "Save Changes"
 msgstr "Wijzigingen Opslaan"
 
-#: apps/client/src/pages/dashboard/settings/_sections/openai.tsx:176
-msgid "Save Locally"
-msgstr "Lokaal opslaan"
+#: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:126
+#: apps/client/src/pages/dashboard/cover-letter-stories/_components/story-interview-dialog.tsx:277
+msgid "Save Failed"
+msgstr ""
 
-#: apps/client/src/pages/dashboard/settings/_sections/openai.tsx:176
-msgid "Saved"
-msgstr "Opgeslagen"
+#: apps/client/src/pages/dashboard/job-applications/[id]/_components/content-selection-panel.tsx:176
+msgid "Save Selection"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:119
+msgid "Saved {0} items to your content library"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:532
+msgid "Saving Changes..."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:463
+#: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:399
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:440
+msgid "Saving..."
+msgstr ""
 
 #: apps/client/src/pages/dashboard/settings/_dialogs/two-factor.tsx:168
 msgid "Scan the QR code below with your authenticator app to setup 2FA on your account."
 msgstr "Scan de onderstaande QR-code met uw authenticator-app om 2FA in te stellen op uw account."
 
-#. Score or honors for the degree, for example, CGPA or magna cum laude
-#: apps/client/src/pages/builder/sidebars/left/dialogs/education.tsx:92
-msgid "Score"
-msgstr "Resultaat"
-
-#: apps/client/src/pages/builder/_components/toolbar.tsx:104
+#: apps/client/src/pages/builder/_components/toolbar.tsx:404
 msgid "Scroll to Pan"
 msgstr "Scroll naar Pan"
 
-#: apps/client/src/pages/builder/_components/toolbar.tsx:104
+#: apps/client/src/pages/builder/_components/toolbar.tsx:404
 msgid "Scroll to Zoom"
 msgstr "Scroll naar zoom"
+
+#: apps/client/src/pages/dashboard/companies/page.tsx:119
+msgid "Search & Filter"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-filter.tsx:67
+msgid "Search by company or position..."
+msgstr ""
+
+#: apps/client/src/components/company-autocomplete.tsx:32
+#: apps/client/src/components/company-autocomplete.tsx:82
+#: apps/client/src/pages/dashboard/companies/page.tsx:127
+msgid "Search companies..."
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/content-selection-dialog.tsx:211
+msgid "Search content..."
+msgstr ""
 
 #: apps/client/src/pages/builder/sidebars/right/sections/typography.tsx:111
 msgid "Search for a font family"
@@ -1296,6 +3547,19 @@ msgstr "Zoeken naar een lettertype-variant"
 msgid "Search for a language"
 msgstr "Een taal zoeken"
 
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:344
+#: apps/client/src/pages/dashboard/job-applications/new/_components/manual-job-form.tsx:184
+msgid "Search or create company..."
+msgstr ""
+
+#: apps/client/src/components/company-autocomplete.tsx:94
+msgid "Searching..."
+msgstr ""
+
+#: apps/client/src/pages/builder/sidebars/right/sections/theme.tsx:73
+msgid "Secondary Color"
+msgstr ""
+
 #: apps/client/src/pages/home/sections/features/index.tsx:56
 msgid "Secure with two-factor authentication"
 msgstr "Beveiligen met tweestapsverificatie"
@@ -1303,6 +3567,67 @@ msgstr "Beveiligen met tweestapsverificatie"
 #: apps/client/src/pages/dashboard/settings/_sections/security.tsx:65
 msgid "Security"
 msgstr "Beveiliging"
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/settings.tsx:161
+msgid "Select a tone that aligns with the job requirements"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:223
+msgid "Select AI provider"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/content-selection-dialog.tsx:227
+#: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:297
+msgid "Select All"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/content-selection-dialog.tsx:199
+msgid "Select Content for {sectionName}"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/_components/content-selection-panel.tsx:132
+msgid "Select Content for Resume"
+msgstr ""
+
+#: apps/client/src/pages/builder/sidebars/left/sections/shared/section-options.tsx:99
+msgid "Select from Library"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:286
+msgid "Select question type"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/toolbar.tsx:243
+msgid "Select Sections to Edit"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/content.tsx:304
+msgid "Select stories above or create new ones"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/settings.tsx:60
+msgid "Select Template"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/settings.tsx:87
+msgid "Select Tone"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:300
+msgid "Select Unique"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/_components/content-selection-panel.tsx:164
+msgid "Selected {0} items"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/content.tsx:286
+msgid "Selected Stories"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:293
+msgid "Selected: {selectedCount}/{0}"
+msgstr ""
 
 #: apps/client/src/pages/home/sections/features/index.tsx:50
 msgid "Self-host with Docker"
@@ -1316,36 +3641,65 @@ msgstr "E-mail Verzenden"
 msgid "Send me a message"
 msgstr "Stuur mij een bericht"
 
-#: apps/client/src/pages/builder/sidebars/left/sections/shared/section-options.tsx:97
+#: apps/client/src/pages/builder/sidebars/left/sections/shared/section-options.tsx:105
 msgid "Separate Links"
 msgstr "Gescheiden links"
 
+#: apps/client/src/components/chrome-remote-control.tsx:132
+msgid "Set up your local Chrome for direct control during automation (recommended for frequent use)."
+msgstr ""
+
 #: apps/client/src/components/user-options.tsx:32
-#: apps/client/src/pages/dashboard/_components/sidebar.tsx:92
-#: apps/client/src/pages/dashboard/settings/page.tsx:16
-#: apps/client/src/pages/dashboard/settings/page.tsx:26
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/index.tsx:59
+#: apps/client/src/pages/dashboard/_components/sidebar.tsx:160
+#: apps/client/src/pages/dashboard/settings/page.tsx:18
+#: apps/client/src/pages/dashboard/settings/page.tsx:28
 msgid "Settings"
 msgstr "Instellingen"
+
+#: apps/client/src/components/chrome-remote-control.tsx:141
+msgid "Setup Instructions"
+msgstr ""
 
 #: apps/client/src/pages/dashboard/settings/_dialogs/two-factor.tsx:159
 msgid "Setup two-factor authentication on your account"
 msgstr "Stel tweestapsverificatie in voor uw account"
 
-#: apps/client/src/pages/builder/sidebars/right/index.tsx:107
+#: apps/client/src/pages/builder/sidebars/right/index.tsx:104
 #: apps/client/src/pages/builder/sidebars/right/sections/sharing.tsx:38
 #: apps/client/src/pages/builder/sidebars/right/sections/sharing.tsx:39
 msgid "Sharing"
 msgstr "Delen"
 
-#: apps/client/src/pages/builder/sidebars/left/sections/shared/section-options.tsx:106
+#: apps/client/src/pages/builder/sidebars/left/sections/shared/section-options.tsx:114
 msgid "Show"
 msgstr "Weergeven"
 
-#: apps/client/src/pages/builder/sidebars/right/sections/page.tsx:78
+#: apps/client/src/pages/builder/sidebars/right/sections/page.tsx:97
 msgid "Show Break Line"
 msgstr "Toon breuklijn"
 
-#: apps/client/src/pages/builder/sidebars/right/sections/page.tsx:91
+#: apps/client/src/pages/builder/sidebars/left/dialogs/custom-section.tsx:93
+msgid "Show Description"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/_components/content-selection-panel.tsx:263
+msgid "Show details"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/toolbar.tsx:315
+msgid "Show Examples"
+msgstr ""
+
+#: apps/client/src/pages/builder/sidebars/left/dialogs/custom-section.tsx:198
+msgid "Show Keywords"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/_components/content-selection-panel.tsx:263
+msgid "Show less"
+msgstr ""
+
+#: apps/client/src/pages/builder/sidebars/right/sections/page.tsx:110
 msgid "Show Page Numbers"
 msgstr "Paginanummers Weergeven"
 
@@ -1392,13 +3746,75 @@ msgstr "Aanmelden via e-mail is momenteel uitgeschakeld door de beheerder."
 msgid "Signups are currently disabled by the administrator."
 msgstr "Aanmeldingen zijn momenteel uitgeschakeld door de beheerder."
 
+#: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:377
+msgid "Similar to: {0}"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:374
+msgid "Similarity:"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/new/page.tsx:70
+msgid "Simply paste a link to the job posting and we'll automatically extract the job title, company, requirements, and description."
+msgstr ""
+
 #: apps/client/src/pages/builder/sidebars/left/sections/picture/options.tsx:65
 msgid "Size (in px)"
 msgstr "Afmeting (in px)"
 
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:247
+msgid "sk-..."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:278
+msgid "sk-ant-..."
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/toolbar.tsx:40
+msgid "Skills"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:356
+msgid "Skills:"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/interview.tsx:101
+msgid "Skip"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:364
+msgid "Skyvern API Key"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:175
+msgid "Skyvern API Key Generated"
+msgstr ""
+
+#: apps/client/src/components/chrome-remote-control.tsx:163
+msgid "Skyvern runs Chrome with debugging enabled on port 9222"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:406
+msgid "Skyvern Server URL"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:177
+msgid "Skyvern UI"
+msgstr ""
+
 #: apps/client/src/pages/dashboard/resumes/_dialogs/resume.tsx:228
 msgid "Slug"
 msgstr "Korte naam"
+
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:381
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:383
+msgid "Social Media"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/automation/page.tsx:344
+#: apps/client/src/pages/dashboard/automation/page.tsx:408
+msgid "Software Developer"
+msgstr ""
 
 #: apps/client/src/services/errors/translate-error.ts:55
 msgid "Something went wrong while grabbing a preview your resume. Please try again later or raise an issue on GitHub."
@@ -1411,6 +3827,10 @@ msgstr "Er is iets misgegaan bij het afdrukken van je cv. Probeer het later nog 
 #: apps/client/src/services/errors/translate-error.ts:58
 msgid "Something went wrong while processing your request. Please try again later or raise an issue on GitHub."
 msgstr "Er is iets misgegaan tijdens het verwerken van uw verzoek. Probeer het later opnieuw of stel een probleem op GitHub."
+
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:225
+msgid "Sources:"
+msgstr ""
 
 #: apps/client/src/pages/builder/sidebars/left/sections/picture/options.tsx:87
 #: apps/client/src/pages/builder/sidebars/left/sections/picture/options.tsx:132
@@ -1426,9 +3846,49 @@ msgstr "Begin vanaf nul"
 msgid "Start building your resume by giving it a name."
 msgstr "Begin het opstellen van uw CV door het een naam te geven."
 
-#: apps/client/src/pages/builder/sidebars/right/index.tsx:114
+#: apps/client/src/pages/dashboard/companies/page.tsx:310
+msgid "Start by adding your first company to track and analyze"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/interview.tsx:133
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/interview.tsx:142
+msgid "Start Interview"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:721
+msgid "Start Job Automation"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:721
+msgid "Start LinkedIn Automation"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/voice-stories/_components/story-blocks-list.tsx:76
+msgid "Start recording your experiences to build your story library"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-table.tsx:316
+#: apps/client/src/pages/dashboard/job-applications/page.tsx:125
+msgid "Start tracking your job search by creating your first application. We'll help you generate the perfect resume for each opportunity."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:716
+msgid "Starting Automation..."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:716
+msgid "Starting LinkedIn Automation..."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/automation/page.tsx:525
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:599
+msgid "Starting..."
+msgstr ""
+
+#: apps/client/src/pages/builder/sidebars/right/index.tsx:111
 #: apps/client/src/pages/builder/sidebars/right/sections/statistics.tsx:22
 #: apps/client/src/pages/builder/sidebars/right/sections/statistics.tsx:23
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/preview.tsx:77
 msgid "Statistics"
 msgstr "Statistieken"
 
@@ -1436,19 +3896,72 @@ msgstr "Statistieken"
 msgid "Statistics are available only for public resumes."
 msgstr "Statistieken zijn alleen beschikbaar voor openbare cv's."
 
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-table.tsx:334
+msgid "Status"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:194
+msgid "Step {0} of {totalSteps}"
+msgstr ""
+
 #: apps/client/src/pages/dashboard/settings/_dialogs/two-factor.tsx:162
 msgid "Store your backup codes securely"
 msgstr "Bewaar uw back-upcodes veilig"
 
-#: apps/client/src/pages/builder/sidebars/left/dialogs/awards.tsx:101
-#: apps/client/src/pages/builder/sidebars/left/dialogs/certifications.tsx:95
-#: apps/client/src/pages/builder/sidebars/left/dialogs/custom-section.tsx:129
-#: apps/client/src/pages/builder/sidebars/left/dialogs/education.tsx:138
-#: apps/client/src/pages/builder/sidebars/left/dialogs/experience.tsx:114
-#: apps/client/src/pages/builder/sidebars/left/dialogs/projects.tsx:129
-#: apps/client/src/pages/builder/sidebars/left/dialogs/publications.tsx:95
-#: apps/client/src/pages/builder/sidebars/left/dialogs/references.tsx:81
-#: apps/client/src/pages/builder/sidebars/left/dialogs/volunteer.tsx:109
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/content.tsx:127
+msgid "Stories"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/content.tsx:278
+msgid "Stories marked with * were used in generation. Click to add/remove stories."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/cover-letter-stories/_components/story-interview-dialog.tsx:270
+msgid "Stories Saved"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/voice-stories/page.tsx:50
+#: apps/client/src/pages/dashboard/voice-stories/page.tsx:86
+msgid "Story Blocks"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:217
+msgid "Strategy: {0}"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:290
+msgid "Strengths"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/index.tsx:19
+msgid "Style"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/interview.tsx:98
+msgid "Submit Answer"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/toolbar.tsx:168
+#: apps/client/src/pages/cover-letter-builder/_components/toolbar.tsx:128
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:64
+#: apps/client/src/pages/dashboard/companies/page.tsx:77
+#: apps/client/src/pages/dashboard/job-applications/_components/job-application-card.tsx:118
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-table.tsx:123
+#: apps/client/src/pages/dashboard/job-applications/[id]/_components/content-selection-panel.tsx:59
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:234
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:170
+#: apps/client/src/pages/dashboard/job-applications/new/_components/job-url-form.tsx:40
+#: apps/client/src/pages/dashboard/job-applications/new/_components/job-url-form.tsx:62
+#: apps/client/src/pages/dashboard/job-applications/new/_components/manual-job-form.tsx:142
+msgid "Success"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/_components/content-selection-panel.tsx:293
+msgid "Suggestions:"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/toolbar.tsx:37
+#: apps/client/src/pages/builder/sidebars/left/dialogs/custom-section.tsx:148
 msgid "Summary"
 msgstr "Overzicht"
 
@@ -1464,16 +3977,80 @@ msgstr "Reactive Resume steunen"
 msgid "Supports A4/Letter page formats"
 msgstr "Ondersteunt A4/Brief pagina-indelingen"
 
+#: apps/client/src/pages/dashboard/job-applications/new/page.tsx:73
+msgid "Supports LinkedIn, Indeed, Glassdoor, and more"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:208
+msgid "Supports PDF, DOCX, DOC, and TXT files (up to 10MB)"
+msgstr ""
+
 #: apps/client/src/pages/dashboard/settings/_sections/profile.tsx:85
 msgid "System"
 msgstr "Systeem"
 
-#: apps/client/src/pages/builder/sidebars/right/index.tsx:65
+#: apps/client/src/pages/dashboard/job-applications/page.tsx:56
+msgid "Table"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:469
+#: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:302
+msgid "Tags"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:461
+msgid "Tags/Skills"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:225
+msgid "Task Running"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:675
+msgid "Tell the AI what to do..."
+msgstr ""
+
+#: apps/client/src/pages/builder/sidebars/right/index.tsx:62
 #: apps/client/src/pages/builder/sidebars/right/sections/template.tsx:18
 #: apps/client/src/pages/builder/sidebars/right/sections/template.tsx:19
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/settings.tsx:141
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/preview.tsx:59
 msgid "Template"
 msgstr "Sjabloon"
 
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:323
+msgid "Template Created"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:363
+msgid "Template Creation Failed"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/preview.tsx:54
+msgid "Template Information"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/automation/page.tsx:276
+msgid "Template Name"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:563
+msgid "Template Name (Optional)"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/automation/page.tsx:102
+msgid "Template name is required"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/settings.tsx:136
+msgid "Template Preview"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/settings.tsx:55
+msgid "Template Style"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/automation/page.tsx:373
 #: apps/client/src/pages/home/sections/templates/index.tsx:9
 msgid "Templates"
 msgstr "Sjablonen"
@@ -1482,9 +4059,18 @@ msgstr "Sjablonen"
 msgid "Testimonials"
 msgstr "Getuigenissen"
 
-#: apps/client/src/pages/builder/sidebars/right/sections/theme.tsx:103
+#: apps/client/src/pages/builder/sidebars/right/sections/theme.tsx:133
 msgid "Text Color"
 msgstr "Tekstkleur"
+
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:193
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:131
+msgid "The company you're looking for doesn't exist."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:224
+msgid "The cover letter has been successfully deleted."
+msgstr ""
 
 #: apps/client/src/pages/public/error.tsx:17
 msgid "The page you're looking for doesn't exist."
@@ -1494,13 +4080,22 @@ msgstr ""
 msgid "The request was invalid."
 msgstr ""
 
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:245
+msgid "The resume has been successfully deleted."
+msgstr ""
+
 #: apps/client/src/services/errors/translate-error.ts:49
 msgid "The resume you want to update is locked, please unlock if you wish to make any changes to it."
 msgstr "Het CV dat u wilt bijwerken is vergrendeld. Ontgrendel het CV als u er wijzigingen in wilt aanbrengen."
 
-#: apps/client/src/pages/builder/sidebars/right/index.tsx:86
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/settings.tsx:101
+msgid "The tone will influence how your cover letter is written and perceived."
+msgstr ""
+
+#: apps/client/src/pages/builder/sidebars/right/index.tsx:83
 #: apps/client/src/pages/builder/sidebars/right/sections/theme.tsx:19
 #: apps/client/src/pages/builder/sidebars/right/sections/theme.tsx:20
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/style.tsx:88
 #: apps/client/src/pages/dashboard/settings/_sections/profile.tsx:79
 msgid "Theme"
 msgstr "Thema"
@@ -1521,6 +4116,14 @@ msgstr "Deze actie kan niet ongedaan worden gemaakt. Dit zal uw CV permanent ver
 msgid "This email address is associated with an OAuth account. Please sign in with your OAuth provider."
 msgstr "Dit e-mailadres is gekoppeld aan een OAuth-account. Meld u aan met uw OAuth-provider."
 
+#: apps/client/src/components/chrome-remote-control.tsx:99
+msgid "This is normal browser security behavior. Use the options below for manual browser control."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:266
+msgid "This may take a few moments while we extract and analyze your professional content."
+msgstr ""
+
 #: apps/client/src/pages/builder/_components/header.tsx:57
 msgid "This resume is locked, please unlock to make further changes."
 msgstr "Deze CV is vergrendeld. Ontgrendel het om verdere wijzigingen aan te brengen."
@@ -1529,30 +4132,76 @@ msgstr "Deze CV is vergrendeld. Ontgrendel het om verdere wijzigingen aan te bre
 msgid "This section is reserved for your personal notes specific to this resume. The content here remains private and is not shared with anyone else."
 msgstr "Dit gedeelte is gereserveerd voor uw persoonlijke aantekeningen die specifiek zijn voor deze CV. De inhoud blijft privé en wordt met niemand anders gedeeld."
 
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:553
+msgid "This will analyze your content library and create a CV optimized for this specific role."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:495
+msgid "Time Period"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/content.tsx:208
+msgid "Tip: Switch to Stories tab to manage story selection and regenerate."
+msgstr ""
+
 #: apps/client/src/pages/dashboard/resumes/_dialogs/resume.tsx:216
 msgid "Tip: You can name the resume referring to the position you are applying for."
 msgstr "Tip: U kunt de CV een naam geven die verwijst naar de functie waarvoor u solliciteert."
 
-#: apps/client/src/pages/builder/sidebars/left/dialogs/awards.tsx:39
-msgctxt "Name of the Award"
-msgid "Title"
-msgstr "Titel"
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/settings.tsx:156
+msgid "Tips for Better Results"
+msgstr ""
 
 #: apps/client/src/pages/dashboard/resumes/_dialogs/resume.tsx:196
 msgid "Title"
 msgstr "Titel"
 
-#: apps/client/src/pages/builder/_components/toolbar.tsx:138
+#: apps/client/src/pages/builder/_components/toolbar.tsx:438
 msgid "Toggle Page Break Line"
 msgstr "Schakel Pagina-Einde Lijn Aan of Uit"
 
-#: apps/client/src/pages/builder/_components/toolbar.tsx:150
+#: apps/client/src/pages/builder/_components/toolbar.tsx:450
 msgid "Toggle Page Numbers"
 msgstr "Paginanummers Aan- of Uitzetten"
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/settings.tsx:144
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/preview.tsx:63
+#: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:266
+msgid "Tone"
+msgstr ""
 
 #: apps/client/src/pages/home/sections/features/index.tsx:68
 msgid "Track views and downloads"
 msgstr "Houd weergaven en downloads bij"
+
+#: apps/client/src/pages/dashboard/job-applications/page.tsx:44
+msgid "Track your job applications and generate tailored resumes for each opportunity."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:236
+msgid "Transcription"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/cover-letter-stories/_components/story-interview-dialog.tsx:156
+msgid "Transcription Failed"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/page.tsx:309
+msgid "Try adjusting your search or filter criteria"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/content-selection-dialog.tsx:376
+msgid "Try adjusting your search terms"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/company.tsx:157
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:107
+msgid "Twitter"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:396
+msgid "Twitter URL"
+msgstr ""
 
 #: apps/client/src/pages/auth/verify-otp/page.tsx:52
 #: apps/client/src/pages/auth/verify-otp/page.tsx:57
@@ -1572,24 +4221,49 @@ msgstr "Tweestapsverificatie is niet ingeschakeld voor dit account."
 msgid "Type <0>delete</0> to confirm deleting your account."
 msgstr "Typ <0>verwijderen</0> om het verwijderen van uw account te bevestigen."
 
-#. For example, Bachelor's Degree or Master's Degree
-#: apps/client/src/pages/builder/sidebars/left/dialogs/education.tsx:54
-msgid "Type of Study"
-msgstr "Soort studie"
+#: apps/client/src/components/company-autocomplete.tsx:90
+msgid "Type at least 3 characters to search"
+msgstr ""
 
-#: apps/client/src/pages/builder/sidebars/right/index.tsx:79
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/interview.tsx:89
+msgid "Type your answer here..."
+msgstr ""
+
+#: apps/client/src/pages/builder/sidebars/right/index.tsx:76
 #: apps/client/src/pages/builder/sidebars/right/sections/typography.tsx:76
 #: apps/client/src/pages/builder/sidebars/right/sections/typography.tsx:77
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/style.tsx:59
 msgid "Typography"
 msgstr "Typografie"
 
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:189
+msgid "Unable to connect to automation service"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:182
+msgid "Unable to create Skyvern organization"
+msgstr ""
+
 #: apps/client/src/pages/builder/sidebars/right/sections/typography.tsx:203
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/style.tsx:83
 msgid "Underline Links"
 msgstr "Links Onderstrepen"
 
-#: apps/client/src/pages/builder/_components/toolbar.tsx:76
+#: apps/client/src/pages/builder/_components/toolbar.tsx:376
 msgid "Undo"
 msgstr "Ongedaan maken"
+
+#: apps/client/src/pages/builder/_components/content-relationship-indicator.tsx:80
+msgid "Unknown"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:204
+msgid "Unknown error occurred"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/content-relationship-indicator.tsx:79
+msgid "Unknown Source"
+msgstr ""
 
 #: apps/client/src/pages/dashboard/resumes/_dialogs/lock.tsx:52
 #: apps/client/src/pages/dashboard/resumes/_layouts/grid/_components/resume-card.tsx:110
@@ -1614,9 +4288,25 @@ msgstr "Een bestaand item bijwerken"
 msgid "Update an existing resume"
 msgstr "Een bestaande CV bijwerken"
 
+#: apps/client/src/pages/dashboard/content-library/_components/content-edit-dialog.tsx:805
+msgid "Update Content"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:373
+msgid "Updated"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:220
+msgid "Updated: {0}"
+msgstr ""
+
 #: apps/client/src/pages/dashboard/resumes/_dialogs/import.tsx:212
 msgid "Upload a file from one of the accepted sources to parse existing data and import it into Reactive Resume for easier editing."
 msgstr "Upload een bestand van één van de geaccepteerde bronnen om bestaande gegevens te verwerken en te importeren in Reactieve Resume zodat u deze makkelijker kunt bewerken."
+
+#: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:146
+msgid "Upload your CV file"
+msgstr ""
 
 #: apps/client/src/pages/builder/sidebars/right/sections/sharing.tsx:73
 msgid "URL"
@@ -1626,24 +4316,59 @@ msgstr "URL"
 msgid "URL must start with https://"
 msgstr "URL moet beginnen met https://"
 
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/settings.tsx:162
+msgid "Use custom instructions to highlight specific achievements"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/contacts.tsx:82
+msgid "Use LinkedIn to find relevant contacts"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:427
+msgid "Use System Default as Backup"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:651
+msgid "Use the cover letter builder to create personalized cover letters with AI-powered story extraction and company analysis."
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/interview.tsx:158
+msgid "Use the STAR method (Situation, Task, Action, Result)"
+msgstr ""
+
 #: apps/client/src/pages/auth/backup-otp/page.tsx:52
 #: apps/client/src/pages/auth/backup-otp/page.tsx:57
 msgid "Use your backup code"
 msgstr "Gebruik uw back-upcode"
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/content.tsx:319
+msgid "Used"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/_components/toolbar.tsx:60
+msgid "Used {usedContentCount} stories addressing {themes} ({fitScore}% fit)"
+msgstr ""
 
 #: apps/client/src/services/errors/translate-error.ts:13
 msgid "User does not have an associated 'secrets' record. Please report this issue on GitHub."
 msgstr "De gebruiker heeft geen geassocieerde 'secrets' record. Gelieve dit probleem te rapporteren op GitHub."
 
 #: apps/client/src/pages/auth/register/page.tsx:119
-#: apps/client/src/pages/builder/sidebars/left/dialogs/profiles.tsx:55
 #: apps/client/src/pages/dashboard/settings/_sections/account.tsx:167
 msgid "Username"
 msgstr "Gebruikersnaam"
 
+#: apps/client/src/pages/dashboard/automation/page.tsx:317
+msgid "Username/Email"
+msgstr ""
+
 #: apps/client/src/pages/home/sections/statistics/index.tsx:13
 msgid "Users Signed Up"
 msgstr "Gebruikers Aangemeld"
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:583
+msgid "Using Existing Template"
+msgstr ""
 
 #: apps/client/src/pages/dashboard/resumes/_dialogs/import.tsx:296
 msgid "Validate"
@@ -1653,9 +4378,14 @@ msgstr "Valideren"
 msgid "Validated"
 msgstr "Gevalideerd"
 
-#: apps/client/src/pages/builder/sidebars/left/sections/custom/section.tsx:97
-msgid "Value"
-msgstr "Waarde"
+#: apps/client/src/pages/builder/_components/content-relationship-indicator.tsx:52
+msgid "Variant from Content Library"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/content-relationship-indicator.tsx:53
+#: apps/client/src/pages/builder/_components/content-selection-dialog.tsx:272
+msgid "Variant from Library"
+msgstr ""
 
 #: apps/client/src/pages/dashboard/settings/_sections/account.tsx:192
 msgid "Verified"
@@ -1674,48 +4404,135 @@ msgstr "Verifieër uw e-mailadres"
 msgid "Version 4"
 msgstr "Versie 4"
 
+#: apps/client/src/pages/dashboard/automation/page.tsx:593
+msgid "View completed workflow runs and their results"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:419
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:770
+msgid "View Content Library"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/page.tsx:207
+#: apps/client/src/pages/dashboard/job-applications/_components/job-application-card.tsx:166
+#: apps/client/src/pages/dashboard/job-applications/_components/job-application-card.tsx:282
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-table.tsx:225
+msgid "View Details"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:237
+msgid "View Task"
+msgstr ""
+
 #: apps/client/src/pages/builder/sidebars/right/sections/statistics.tsx:51
 msgid "Views"
 msgstr "Weergaven"
 
-#: apps/client/src/pages/builder/sidebars/left/sections/shared/section-list-item.tsx:87
+#: apps/client/src/pages/builder/sidebars/left/sections/shared/section-list-item.tsx:95
 msgid "Visible"
 msgstr "Zichtbaar"
 
-#: apps/client/src/pages/builder/sidebars/left/sections/custom/section.tsx:70
-msgid "Visit <0>Phosphor Icons</0> for a list of available icons"
-msgstr "Bezoek <0>Fosfor Pictogrammen</0> voor een lijst met beschikbare pictogrammen"
+#: apps/client/src/pages/dashboard/voice-stories/page.tsx:28
+msgid "Voice Stories"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/toolbar.tsx:46
+msgid "Volunteer"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:650
+msgid "Wait for user to login to LinkedIn"
+msgstr ""
 
 #: apps/client/src/pages/auth/verify-email/page.tsx:61
 msgid "We verify your email address only to ensure that we can send you a password reset link in case you forget your password."
 msgstr "Wij verifiëren uw e-mailadres enkel om ervoor te zorgen dat wij u een link kunnen sturen om uw wachtwoord opnieuw in te stellen, mocht u uw wachtwoord vergeten zijn."
 
-#: apps/client/src/pages/builder/sidebars/left/dialogs/awards.tsx:87
-#: apps/client/src/pages/builder/sidebars/left/dialogs/certifications.tsx:81
-#: apps/client/src/pages/builder/sidebars/left/dialogs/custom-section.tsx:115
-#: apps/client/src/pages/builder/sidebars/left/dialogs/education.tsx:124
-#: apps/client/src/pages/builder/sidebars/left/dialogs/experience.tsx:100
-#: apps/client/src/pages/builder/sidebars/left/dialogs/profiles.tsx:69
-#: apps/client/src/pages/builder/sidebars/left/dialogs/projects.tsx:115
-#: apps/client/src/pages/builder/sidebars/left/dialogs/publications.tsx:81
-#: apps/client/src/pages/builder/sidebars/left/dialogs/references.tsx:67
-#: apps/client/src/pages/builder/sidebars/left/dialogs/volunteer.tsx:95
-#: apps/client/src/pages/builder/sidebars/left/sections/basics.tsx:69
+#: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:291
+msgid "Weaknesses"
+msgstr ""
+
+#: apps/client/src/pages/builder/sidebars/left/dialogs/custom-section.tsx:134
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/company.tsx:131
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:294
 msgid "Website"
 msgstr "Website"
+
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:289
+msgid "Website & Logo"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:293
+msgid "Website URL"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/company.tsx:166
+msgid "Website, LinkedIn, etc."
+msgstr ""
 
 #: apps/client/src/pages/home/sections/hero/index.tsx:32
 msgid "What's new in the latest version"
 msgstr "Wat is er nieuw in de laatste versie"
 
+#: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:289
+msgid "Why Company?"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/[id]/_components/content-selection-panel.tsx:278
+msgid "Why this matches:"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/job-application-card.tsx:101
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-filter.tsx:38
+#: apps/client/src/pages/dashboard/job-applications/_components/job-applications-table.tsx:99
+#: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:54
+#: apps/client/src/pages/dashboard/job-applications/[id]/page.tsx:105
+msgid "Withdrawn"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/preview.tsx:82
+msgid "Word Count"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/automation/page.tsx:124
+msgid "Workflow Created"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/automation/page.tsx:216
+msgid "Workflow Deleted"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/automation/page.tsx:591
+msgid "Workflow History"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:601
+msgid "Workflow Options"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/automation/page.tsx:180
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:392
+msgid "Workflow Started"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/content.tsx:201
+msgid "Write your cover letter content here..."
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/settings.tsx:82
+msgid "Writing Tone"
+msgstr ""
+
+#: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/settings.tsx:147
+#: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/preview.tsx:68
+msgid "Yes"
+msgstr ""
+
 #: apps/client/src/pages/public/error.tsx:26
 msgid "You are not authorized to access this page."
 msgstr ""
 
-#: apps/client/src/pages/builder/sidebars/left/dialogs/custom-section.tsx:164
-#: apps/client/src/pages/builder/sidebars/left/dialogs/interests.tsx:68
-#: apps/client/src/pages/builder/sidebars/left/dialogs/projects.tsx:164
-#: apps/client/src/pages/builder/sidebars/left/dialogs/skills.tsx:114
+#: apps/client/src/pages/builder/sidebars/left/dialogs/custom-section.tsx:183
 msgid "You can add multiple keywords by separating them with a comma or pressing enter."
 msgstr "U kunt meerdere trefwoorden toevoegen door ze te scheiden met een komma of door op enter te drukken."
 
@@ -1723,25 +4540,17 @@ msgstr "U kunt meerdere trefwoorden toevoegen door ze te scheiden met een komma 
 msgid "You can also enter your username."
 msgstr "U kunt ook uw gebruikersnaam invoeren."
 
-#: apps/client/src/pages/dashboard/settings/_sections/openai.tsx:103
-msgid "You can also integrate with Ollama simply by setting the API key to `sk-1234567890abcdef` and the Base URL to your Ollama URL, i.e. `http://localhost:11434/v1`. You can also pick and choose models and set the max tokens as per your preference."
-msgstr "U kunt ook integreren met Ollama door de API-sleutel in te stellen op `sk-1234567890abcdef` en de Base URL op uw Ollama URL, d.w.z. `http://localhost:11434/v1`. U kunt ook modellen kiezen en de maximale tokens naar wens instellen."
-
-#: apps/client/src/pages/dashboard/settings/_sections/openai.tsx:81
-msgid "You can make use of the OpenAI API to help you generate content, or improve your writing while composing your resume."
-msgstr "U kunt gebruik maken van de OpenAI API om tekst te genereren, of om uw schrijfvaardigheid te verbeteren bij het opstellen van uw CV."
-
 #: apps/client/src/pages/builder/sidebars/right/sections/statistics.tsx:40
 msgid "You can track the number of views your resume has received, or how many people have downloaded the resume by enabling public sharing."
 msgstr "Door openbaar delen in te schakelen, kunt u bijhouden hoeveel keer uw cv is bekeken en hoeveel mensen uw cv gedownload hebben."
 
+#: apps/client/src/components/chrome-remote-control.tsx:165
+msgid "You can type, click, and navigate manually during automation pauses"
+msgstr ""
+
 #: apps/client/src/pages/public/error.tsx:20
 msgid "You don't have permission to access this page."
 msgstr ""
-
-#: apps/client/src/pages/dashboard/settings/_sections/openai.tsx:87
-msgid "You have the option to <0>obtain your own OpenAI API key</0>. This key empowers you to leverage the API as you see fit. Alternatively, if you wish to disable the AI features in Reactive Resume altogether, you can simply remove the key from your settings."
-msgstr "U heeft de mogelijkheid om <0>uw eigen OpenAI API-sleutel te verkrijgen</0>. Met deze sleutel kunt u de API naar eigen inzicht gebruiken. Als u de AI-functies in Reactive Resume helemaal wilt uitschakelen, kunt u de sleutel ook gewoon uit uw instellingen verwijderen."
 
 #: apps/client/src/pages/auth/verify-email/page.tsx:50
 msgid "You should have received an email from <0>Reactive Resume</0> with a link to verify your account."
@@ -1756,27 +4565,52 @@ msgstr "Je hebt een mail ontvangen!"
 msgid "Your account and all your data has been deleted successfully. Goodbye!"
 msgstr "Uw account en al uw gegevens zijn succesvol verwijderd. Tot ziens!"
 
-#: apps/client/src/pages/dashboard/settings/_sections/openai.tsx:191
-msgid "Your API key is securely stored in the browser's local storage and is only utilized when making requests to OpenAI via their official SDK. Rest assured that your key is not transmitted to any external server except when interacting with OpenAI's services."
-msgstr "Uw API-sleutel wordt veilig opgeslagen in de lokale opslag van de browser en wordt alleen gebruikt bij het doen van verzoeken aan OpenAI via hun officiële SDK. U kunt erop vertrouwen dat uw sleutel niet naar een externe server wordt verzonden, behalve tijdens interactie met diensten van OpenAI."
+#: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:417
+msgid "Your CV content has been extracted and saved to your library. You can now use this content to generate tailored resumes for job applications."
+msgstr ""
 
 #: apps/client/src/pages/auth/verify-email/page.tsx:28
 msgid "Your email address has been verified successfully."
 msgstr "Uw e-mailadres is geverifieerd."
 
-#: apps/client/src/services/openai/client.ts:11
-msgid "Your OpenAI API Key has not been set yet. Please go to your account settings to enable OpenAI Integration."
-msgstr "Uw OpenAI API-sleutel is nog niet ingesteld. Ga naar uw accountinstellingen om OpenAI-integratie in te schakelen."
+#: apps/client/src/pages/dashboard/automation/page.tsx:333
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:557
+msgid "Your LinkedIn password"
+msgstr ""
 
 #: apps/client/src/pages/dashboard/settings/_sections/security.tsx:56
 msgid "Your password has been updated successfully."
 msgstr "Je wachtwoord is bijgewerkt."
 
-#: apps/client/src/pages/builder/_components/toolbar.tsx:112
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:176
+msgid "Your personal Skyvern organization has been created and API key configured."
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/toolbar.tsx:169
+msgid "Your resume has been updated successfully!"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:241
+msgid "Your transcribed response will appear here..."
+msgstr ""
+
+#: apps/client/src/pages/dashboard/automation/page.tsx:323
+#: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:544
+msgid "your.email@domain.com"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/page.tsx:110
+msgid "YouTube"
+msgstr ""
+
+#: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:430
+msgid "YouTube URL"
+msgstr ""
+
+#: apps/client/src/pages/builder/_components/toolbar.tsx:412
 msgid "Zoom In"
 msgstr "Inzoomen"
 
-#: apps/client/src/pages/builder/_components/toolbar.tsx:118
+#: apps/client/src/pages/builder/_components/toolbar.tsx:418
 msgid "Zoom Out"
 msgstr "Uitzoomen"
-

@@ -103,12 +103,12 @@ const CompanyDetailPage = () => {
   };
 
   const socialLinks = [
-    { url: company?.linkedinUrl, icon: LinkedinLogo, label: "LinkedIn" },
-    { url: company?.twitterUrl, icon: TwitterLogo, label: "Twitter" },
-    { url: company?.facebookUrl, icon: FacebookLogo, label: "Facebook" },
-    { url: company?.instagramUrl, icon: InstagramLogo, label: "Instagram" },
-    { url: company?.youtubeUrl, icon: YoutubeLogo, label: "YouTube" },
-    { url: company?.githubUrl, icon: GithubLogo, label: "GitHub" },
+    { url: company?.linkedinUrl, icon: LinkedinLogo, label: t`LinkedIn` },
+    { url: company?.twitterUrl, icon: TwitterLogo, label: t`Twitter` },
+    { url: company?.facebookUrl, icon: FacebookLogo, label: t`Facebook` },
+    { url: company?.instagramUrl, icon: InstagramLogo, label: t`Instagram` },
+    { url: company?.youtubeUrl, icon: YoutubeLogo, label: t`YouTube` },
+    { url: company?.githubUrl, icon: GithubLogo, label: t`GitHub` },
   ].filter(link => link.url);
 
   if (loading) {

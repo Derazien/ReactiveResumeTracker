@@ -1,3 +1,4 @@
+import { t } from "@lingui/macro";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, X } from "@phosphor-icons/react";
 import {
@@ -98,13 +99,13 @@ const SECTION_FORM_MAP = {
     schema: basicsSchema,
     default: defaultBasics,
     component: ContactSectionForm,
-    label: "Contact Information",
+    label: t`Contact Information`,
   },
   basics: {
     schema: basicsSchema,
     default: defaultBasics,
     component: ContactSectionForm,
-    label: "Contact Information",
+    label: t`Contact Information`,
   },
   education: {
     schema: educationSchema,
@@ -648,7 +649,7 @@ export const ContentEditDialog = ({
         className="max-h-[95vh] w-[95vw] max-w-5xl"
       >
         <DialogHeader className="shrink-0">
-          <DialogTitle>{isEditing ? "Edit Content" : "Add New Content"}</DialogTitle>
+          <DialogTitle>{isEditing ? t`Edit Content` : t`Add New Content`}</DialogTitle>
           <DialogDescription>
             {isEditing
               ? "Make changes to your content item."
@@ -801,7 +802,7 @@ export const ContentEditDialog = ({
                   console.log("Submit button clicked");
                 }}
               >
-                {isEditing ? "Update Content" : "Add Content"}
+                {isEditing ? t`Update Content` : t`Add Content`}
                 {isLoading && "..."}
               </Button>
             </DialogFooter>

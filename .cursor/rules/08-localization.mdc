@@ -1,0 +1,72 @@
+---
+description: Frontend localization and internationalization policy
+globs: apps/client/src/**/*.tsx
+alwaysApply: true
+---
+
+# Frontend Localization Rules
+
+## Core Rule: NO HARDCODED TEXT IN FRONTEND COMPONENTS
+
+### ✅ REQUIRED: Use Lingui Translation Macro
+```tsx
+import { t } from "@lingui/macro";
+
+// All user-facing text MUST use the t macro
+<h1>{t`Welcome to Job Applications`}</h1>
+<button>{t`Submit Application`}</button>
+<Input placeholder={t`Enter your email address`} />
+<SelectValue placeholder={t`Select an option`} />
+```
+
+### ❌ FORBIDDEN: Hardcoded Text Strings
+```tsx
+// NEVER hardcode user-facing text
+<h1>Welcome to Job Applications</h1>  // ❌ WRONG
+<button>Submit Application</button>   // ❌ WRONG
+<Input placeholder="Enter your email" />  // ❌ WRONG
+<SelectValue placeholder="Select option" />  // ❌ WRONG
+```
+
+## What Must Be Localized
+
+### 1. All User-Facing Text
+- Button labels, form labels, placeholders
+- Error messages, success messages
+- Page titles, headings, navigation items
+- Tooltips, help text, status labels
+- Loading messages, count displays
+
+### 2. Dynamic Content
+- Pluralization: `{count} {count === 1 ? t`item` : t`items`}`
+- Conditional text: `{isActive ? t`Active` : t`Inactive`}`
+- Dynamic placeholders: `placeholder={t`Search by ${searchType}...`}`
+
+### 3. Implementation Requirements
+- Every component displaying text MUST import: `import { t } from "@lingui/macro";`
+- After adding new strings, run: `pnpm run messages:extract && pnpm exec lingui compile`
+- Test with different locales to ensure proper display
+
+## Exceptions (Technical Identifiers Only)
+- Font names: `"Arial", "Cambria", "Garamond"`
+- Brand names: `"LinkedIn", "GitHub", "YouTube"`
+- URLs and paths: `"/dashboard/settings"`
+- Technical values: `value="en-US"`
+- Code comments and console logs
+
+## Code Review Checklist
+- [ ] All user-facing text uses `t` macro
+- [ ] No hardcoded strings in JSX
+- [ ] Import statement includes `t` from `@lingui/macro`
+- [ ] Dynamic content handles pluralization correctly
+- [ ] Translation extraction run after changes
+
+## Enforcement
+- ESLint rule: `@lingui/no-unlocalized-strings`
+- Pre-commit hooks run translation extraction
+- CI pipeline validates translation integrity
+
+## Resources
+- Full rules: `/docs/LOCALIZATION_RULES.md`
+- Lingui docs: https://lingui.dev/
+- Current translations: `apps/client/src/locales/en-US/messages.po`

@@ -1,3 +1,4 @@
+import { t } from "@lingui/macro";
 import { MicrophoneIcon, PaperPlaneIcon, StopIcon } from "@phosphor-icons/react";
 import {
   Badge,
@@ -102,8 +103,8 @@ export const StoryInterviewDialog = ({
       setIsRecording(true);
     } catch (error) {
       toast({
-        title: "Microphone Error",
-        description: "Could not access microphone. Please check permissions and try again.",
+        title: t`Microphone Error`,
+        description: t`Could not access microphone. Please check permissions and try again.`,
         variant: "error",
       });
     }
@@ -140,7 +141,7 @@ export const StoryInterviewDialog = ({
       if (result.success && result.transcription) {
         setCurrentResponse(result.transcription);
         toast({
-          title: "Audio Transcribed",
+          title: t`Audio Transcribed`,
           description: "Your response has been converted to text. You can edit it before submitting.",
         });
       } else {
@@ -152,7 +153,7 @@ export const StoryInterviewDialog = ({
       
       // Show error and allow manual input
       toast({
-        title: "Transcription Failed",
+        title: t`Transcription Failed`,
         description: error instanceof Error 
           ? `${error.message}. Please type your response instead.`
           : "Could not transcribe audio. Please type your response instead.",
@@ -222,7 +223,7 @@ export const StoryInterviewDialog = ({
       setInterviewPhase("review");
     } catch (error) {
       toast({
-        title: "Extraction Failed",
+        title: t`Extraction Failed`,
         description: "Failed to extract stories from interview. Please try again.",
         variant: "error",
       });
@@ -244,7 +245,7 @@ export const StoryInterviewDialog = ({
     
     if (selectedStories.length === 0) {
       toast({
-        title: "No Stories Selected",
+        title: t`No Stories Selected`,
         description: "Please select at least one story to save.",
         variant: "warning",
       });
@@ -266,14 +267,14 @@ export const StoryInterviewDialog = ({
       }
 
       toast({
-        title: "Stories Saved",
+        title: t`Stories Saved`,
         description: `Successfully saved ${selectedStories.length} ${selectedStories.length === 1 ? 'story' : 'stories'} to your cover letter library.`,
       });
 
       setInterviewPhase("complete");
     } catch (error) {
       toast({
-        title: "Save Failed",
+        title: t`Save Failed`,
         description: "Failed to save stories. Please try again.",
         variant: "error",
       });
@@ -420,7 +421,7 @@ export const StoryInterviewDialog = ({
                       size="sm"
                     >
                       <PaperPlaneIcon className="mr-2 size-4" />
-                      {currentQuestion < interviewQuestions.length - 1 ? "Next Question" : "Extract Stories"}
+                      {currentQuestion < interviewQuestions.length - 1 ? t`Next Question` : t`Extract Stories`}
                     </Button>
                   </div>
                 </div>

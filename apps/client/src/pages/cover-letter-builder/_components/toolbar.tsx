@@ -52,7 +52,7 @@ export const Toolbar = () => {
         
         // Success message with details
         const usedContentCount = result.usedContent?.length || 0;
-        const themes = result.companyThemes?.join(", ") || "general themes";
+        const themes = result.companyThemes?.join(", ") || t`general themes`;
         const fitScore = result.metadata?.overallFitScore || 0;
         
         toast({
@@ -75,7 +75,7 @@ export const Toolbar = () => {
             companyName: result.companyInfo?.name || "",
             companyAddress: result.companyInfo?.address,
             recipientName: result.companyInfo?.hiringManager,
-            recipientTitle: "Hiring Manager",
+            recipientTitle: t`Hiring Manager`,
           });
         }
         

@@ -278,7 +278,7 @@ export const AutomationPage = () => {
                     id="templateName"
                     value={createForm.templateName}
                     onChange={(e) => setCreateForm(prev => ({...prev, templateName: e.target.value}))}
-                    placeholder="My LinkedIn Job Search"
+                    placeholder={t`My LinkedIn Job Search`}
                   />
                 </div>
                 <div>
@@ -291,7 +291,7 @@ export const AutomationPage = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="LinkedIn">LinkedIn</SelectItem>
+                      <SelectItem value="LinkedIn">{t`LinkedIn`}</SelectItem>
                       <SelectItem value="Indeed">Indeed</SelectItem>
                       <SelectItem value="Custom">Custom</SelectItem>
                     </SelectContent>
@@ -305,7 +305,7 @@ export const AutomationPage = () => {
                     id="description"
                     value={createForm.description}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCreateForm(prev => ({...prev, description: e.target.value}))}
-                    placeholder="Automated job search for software developer positions..."
+                    placeholder={t`Automated job search for software developer positions...`}
                   />
                 </div>
 
@@ -320,7 +320,7 @@ export const AutomationPage = () => {
                         type="email"
                         value={createForm.linkedinUsername}
                         onChange={(e) => setCreateForm(prev => ({...prev, linkedinUsername: e.target.value}))}
-                        placeholder="your.email@domain.com"
+                        placeholder={t`your.email@domain.com`}
                       />
                     </div>
                     <div>
@@ -330,7 +330,7 @@ export const AutomationPage = () => {
                         type="password"
                         value={createForm.linkedinPassword}
                         onChange={(e) => setCreateForm(prev => ({...prev, linkedinPassword: e.target.value}))}
-                        placeholder="Your LinkedIn password"
+                        placeholder={t`Your LinkedIn password`}
                       />
                     </div>
                   </div>
@@ -341,7 +341,7 @@ export const AutomationPage = () => {
                         id="defaultKeywords"
                         value={createForm.defaultKeywords}
                         onChange={(e) => setCreateForm(prev => ({...prev, defaultKeywords: e.target.value}))}
-                        placeholder="Software Developer"
+                        placeholder={t`Software Developer`}
                       />
                     </div>
                     <div>
@@ -350,7 +350,7 @@ export const AutomationPage = () => {
                         id="defaultLocation"
                         value={createForm.defaultLocation}
                         onChange={(e) => setCreateForm(prev => ({...prev, defaultLocation: e.target.value}))}
-                        placeholder="San Francisco, CA"
+                        placeholder={t`San Francisco, CA`}
                       />
                     </div>
                   </div>
@@ -405,7 +405,7 @@ export const AutomationPage = () => {
                       <Input
                         value={runForm.jobKeywords}
                         onChange={(e) => setRunForm(prev => ({...prev, jobKeywords: e.target.value}))}
-                        placeholder="Software Developer"
+                        placeholder={t`Software Developer`}
                       />
                     </div>
                     <div>
@@ -413,7 +413,7 @@ export const AutomationPage = () => {
                       <Input
                         value={runForm.location}
                         onChange={(e) => setRunForm(prev => ({...prev, location: e.target.value}))}
-                        placeholder="Berlin"
+                        placeholder={t`Berlin`}
                       />
                     </div>
                   </div>

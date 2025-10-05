@@ -220,7 +220,7 @@ export const LLMSettings = () => {
                 <Select value={field.value} onValueChange={field.onChange}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select AI provider" />
+                      <SelectValue placeholder={t`Select AI provider`} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -244,7 +244,7 @@ export const LLMSettings = () => {
                   <FormItem>
                     <FormLabel>{t`OpenAI API Key`}</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="sk-..." {...field} />
+                      <Input type="password" placeholder={t`sk-...`} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -257,7 +257,7 @@ export const LLMSettings = () => {
                   <FormItem>
                     <FormLabel>{t`Model`}</FormLabel>
                     <FormControl>
-                      <Input placeholder="gpt-4-turbo-preview" {...field} />
+                      <Input placeholder={t`gpt-4-turbo-preview`} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -275,7 +275,7 @@ export const LLMSettings = () => {
                   <FormItem>
                     <FormLabel>{t`Anthropic API Key`}</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="sk-ant-..." {...field} />
+                      <Input type="password" placeholder={t`sk-ant-...`} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -288,7 +288,7 @@ export const LLMSettings = () => {
                   <FormItem>
                     <FormLabel>{t`Model`}</FormLabel>
                     <FormControl>
-                      <Input placeholder="claude-3-5-sonnet-20241022" {...field} />
+                      <Input placeholder={t`claude-3-5-sonnet-20241022`} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -306,7 +306,7 @@ export const LLMSettings = () => {
                   <FormItem>
                     <FormLabel>{t`Ollama Base URL`}</FormLabel>
                     <FormControl>
-                      <Input placeholder="http://localhost:11434/v1" {...field} />
+                      <Input placeholder={t`http://localhost:11434/v1`} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -319,7 +319,7 @@ export const LLMSettings = () => {
                   <FormItem>
                     <FormLabel>{t`Model`}</FormLabel>
                     <FormControl>
-                      <Input placeholder="llama3:8b" {...field} />
+                      <Input placeholder={t`llama3:8b`} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -365,7 +365,7 @@ export const LLMSettings = () => {
                     <FormControl>
                       <Input 
                         type="password" 
-                        placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." 
+                        placeholder={t`eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`} 
                         {...field} 
                       />
                     </FormControl>
@@ -405,7 +405,7 @@ export const LLMSettings = () => {
                   <FormItem>
                     <FormLabel>{t`Skyvern Server URL`}</FormLabel>
                     <FormControl>
-                      <Input placeholder="http://localhost:8000" {...field} />
+                      <Input placeholder={t`http://localhost:8000`} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

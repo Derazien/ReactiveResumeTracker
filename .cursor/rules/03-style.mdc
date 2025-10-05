@@ -8,3 +8,4 @@ alwaysApply: true
 - Respect `/docs/00-foundation/Glossary.md` naming.
 - Every exported function/class/module gets TSDoc with: Purpose • Inputs/Outputs • Side‑effects • Related modules.
 - Avoid grab‑bag utility files; group by domain.
+- **Frontend components**: NO hardcoded text - use `t` macro for all user-facing strings (see `08-localization.mdc`).

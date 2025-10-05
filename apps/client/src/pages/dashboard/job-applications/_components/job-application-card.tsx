@@ -261,7 +261,7 @@ export const JobApplicationCard = ({ application }: Props) => {
             ))}
             {application.extractedTags.length > 3 && (
               <span className="text-muted-foreground self-center text-xs">
-                +{application.extractedTags.length - 3} more
+                +{application.extractedTags.length - 3} {t`more`}
               </span>
             )}
           </div>

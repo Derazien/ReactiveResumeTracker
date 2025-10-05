@@ -117,7 +117,7 @@ export const AutomationToolbar = () => {
         setActiveTask(result.taskId);
         toast({
           title: t`Automation Started`,
-          description: `${result.message}. Task ID: ${result.taskId}`,
+          description: t`${result.message}. Task ID: ${result.taskId}`,
           action: (
             <Button
               size="sm"
@@ -133,7 +133,7 @@ export const AutomationToolbar = () => {
     } catch (error) {
       toast({
         title: t`Automation Failed`,
-        description: (error as Error)?.message || "Failed to start job automation",
+        description: (error as Error)?.message || t`Failed to start job automation`,
         variant: "error",
       });
     } finally {
@@ -453,7 +453,7 @@ const AutomationDialog = ({
                 onChange={(e) => {
                   setWorkflowConfig((prev) => ({ ...prev, jobKeywords: e.target.value }));
                 }}
-                placeholder="React Developer"
+                placeholder={t`React Developer`}
                 className="mt-1"
               />
             </div>
@@ -464,7 +464,7 @@ const AutomationDialog = ({
                 onChange={(e) => {
                   setWorkflowConfig((prev) => ({ ...prev, location: e.target.value }));
                 }}
-                placeholder="San Francisco, CA"
+                placeholder={t`San Francisco, CA`}
                 className="mt-1"
               />
             </div>
@@ -541,7 +541,7 @@ const AutomationDialog = ({
                     onChange={(e) => {
                       setWorkflowConfig((prev) => ({ ...prev, linkedinUsername: e.target.value }));
                     }}
-                    placeholder="your.email@domain.com"
+                    placeholder={t`your.email@domain.com`}
                     className="mt-1"
                   />
                 </div>
@@ -554,7 +554,7 @@ const AutomationDialog = ({
                     onChange={(e) => {
                       setWorkflowConfig((prev) => ({ ...prev, linkedinPassword: e.target.value }));
                     }}
-                    placeholder="Your LinkedIn password"
+                    placeholder={t`Your LinkedIn password`}
                     className="mt-1"
                   />
                 </div>
@@ -566,7 +566,7 @@ const AutomationDialog = ({
                     onChange={(e) => {
                       setWorkflowConfig((prev) => ({ ...prev, templateName: e.target.value }));
                     }}
-                    placeholder="My LinkedIn Job Search"
+                    placeholder={t`My LinkedIn Job Search`}
                     className="mt-1"
                   />
                 </div>
