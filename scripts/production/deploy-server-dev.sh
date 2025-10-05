@@ -187,6 +187,20 @@ echo ""
 echo -e "   ${GREEN}✓ Dependencies installed${NC}"
 echo ""
 
+# Step 4.5: Compile translations
+echo -e "${YELLOW}🌐 Step 4.5: Compiling translations...${NC}"
+echo ""
+
+echo -e "   ${GRAY}Running translation extraction...${NC}"
+pnpm run messages:extract || echo -e "      ${GRAY}(extraction failed, continuing...)${NC}"
+
+echo -e "   ${GRAY}Compiling translation messages...${NC}"
+pnpm exec lingui compile || echo -e "      ${GRAY}(compilation failed, continuing...)${NC}"
+
+echo ""
+echo -e "   ${GREEN}✓ Translations compiled${NC}"
+echo ""
+
 # Step 5: Generate Prisma client (no build needed for dev mode)
 echo -e "${YELLOW}🔧 Step 5: Generating Prisma client...${NC}"
 echo ""

@@ -224,9 +224,9 @@ export const LLMSettings = () => {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="OPENAI">OpenAI</SelectItem>
-                    <SelectItem value="ANTHROPIC">Anthropic (Claude)</SelectItem>
-                    <SelectItem value="OLLAMA">Ollama (Local)</SelectItem>
+                    <SelectItem value="OPENAI">{t`OpenAI`}</SelectItem>
+                    <SelectItem value="ANTHROPIC">{t`Anthropic (Claude)`}</SelectItem>
+                    <SelectItem value="OLLAMA">{t`Ollama (Local)`}</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />

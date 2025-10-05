@@ -412,6 +412,10 @@ msgstr "y mucho más..."
 msgid "Answer Snippets"
 msgstr ""
 
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:228
+msgid "Anthropic (Claude)"
+msgstr ""
+
 #: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:276
 msgid "Anthropic API Key"
 msgstr ""
@@ -2915,6 +2919,10 @@ msgstr ""
 msgid "Offer Received"
 msgstr ""
 
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:229
+msgid "Ollama (Local)"
+msgstr ""
+
 #: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:307
 msgid "Ollama Base URL"
 msgstr ""
@@ -2948,6 +2956,10 @@ msgstr ""
 #: apps/client/src/pages/home/sections/features/index.tsx:47
 msgid "Open Source"
 msgstr "Código Abierto"
+
+#: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:227
+msgid "OpenAI"
+msgstr ""
 
 #: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:245
 msgid "OpenAI API Key"
