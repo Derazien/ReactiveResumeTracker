@@ -91,27 +91,14 @@ echo -e "${GRAY}  This may take a few minutes depending on data size...${NC}"
 # Check dump file version and handle compatibility
 echo -e "${GRAY}  Checking dump file format...${NC}"
 
-# Handle SQL files (this is now the only supported format)
-if [[ "$SQL_FILE" == *.sql ]]; then
-    echo -e "${GRAY}  Cleaning SQL file for encoding issues...${NC}"
-    
-    # Create a cleaned version of the SQL file
-    CLEAN_SQL_FILE="${SQL_FILE%.sql}-clean.sql"
-    
-    # Remove invalid UTF-8 sequences and fix common encoding issues
-    sed 's/\xff//g' "$SQL_FILE" | iconv -f UTF-8 -t UTF-8 -c > "$CLEAN_SQL_FILE" 2>/dev/null || \
-    sed 's/\xff//g' "$SQL_FILE" > "$CLEAN_SQL_FILE"
-    
-    echo -e "${GRAY}  Importing cleaned SQL file (showing all output)...${NC}"
-    if docker exec -i reactive-resume-postgres psql -U reactive_resume -d reactive_resume < "$CLEAN_SQL_FILE"; then
-        echo -e "${GREEN}✓ Database import completed successfully with SQL file${NC}"
-        rm -f "$CLEAN_SQL_FILE"  # Clean up temporary file
-    else
-        echo -e "${RED}❌ SQL import failed - check errors above${NC}"
-        echo -e "${GRAY}  Cleaned SQL file preserved at: $CLEAN_SQL_FILE${NC}"
-        exit 1
-    fi
-fi  # End of SQL file handling
+# Import SQL file directly (simple and clean)
+echo -e "${GRAY}  Importing SQL file (showing all output)...${NC}"
+if docker exec -i reactive-resume-postgres psql -U reactive_resume -d reactive_resume < "$SQL_FILE"; then
+    echo -e "${GREEN}✓ Database import completed successfully with SQL file${NC}"
+else
+    echo -e "${RED}❌ SQL import failed - check errors above${NC}"
+    exit 1
+fi
 
 echo ""
 
