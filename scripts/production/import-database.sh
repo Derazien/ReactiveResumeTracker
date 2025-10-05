@@ -91,9 +91,9 @@ echo -e "${GRAY}  This may take a few minutes depending on data size...${NC}"
 # Check dump file version and handle compatibility
 echo -e "${GRAY}  Checking dump file format...${NC}"
 
-# Import SQL file directly (simple and clean)
+# Import SQL file using cat (same method that worked locally)
 echo -e "${GRAY}  Importing SQL file (showing all output)...${NC}"
-if docker exec -i reactive-resume-postgres psql -U reactive_resume -d reactive_resume < "$SQL_FILE"; then
+if cat "$SQL_FILE" | docker exec -i reactive-resume-postgres psql -U reactive_resume -d reactive_resume; then
     echo -e "${GREEN}✓ Database import completed successfully with SQL file${NC}"
 else
     echo -e "${RED}❌ SQL import failed - check errors above${NC}"
