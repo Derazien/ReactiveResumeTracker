@@ -29,34 +29,31 @@ echo -e "${CYAN}  🗄️  PostgreSQL Database Import${NC}"
 echo -e "${CYAN}═══════════════════════════════════════════════════════${NC}"
 echo ""
 
-# Find the dump file (it should be in the project root)
+# Find the SQL backup file (prioritize .sql files only)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-DUMP_FILE=""
+SQL_FILE=""
 
-# Look for the dump file in common locations (prioritize .sql files)
-for path in "$PROJECT_ROOT/postgres-backup.sql" "$SCRIPT_DIR/postgres-backup.sql" "./postgres-backup.sql" "postgres-backup.sql" "$PROJECT_ROOT/postgres-backup.dump" "$SCRIPT_DIR/postgres-backup.dump" "./postgres-backup.dump" "postgres-backup.dump"; do
+# Look for SQL files only (no more .dump files)
+for path in "$PROJECT_ROOT/postgres-backup.sql" "$SCRIPT_DIR/postgres-backup.sql" "./postgres-backup.sql" "postgres-backup.sql"; do
     if [ -f "$path" ]; then
-        DUMP_FILE="$path"
+        SQL_FILE="$path"
         break
     fi
 done
 
-if [ -z "$DUMP_FILE" ]; then
-    echo -e "${RED}❌ postgres-backup.dump or postgres-backup.sql file not found${NC}"
+if [ -z "$SQL_FILE" ]; then
+    echo -e "${RED}❌ postgres-backup.sql file not found${NC}"
     echo -e "${GRAY}  Searched in:${NC}"
-    echo -e "${GRAY}    - $PROJECT_ROOT/postgres-backup.dump${NC}"
-    echo -e "${GRAY}    - $SCRIPT_DIR/postgres-backup.dump${NC}"
-    echo -e "${GRAY}    - ./postgres-backup.dump${NC}"
     echo -e "${GRAY}    - $PROJECT_ROOT/postgres-backup.sql${NC}"
     echo -e "${GRAY}    - $SCRIPT_DIR/postgres-backup.sql${NC}"
     echo -e "${GRAY}    - ./postgres-backup.sql${NC}"
-    echo -e "${GRAY}  Make sure the dump file exists in one of these locations${NC}"
+    echo -e "${GRAY}  Make sure the SQL backup file exists in one of these locations${NC}"
     exit 1
 fi
 
-echo -e "${GREEN}✓ Found dump file at: $DUMP_FILE${NC}"
-echo -e "${GREEN}✓ File size: $(du -h "$DUMP_FILE" | cut -f1)${NC}"
+echo -e "${GREEN}✓ Found SQL file at: $SQL_FILE${NC}"
+echo -e "${GREEN}✓ File size: $(du -h "$SQL_FILE" | cut -f1)${NC}"
 echo ""
 
 # Check if PostgreSQL is running
@@ -88,22 +85,22 @@ fi
 echo ""
 
 # Import the dump file
-echo -e "${YELLOW}📥 Importing database from postgres-backup.dump...${NC}"
+echo -e "${YELLOW}📥 Importing database from postgres-backup.sql...${NC}"
 echo -e "${GRAY}  This may take a few minutes depending on data size...${NC}"
 
 # Check dump file version and handle compatibility
 echo -e "${GRAY}  Checking dump file format...${NC}"
 
-# Handle SQL files differently (no need to copy to container)
-if [[ "$DUMP_FILE" == *.sql ]]; then
+# Handle SQL files (this is now the only supported format)
+if [[ "$SQL_FILE" == *.sql ]]; then
     echo -e "${GRAY}  Cleaning SQL file for encoding issues...${NC}"
     
     # Create a cleaned version of the SQL file
-    CLEAN_SQL_FILE="${DUMP_FILE%.sql}-clean.sql"
+    CLEAN_SQL_FILE="${SQL_FILE%.sql}-clean.sql"
     
     # Remove invalid UTF-8 sequences and fix common encoding issues
-    sed 's/\xff//g' "$DUMP_FILE" | iconv -f UTF-8 -t UTF-8 -c > "$CLEAN_SQL_FILE" 2>/dev/null || \
-    sed 's/\xff//g' "$DUMP_FILE" > "$CLEAN_SQL_FILE"
+    sed 's/\xff//g' "$SQL_FILE" | iconv -f UTF-8 -t UTF-8 -c > "$CLEAN_SQL_FILE" 2>/dev/null || \
+    sed 's/\xff//g' "$SQL_FILE" > "$CLEAN_SQL_FILE"
     
     echo -e "${GRAY}  Importing cleaned SQL file (showing all output)...${NC}"
     if docker exec -i reactive-resume-postgres psql -U reactive_resume -d reactive_resume < "$CLEAN_SQL_FILE"; then
@@ -114,65 +111,7 @@ if [[ "$DUMP_FILE" == *.sql ]]; then
         echo -e "${GRAY}  Cleaned SQL file preserved at: $CLEAN_SQL_FILE${NC}"
         exit 1
     fi
-else
-    # For dump files, copy into container first
-    echo -e "${GRAY}  Copying dump file into PostgreSQL container...${NC}"
-    CONTAINER_DUMP_PATH="/tmp/postgres-backup.dump"
-    docker cp "$DUMP_FILE" reactive-resume-postgres:"$CONTAINER_DUMP_PATH"
-
-    # Try to extract dump info first
-    DUMP_INFO=$(docker exec reactive-resume-postgres pg_restore --list "$CONTAINER_DUMP_PATH" 2>&1 | head -5)
-    echo -e "${GRAY}  Dump info: $DUMP_INFO${NC}"
-
-    # Method 1: Try pg_restore with version compatibility
-    echo -e "${GRAY}  Attempting pg_restore import...${NC}"
-    if docker exec reactive-resume-postgres pg_restore -U reactive_resume -d reactive_resume --clean --if-exists --no-owner --no-privileges --disable-triggers "$CONTAINER_DUMP_PATH" 2>/dev/null; then
-        echo -e "${GREEN}✓ Database import completed successfully with pg_restore${NC}"
-    else
-        echo -e "${YELLOW}⚠ pg_restore failed, trying direct SQL import...${NC}"
-    
-    # Method 2: Convert to SQL and import
-    echo -e "${GRAY}  Converting dump to SQL format...${NC}"
-    
-    # Create a temporary SQL file
-    TEMP_SQL="/tmp/import.sql"
-    
-    # Try to convert the dump to SQL (this often works even with version mismatches)
-    if docker exec reactive-resume-postgres pg_restore --no-owner --no-privileges --schema-only "$CONTAINER_DUMP_PATH" > "$TEMP_SQL" 2>/dev/null; then
-        echo -e "${GRAY}  Schema converted, importing structure...${NC}"
-        docker exec -i reactive-resume-postgres psql -U reactive_resume -d reactive_resume < "$TEMP_SQL" 2>/dev/null
-        
-        # Now try data import
-        echo -e "${GRAY}  Importing data...${NC}"
-        if docker exec reactive-resume-postgres pg_restore --no-owner --no-privileges --data-only --disable-triggers "$CONTAINER_DUMP_PATH" | docker exec -i reactive-resume-postgres psql -U reactive_resume -d reactive_resume 2>/dev/null; then
-            echo -e "${GREEN}✓ Database import completed with SQL conversion method${NC}"
-        else
-            echo -e "${YELLOW}⚠ Data import failed, trying manual SQL extraction...${NC}"
-            
-            # Method 3: Extract as plain SQL
-            if docker exec reactive-resume-postgres pg_restore --no-owner --no-privileges --disable-triggers --inserts "$CONTAINER_DUMP_PATH" > "$TEMP_SQL" 2>/dev/null; then
-                echo -e "${GRAY}  Importing plain SQL dump...${NC}"
-                if docker exec -i reactive-resume-postgres psql -U reactive_resume -d reactive_resume < "$TEMP_SQL" 2>/dev/null; then
-                    echo -e "${GREEN}✓ Database import completed with plain SQL method${NC}"
-                else
-                    echo -e "${RED}❌ All import methods failed${NC}"
-                    echo -e "${GRAY}  The dump file may be corrupted or incompatible${NC}"
-                    rm -f "$TEMP_SQL"
-                    exit 1
-                fi
-            else
-                echo -e "${RED}❌ Could not convert dump to SQL format${NC}"
-                rm -f "$TEMP_SQL"
-                exit 1
-            fi
-        fi
-        rm -f "$TEMP_SQL"
-    else
-        echo -e "${RED}❌ Could not extract schema from dump file${NC}"
-        exit 1
-    fi
-fi
-fi  # End of SQL vs dump file handling
+fi  # End of SQL file handling
 
 echo ""
 
@@ -225,8 +164,7 @@ fi
 
 # Cleanup
 echo -e "${GRAY}  Cleaning up temporary files...${NC}"
-docker exec reactive-resume-postgres rm -f "$CONTAINER_DUMP_PATH" 2>/dev/null || true
-rm -f "$TEMP_SQL" 2>/dev/null || true
+# Temporary SQL files are cleaned up automatically
 
 echo ""
 echo -e "${CYAN}═══════════════════════════════════════════════════════${NC}"
