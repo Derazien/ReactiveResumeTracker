@@ -96,11 +96,22 @@ echo -e "${GRAY}  Checking dump file format...${NC}"
 
 # Handle SQL files differently (no need to copy to container)
 if [[ "$DUMP_FILE" == *.sql ]]; then
-    echo -e "${GRAY}  Importing SQL file directly...${NC}"
-    if docker exec -i reactive-resume-postgres psql -U reactive_resume -d reactive_resume < "$DUMP_FILE" 2>/dev/null; then
+    echo -e "${GRAY}  Cleaning SQL file for encoding issues...${NC}"
+    
+    # Create a cleaned version of the SQL file
+    CLEAN_SQL_FILE="${DUMP_FILE%.sql}-clean.sql"
+    
+    # Remove invalid UTF-8 sequences and fix common encoding issues
+    sed 's/\xff//g' "$DUMP_FILE" | iconv -f UTF-8 -t UTF-8 -c > "$CLEAN_SQL_FILE" 2>/dev/null || \
+    sed 's/\xff//g' "$DUMP_FILE" > "$CLEAN_SQL_FILE"
+    
+    echo -e "${GRAY}  Importing cleaned SQL file (showing all output)...${NC}"
+    if docker exec -i reactive-resume-postgres psql -U reactive_resume -d reactive_resume < "$CLEAN_SQL_FILE"; then
         echo -e "${GREEN}✓ Database import completed successfully with SQL file${NC}"
+        rm -f "$CLEAN_SQL_FILE"  # Clean up temporary file
     else
-        echo -e "${RED}❌ SQL import failed${NC}"
+        echo -e "${RED}❌ SQL import failed - check errors above${NC}"
+        echo -e "${GRAY}  Cleaned SQL file preserved at: $CLEAN_SQL_FILE${NC}"
         exit 1
     fi
 else
@@ -167,25 +178,49 @@ echo ""
 
 # Verify import
 echo -e "${YELLOW}🔍 Verifying database import...${NC}"
+
+# Check if container exists and is running
+if ! docker ps | grep -q reactive-resume-postgres; then
+    echo -e "${RED}❌ PostgreSQL container 'reactive-resume-postgres' is not running!${NC}"
+    echo -e "${GRAY}  Available containers:${NC}"
+    docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+    exit 1
+fi
+
+# Test connection first
+if ! docker exec reactive-resume-postgres psql -U reactive_resume -d reactive_resume -c "SELECT 1;" >/dev/null 2>&1; then
+    echo -e "${RED}❌ Cannot connect to PostgreSQL database!${NC}"
+    exit 1
+fi
+
 TABLE_COUNT=$(docker exec reactive-resume-postgres psql -U reactive_resume -d reactive_resume -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';" 2>/dev/null | tr -d ' \n')
 
 if [ -n "$TABLE_COUNT" ] && [ "$TABLE_COUNT" -gt 0 ]; then
     echo -e "${GREEN}✓ Database contains $TABLE_COUNT tables${NC}"
     
-    # Show sample data counts
-    echo -e "${GRAY}  Sample table counts:${NC}"
-    docker exec reactive-resume-postgres psql -U reactive_resume -d reactive_resume -t -c "
-        SELECT 
-            schemaname,
-            tablename,
-            n_tup_ins as row_count
-        FROM pg_stat_user_tables 
-        WHERE schemaname = 'public' 
-        ORDER BY n_tup_ins DESC 
-        LIMIT 5;
-    " 2>/dev/null | sed 's/^/    /'
+    # Check for actual data in key tables
+    echo -e "${GRAY}  Checking key table data counts:${NC}"
+    
+    # Check User table
+    USER_COUNT=$(docker exec reactive-resume-postgres psql -U reactive_resume -d reactive_resume -t -c "SELECT COUNT(*) FROM \"User\";" 2>/dev/null | tr -d ' \n')
+    echo -e "${GRAY}    Users: $USER_COUNT${NC}"
+    
+    # Check Resume table  
+    RESUME_COUNT=$(docker exec reactive-resume-postgres psql -U reactive_resume -d reactive_resume -t -c "SELECT COUNT(*) FROM \"Resume\";" 2>/dev/null | tr -d ' \n')
+    echo -e "${GRAY}    Resumes: $RESUME_COUNT${NC}"
+    
+    # Check JobApplication table
+    JOB_COUNT=$(docker exec reactive-resume-postgres psql -U reactive_resume -d reactive_resume -t -c "SELECT COUNT(*) FROM \"JobApplication\";" 2>/dev/null | tr -d ' \n')
+    echo -e "${GRAY}    Job Applications: $JOB_COUNT${NC}"
+    
+    if [ "$USER_COUNT" -gt 0 ] || [ "$RESUME_COUNT" -gt 0 ]; then
+        echo -e "${GREEN}✓ Database contains actual data${NC}"
+    else
+        echo -e "${YELLOW}⚠ Database has tables but no data in key tables${NC}"
+    fi
 else
-    echo -e "${YELLOW}⚠ Could not verify table count (database may be empty)${NC}"
+    echo -e "${RED}❌ Database is empty or connection failed${NC}"
+    exit 1
 fi
 
 # Cleanup
