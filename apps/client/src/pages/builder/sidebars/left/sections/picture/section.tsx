@@ -72,7 +72,7 @@ export const PictureSection = () => {
 
           <Input
             id="basics.picture.url"
-            placeholder="https://..."
+            placeholder={t`https://...`}
             value={picture.url}
             onChange={(event) => {
               setValue("basics.picture.url", event.target.value);

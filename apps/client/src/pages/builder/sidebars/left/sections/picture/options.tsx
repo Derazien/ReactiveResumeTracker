@@ -66,7 +66,7 @@ export const PictureOptions = () => {
         <Input
           type="number"
           id="picture.size"
-          placeholder="128"
+          placeholder={t`128`}
           value={picture.size}
           className="col-span-2"
           onChange={(event) => {

@@ -1,3 +1,4 @@
+import { t } from "@lingui/macro";
 import {
   MagnifyingGlassIcon,
   PencilSimpleIcon,
@@ -228,7 +229,7 @@ const ContentLibraryPage = () => {
                   <div className="relative">
                     <MagnifyingGlassIcon className="text-muted-foreground absolute left-3 top-3 size-4" />
                     <Input
-                      placeholder="Search content..."
+                      placeholder={t`Search content...`}
                       value={searchQuery}
                       className="w-64 pl-10"
                       onChange={(e) => {

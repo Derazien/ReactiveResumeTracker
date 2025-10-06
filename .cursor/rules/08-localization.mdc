@@ -60,13 +60,49 @@ import { t } from "@lingui/macro";
 - [ ] Import statement includes `t` from `@lingui/macro`
 - [ ] Dynamic content handles pluralization correctly
 - [ ] Translation extraction run after changes
+- [ ] Component documented in `docs/10-architecture/Frontend-Components.md`
+
+## Documentation Requirements
+
+### CRITICAL: All Frontend Components Must Be Documented
+
+When adding or modifying frontend components:
+
+1. **Update Frontend Components Map**: Add/update entry in `docs/10-architecture/Frontend-Components.md`
+   - Include component path
+   - Mark localization status (✅ Fully localized, ⚠️ Partially localized, ❌ Not localized)
+   - Note any special localization considerations (e.g., constant arrays, dynamic content)
+
+2. **Verify Complete Localization**:
+   ```bash
+   # Search for hardcoded strings in your component
+   grep -n "placeholder=\"[^{]" your-component.tsx
+   grep -n "alt=\"[^{]" your-component.tsx
+   grep -n "title=\"[^{]" your-component.tsx
+   
+   # Run translation extraction
+   pnpm run messages:extract
+   pnpm exec lingui compile
+   ```
+
+3. **Update Documentation After Changes**:
+   - If you add new components, add them to Frontend-Components.md
+   - If you fix localization issues, update the status in Frontend-Components.md
+   - Keep the documentation synchronized with code changes
+
+### Documentation Structure
+- **Location**: `docs/10-architecture/Frontend-Components.md`
+- **Cross-references**: Linked from `docs/10-architecture/Modules.md` and `docs/maps/README.md`
+- **Purpose**: Maintain a complete catalog of all frontend components for future reference
 
 ## Enforcement
 - ESLint rule: `@lingui/no-unlocalized-strings`
 - Pre-commit hooks run translation extraction
 - CI pipeline validates translation integrity
+- **Documentation review**: Verify Frontend-Components.md is updated
 
 ## Resources
 - Full rules: `/docs/LOCALIZATION_RULES.md`
+- Component catalog: `/docs/10-architecture/Frontend-Components.md`
 - Lingui docs: https://lingui.dev/
 - Current translations: `apps/client/src/locales/en-US/messages.po`

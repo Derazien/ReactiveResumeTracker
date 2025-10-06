@@ -1,3 +1,4 @@
+import { t } from "@lingui/macro";
 import { useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { Outlet } from "react-router";
@@ -12,7 +13,7 @@ export const CoverLetterArtboardPage = () => {
     if (coverLetter?.companyName) {
       document.title = `Cover Letter - ${coverLetter.companyName}`;
     } else {
-      document.title = "Cover Letter";
+      document.title = t`Cover Letter`;
     }
   }, [coverLetter?.companyName]);
 
@@ -22,7 +23,7 @@ export const CoverLetterArtboardPage = () => {
         <title>
           {coverLetter?.companyName 
             ? `Cover Letter - ${coverLetter.companyName}` 
-            : "Cover Letter"
+            : t`Cover Letter`
           }
         </title>
       </Helmet>

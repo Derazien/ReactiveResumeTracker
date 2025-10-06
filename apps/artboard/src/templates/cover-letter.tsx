@@ -1,3 +1,4 @@
+import { t } from "@lingui/macro";
 import { memo } from "react";
 import { hexToRgb, isUrl } from "@reactive-resume/utils";
 
@@ -74,7 +75,7 @@ export const CoverLetterTemplate = memo(() => {
                         className="text-4xl font-bold mb-2" 
                         style={{ color: meta.theme.primary }}
                       >
-                        {basics?.name ?? coverLetter.senderName ?? "Your Name"}
+                        {basics?.name ?? coverLetter.senderName ?? t`Your Name`}
                       </h1>
                       {basics?.headline && (
                         <h2 
@@ -222,7 +223,7 @@ export const CoverLetterTemplate = memo(() => {
             To
           </p>
           <div className="space-y-1 text-sm" style={{ color: meta.theme.text }}>
-            <p>{coverLetter.companyName ?? "Company Name"}</p>
+            <p>{coverLetter.companyName ?? t`Company Name`}</p>
           </div>
         </div>
 
@@ -245,7 +246,7 @@ export const CoverLetterTemplate = memo(() => {
         {/* Greeting */}
         <div className="mb-4">
           <p style={{ color: meta.theme.text, fontSize: `${meta.typography.font.size}px`, lineHeight: meta.typography.lineHeight }}>
-            Dear {coverLetter.recipientName ?? "Hiring Team"},
+            Dear {coverLetter.recipientName ?? t`Hiring Team`},
           </p>
         </div>
 
@@ -271,7 +272,7 @@ Thank you for considering my application. I look forward to the opportunity to d
         {/* Closing */}
         <div className="mb-8" style={{ color: meta.theme.text }}>
           <p className="mb-4">Sincerely,</p>
-          <p className="font-semibold">{coverLetter.senderName ?? "Your Name"}</p>
+          <p className="font-semibold">{coverLetter.senderName ?? t`Your Name`}</p>
         </div>
 
         {/* Footer */}

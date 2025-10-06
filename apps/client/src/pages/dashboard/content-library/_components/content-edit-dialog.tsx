@@ -670,7 +670,7 @@ export const ContentEditDialog = ({
                       <FormItem>
                         <FormLabel>Content Title *</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter content title..." {...field} />
+                          <Input placeholder={t`Enter content title...`} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -685,7 +685,7 @@ export const ContentEditDialog = ({
                         <FormLabel>Content Description</FormLabel>
                         <FormControl>
                           <textarea
-                            placeholder="Enter content description..."
+                            placeholder={t`Enter content description...`}
                             className="border-input placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-[100px] w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                             {...field}
                           />
@@ -710,7 +710,7 @@ export const ContentEditDialog = ({
                   <div className="space-y-2">
                     <div className="relative">
                       <Input
-                        placeholder="Add a tag..."
+                        placeholder={t`Add a tag...`}
                         value={tagInput}
                         onChange={(e) => {
                           setTagInput(e.target.value);

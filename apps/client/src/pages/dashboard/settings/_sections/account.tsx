@@ -120,7 +120,7 @@ export const AccountSettings = () => {
                 <FormItem className="flex-1">
                   <FormLabel>{t`Picture`}</FormLabel>
                   <FormControl>
-                    <Input placeholder="https://..." {...field} value={field.value ?? ""} />
+                    <Input placeholder={t`https://...`} {...field} value={field.value ?? ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -200,7 +200,7 @@ export const TwoFactorDialog = () => {
                   <FormItem>
                     <FormLabel>{t`Code`}</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="123456" {...field} />
+                      <Input type="number" placeholder={t`123456`} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

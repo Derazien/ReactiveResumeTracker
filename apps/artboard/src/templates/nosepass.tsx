@@ -1,3 +1,4 @@
+import { t } from "@lingui/macro";
 import type {
   Award,
   Certification,
@@ -583,7 +584,7 @@ export const Nosepass = ({ columns, isFirstPage = false }: TemplateProps) => {
   return (
     <div className="p-custom space-y-6">
       <div className="flex items-center justify-between">
-        <img alt="Europass Logo" className="h-[42px]" src="/assets/europass.png" />
+        <img alt={t`Europass Logo`} className="h-[42px]" src="/assets/europass.png" />
 
         <p className="font-medium text-primary">Curriculum Vitae</p>
 

@@ -1,3 +1,4 @@
+import { t } from "@lingui/macro";
 import { useEffect, useMemo } from "react";
 import { Helmet } from "react-helmet-async";
 import { Outlet, useLocation } from "react-router";
@@ -15,8 +16,8 @@ export const ArtboardPage = () => {
   
   // Use appropriate data based on route
   const name = isCoverLetterRoute 
-    ? (coverLetter?.senderName || "Cover Letter")
-    : (resume?.basics?.name || "Resume");
+    ? (coverLetter?.senderName || t`Cover Letter`)
+    : (resume?.basics?.name || t`Resume`);
   const metadata = isCoverLetterRoute ? coverLetterMetadata : resume?.metadata;
 
   const fontString = useMemo(() => {

@@ -29,13 +29,13 @@ export const Footer = () => (
           >
             <img
               src="https://opensource.nyc3.cdn.digitaloceanspaces.com/attribution/assets/PoweredByDO/DO_Powered_by_Badge_black.svg"
-              alt="Powered by DigitalOcean"
+              alt={t`Powered by DigitalOcean`}
               className="block dark:hidden"
               width="150px"
             />
             <img
               src="https://opensource.nyc3.cdn.digitaloceanspaces.com/attribution/assets/PoweredByDO/DO_Powered_by_Badge_white.svg"
-              alt="Powered by DigitalOcean"
+              alt={t`Powered by DigitalOcean`}
               className="hidden dark:block"
               width="150px"
             />

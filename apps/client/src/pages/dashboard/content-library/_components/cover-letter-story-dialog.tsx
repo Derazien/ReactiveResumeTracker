@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { t } from "@lingui/macro";
 import { PlusIcon, XIcon } from "@phosphor-icons/react";
 import {
   Button,
@@ -220,7 +221,7 @@ export const CoverLetterStoryDialog = ({
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>
-            {story ? "Edit Cover Letter Story" : "Create Cover Letter Story"}
+            {story ? t`Edit Cover Letter Story` : t`Create Cover Letter Story`}
           </DialogTitle>
           <DialogDescription>
             Create a compelling story that can be used in cover letter generation.
@@ -240,7 +241,7 @@ export const CoverLetterStoryDialog = ({
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a paragraph type" />
+                        <SelectValue placeholder={t`Select a paragraph type`} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -272,7 +273,7 @@ export const CoverLetterStoryDialog = ({
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select related content (optional)" />
+                        <SelectValue placeholder={t`Select related content (optional)`} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -305,7 +306,7 @@ export const CoverLetterStoryDialog = ({
                   <FormLabel>Story Text</FormLabel>
                   <FormControl>
                     <textarea
-                      placeholder="Write a compelling 3-5 sentence story demonstrating your skills and achievements..."
+                      placeholder={t`Write a compelling 3-5 sentence story demonstrating your skills and achievements...`}
                       className="flex min-h-32 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       {...field}
                     />
@@ -327,7 +328,7 @@ export const CoverLetterStoryDialog = ({
                   <FormLabel>Skill Theme</FormLabel>
                   <FormControl>
                     <Input 
-                      placeholder="e.g., analytical thinking, leadership, problem-solving..."
+                      placeholder={t`e.g., analytical thinking, leadership, problem-solving...`}
                       {...field}
                     />
                   </FormControl>
@@ -349,7 +350,7 @@ export const CoverLetterStoryDialog = ({
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select tone" />
+                        <SelectValue placeholder={t`Select tone`} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -377,7 +378,7 @@ export const CoverLetterStoryDialog = ({
                   <div className="space-y-2">
                     <div className="flex gap-2">
                       <Input
-                        placeholder="Add a tag..."
+                        placeholder={t`Add a tag...`}
                         value={newTag}
                         onChange={(e) => setNewTag(e.target.value)}
                         onKeyDown={(e) => {
@@ -430,7 +431,7 @@ export const CoverLetterStoryDialog = ({
               <Button type="submit" disabled={isLoading}>
                 {isLoading 
                   ? (story ? "Updating..." : "Creating...")
-                  : (story ? "Update Story" : "Create Story")
+                  : (story ? t`Update Story` : t`Create Story`)
                 }
               </Button>
             </div>

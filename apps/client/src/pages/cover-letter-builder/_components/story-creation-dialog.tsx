@@ -209,7 +209,7 @@ export const StoryCreationDialog = ({
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a story type" />
+                        <SelectValue placeholder={t`Select a story type`} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -241,7 +241,7 @@ export const StoryCreationDialog = ({
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Link to existing experience (optional)" />
+                        <SelectValue placeholder={t`Link to existing experience (optional)`} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -278,7 +278,7 @@ export const StoryCreationDialog = ({
                   <FormLabel>Skill Focus</FormLabel>
                   <FormControl>
                     <Input 
-                      placeholder="e.g., analytical thinking, team leadership, technical innovation..."
+                      placeholder={t`e.g., analytical thinking, team leadership, technical innovation...`}
                       {...field}
                     />
                   </FormControl>
@@ -299,7 +299,7 @@ export const StoryCreationDialog = ({
                   <FormLabel>Your Story</FormLabel>
                   <FormControl>
                     <textarea
-                      placeholder="Write a specific story that demonstrates your skills. Include the situation, your actions, and the results. Use numbers and metrics when possible..."
+                      placeholder={t`Write a specific story that demonstrates your skills. Include the situation, your actions, and the results. Use numbers and metrics when possible...`}
                       className="flex min-h-32 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       {...field}
                     />
@@ -322,7 +322,7 @@ export const StoryCreationDialog = ({
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select tone" />
+                        <SelectValue placeholder={t`Select tone`} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -350,7 +350,7 @@ export const StoryCreationDialog = ({
                   <div className="space-y-2">
                     <div className="flex gap-2">
                       <Input
-                        placeholder="Add a tag (e.g., startup, remote, leadership)..."
+                        placeholder={t`Add a tag (e.g., startup, remote, leadership)...`}
                         value={newTag}
                         onChange={(e) => setNewTag(e.target.value)}
                         onKeyDown={(e) => {
@@ -401,7 +401,7 @@ export const StoryCreationDialog = ({
                 Cancel
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Creating..." : "Create Story"}
+                {isLoading ? t`Creating...` : t`Create Story`}
               </Button>
             </div>
           </form>

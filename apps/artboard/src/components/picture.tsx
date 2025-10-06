@@ -1,3 +1,4 @@
+import { t } from "@lingui/macro";
 import { cn, isUrl } from "@reactive-resume/utils";
 
 import { useArtboardStore } from "../store/artboard";
@@ -15,7 +16,7 @@ export const Picture = ({ className }: PictureProps) => {
   return (
     <img
       src={picture.url}
-      alt="Profile"
+      alt={t`Profile`}
       className={cn(
         "relative z-20 object-cover",
         picture.effects.border && "border-secondary",

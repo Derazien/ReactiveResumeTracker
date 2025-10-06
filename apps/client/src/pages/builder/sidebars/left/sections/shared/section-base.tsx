@@ -49,7 +49,7 @@ export const SectionBase = <T extends SectionItem>({ id, title, description }: P
 
   // Check if this resume was generated from job application (has content library sources)
   const isJobGenerated =
-    resume.jobApplicationId && resume.data.metadata.notes.includes("Content Library Items Used");
+    resume.jobApplicationId && resume.data.metadata.notes.includes(t`Content Library Items Used`);
 
   // Check if item was sourced from content library (unmodified)
   const isFromContentLibrary = (item: SectionItem): boolean => {

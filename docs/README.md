@@ -21,6 +21,7 @@ Welcome to the official documentation for **ReactiveResumeTracker** - an AI-powe
 **System design and patterns** - How components work together
 
 - **[Modules.md](10-architecture/Modules.md)** — Module organization and dependencies
+- **[Frontend-Components.md](10-architecture/Frontend-Components.md)** — Complete frontend component catalog with localization status
 - **[RAG-System.md](10-architecture/RAG-System.md)** — Content matching and retrieval architecture
 - **[Content-Matching.md](10-architecture/Content-Matching.md)** — Experience matching algorithms
 - **[Enhanced-RAG.md](10-architecture/Enhanced-RAG.md)** — Advanced RAG enhancements

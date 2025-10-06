@@ -39,6 +39,7 @@ Focused dependency graphs for individual applications:
 **Files:**
 - 📄 [apps-client.dot](./apps-client.dot) — DOT format
 - 🖼️ [apps-client.svg](./apps-client.svg) — SVG (if available)
+- 📋 [Frontend Components Map →](../10-architecture/Frontend-Components.md) — Component catalog with localization status
 
 ---
 

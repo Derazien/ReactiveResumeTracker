@@ -1,3 +1,4 @@
+import { t } from "@lingui/macro";
 import { MagnifyingGlassIcon, MicrophoneIcon, PlusIcon, TrashSimpleIcon } from "@phosphor-icons/react";
 import {
   AlertDialog,
@@ -114,7 +115,7 @@ const CoverLetterStoriesPage = () => {
         <div className="relative w-full sm:w-80">
           <MagnifyingGlassIcon className="text-muted-foreground absolute left-3 top-3 size-4" />
           <Input
-            placeholder="Search stories..."
+            placeholder={t`Search stories...`}
             value={searchQuery}
             className="pl-10"
             onChange={(e) => setSearchQuery(e.target.value)}

@@ -1,6 +1,6 @@
 # Module Architecture
 
-**Last Updated**: 2025-10-02  
+**Last Updated**: 2025-01-27  
 **Purpose**: Comprehensive catalog of all modules, their purpose, exports, and dependencies
 
 ## Dependency Map
@@ -31,6 +31,8 @@ Visual dependency graphs are available for the full repository and individual ap
 - Service layer (API clients)
 - Stores (Zustand state management)
 - Routing configuration
+
+**📋 [Frontend Components Map →](./Frontend-Components.md)** — Complete catalog of all frontend components with localization status
 
 **Inbound Dependencies**: None (top-level app)
 

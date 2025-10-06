@@ -1,3 +1,4 @@
+import { t } from "@lingui/macro";
 import { forwardRef, useEffect } from "react";
 import { useDebounceValue } from "usehooks-ts";
 
@@ -18,7 +19,7 @@ export const BrandIcon = forwardRef<HTMLImageElement, BrandIconProps>(({ slug },
     return (
       <img
         ref={ref}
-        alt="LinkedIn"
+        alt={t`LinkedIn`}
         className="size-5"
         src={`${window.location.origin}/support-logos/linkedin.svg`}
       />

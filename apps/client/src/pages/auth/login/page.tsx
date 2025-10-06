@@ -92,7 +92,7 @@ export const LoginPage = () => {
                     <Input
                       autoComplete="email"
                       className="lowercase"
-                      placeholder="john.doe@example.com"
+                      placeholder={t`john.doe@example.com`}
                       {...field}
                     />
                   </FormControl>

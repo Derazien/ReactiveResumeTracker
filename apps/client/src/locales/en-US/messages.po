@@ -82,6 +82,15 @@ msgstr "✅ LinkedIn credentials already saved. Just configure search parameters
 msgid "💡 Providing credentials creates a reusable workflow template. You can run it multiple times with different search parameters without re-entering login details."
 msgstr "💡 Providing credentials creates a reusable workflow template. You can run it multiple times with different search parameters without re-entering login details."
 
+#: apps/client/src/pages/auth/verify-otp/page.tsx:84
+#: apps/client/src/pages/dashboard/settings/_dialogs/two-factor.tsx:203
+msgid "123456"
+msgstr "123456"
+
+#: apps/client/src/pages/builder/sidebars/left/sections/picture/options.tsx:69
+msgid "128"
+msgstr "128"
+
 #: apps/client/src/pages/home/page.tsx:24
 #: apps/client/src/pages/home/sections/hero/index.tsx:40
 msgid "A free and open-source resume builder"
@@ -116,6 +125,10 @@ msgstr "A tailored CV has been created with {0} relevant content pieces. Opening
 #: apps/client/src/services/errors/translate-error.ts:10
 msgid "A user with this email address and/or username already exists."
 msgstr "A user with this email address and/or username already exists."
+
+#: apps/client/src/pages/auth/backup-otp/page.tsx:79
+msgid "a1b2c3d4e5"
+msgstr "a1b2c3d4e5"
 
 #: apps/client/src/pages/builder/sidebars/right/sections/page.tsx:43
 #: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/style.tsx:132
@@ -178,6 +191,12 @@ msgstr "Add a new item"
 msgid "Add a new section"
 msgstr "Add a new section"
 
+#: apps/client/src/pages/dashboard/cover-letter-stories/_components/cover-letter-story-dialog.tsx:388
+msgid "Add a tag (e.g., startup, remote, leadership)..."
+msgstr "Add a tag (e.g., startup, remote, leadership)..."
+
+#: apps/client/src/pages/dashboard/content-library/_components/content-edit-dialog.tsx:713
+#: apps/client/src/pages/dashboard/content-library/_components/cover-letter-story-dialog.tsx:381
 #: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:306
 msgid "Add a tag..."
 msgstr "Add a tag..."
@@ -982,6 +1001,10 @@ msgstr "Content Added Successfully"
 msgid "Content Library"
 msgstr "Content Library"
 
+#: apps/client/src/pages/builder/sidebars/left/sections/shared/section-base.tsx:52
+msgid "Content Library Items Used"
+msgstr "Content Library Items Used"
+
 #: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:118
 msgid "Content Saved Successfully"
 msgstr "Content Saved Successfully"
@@ -1114,6 +1137,11 @@ msgstr "Create and manage automated job search workflows"
 msgid "Create Application"
 msgstr "Create Application"
 
+#: apps/client/src/pages/dashboard/content-library/_components/cover-letter-story-dialog.tsx:224
+#: apps/client/src/pages/dashboard/cover-letter-stories/_components/cover-letter-story-dialog.tsx:227
+msgid "Create Cover Letter Story"
+msgstr "Create Cover Letter Story"
+
 #: apps/client/src/pages/dashboard/job-applications/new/_components/job-url-form.tsx:174
 msgid "Create Job Application"
 msgstr "Create Job Application"
@@ -1126,6 +1154,11 @@ msgstr "Create one now"
 #: apps/client/src/pages/dashboard/resumes/_dialogs/resume.tsx:259
 msgid "Create Sample Resume"
 msgstr "Create Sample Resume"
+
+#: apps/client/src/pages/dashboard/content-library/_components/cover-letter-story-dialog.tsx:434
+#: apps/client/src/pages/dashboard/cover-letter-stories/_components/cover-letter-story-dialog.tsx:441
+msgid "Create Story"
+msgstr "Create Story"
 
 #: apps/client/src/pages/dashboard/automation/page.tsx:363
 msgid "Create Workflow"
@@ -1183,6 +1216,11 @@ msgstr "Creation Failed"
 #: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/settings.tsx:31
 msgid "Creative"
 msgstr "Creative"
+
+#: apps/client/src/pages/home/sections/support/index.tsx:61
+#: apps/client/src/pages/home/sections/support/index.tsx:66
+msgid "Crowdin"
+msgstr "Crowdin"
 
 #: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/company.tsx:96
 #: apps/client/src/pages/dashboard/companies/[id]/page.tsx:324
@@ -1278,6 +1316,10 @@ msgstr "Default Keywords"
 msgid "Default Location"
 msgstr "Default Location"
 
+#: apps/client/src/pages/dashboard/settings/_sections/danger.tsx:81
+msgid "delete"
+msgstr "delete"
+
 #: apps/client/src/pages/builder/sidebars/left/sections/shared/section-dialog.tsx:137
 #: apps/client/src/pages/dashboard/companies/[id]/page.tsx:194
 #: apps/client/src/pages/dashboard/companies/page.tsx:233
@@ -1341,6 +1383,14 @@ msgstr "Deleting..."
 #: apps/client/src/pages/dashboard/automation/page.tsx:225
 msgid "Deletion Failed"
 msgstr "Deletion Failed"
+
+#: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:30
+msgid "Describe a challenging technical problem you solved and how you approached it."
+msgstr "Describe a challenging technical problem you solved and how you approached it."
+
+#: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:33
+msgid "Describe a situation where you had to make a difficult decision with limited information."
+msgstr "Describe a situation where you had to make a difficult decision with limited information."
 
 #: apps/client/src/pages/builder/_components/toolbar.tsx:282
 msgid "Describe how you want to improve your resume..."
@@ -1491,6 +1541,14 @@ msgstr "e.g. TechCorp Solutions"
 msgid "e.g. Technology, Healthcare"
 msgstr "e.g. Technology, Healthcare"
 
+#: apps/client/src/pages/dashboard/content-library/_components/cover-letter-story-dialog.tsx:331
+msgid "e.g., analytical thinking, leadership, problem-solving..."
+msgstr "e.g., analytical thinking, leadership, problem-solving..."
+
+#: apps/client/src/pages/dashboard/cover-letter-stories/_components/cover-letter-story-dialog.tsx:316
+msgid "e.g., analytical thinking, team leadership, technical innovation..."
+msgstr "e.g., analytical thinking, team leadership, technical innovation..."
+
 #: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:258
 msgid "e.g., Leadership, Problem Solving"
 msgstr "e.g., Leadership, Problem Solving"
@@ -1515,6 +1573,11 @@ msgstr "Edit Company"
 #: apps/client/src/pages/dashboard/content-library/_components/content-edit-dialog.tsx:652
 msgid "Edit Content"
 msgstr "Edit Content"
+
+#: apps/client/src/pages/dashboard/content-library/_components/cover-letter-story-dialog.tsx:224
+#: apps/client/src/pages/dashboard/cover-letter-stories/_components/cover-letter-story-dialog.tsx:227
+msgid "Edit Cover Letter Story"
+msgstr "Edit Cover Letter Story"
 
 #: apps/client/src/pages/dashboard/job-applications/[id]/edit/page.tsx:285
 msgid "Edit Job Application"
@@ -1554,6 +1617,14 @@ msgstr "Enable Job Automation"
 #: apps/client/src/pages/auth/reset-password/page.tsx:67
 msgid "Enter a new password below, and make sure it's secure."
 msgstr "Enter a new password below, and make sure it's secure."
+
+#: apps/client/src/pages/dashboard/content-library/_components/content-edit-dialog.tsx:688
+msgid "Enter content description..."
+msgstr "Enter content description..."
+
+#: apps/client/src/pages/dashboard/content-library/_components/content-edit-dialog.tsx:673
+msgid "Enter content title..."
+msgstr "Enter content title..."
 
 #: apps/client/src/pages/dashboard/job-applications/new/page.tsx:89
 msgid "Enter Manually"
@@ -1629,7 +1700,7 @@ msgstr "Error loading job applications"
 msgid "Errors"
 msgstr "Errors"
 
-#: apps/client/src/pages/home/sections/support/index.tsx:78
+#: apps/client/src/pages/home/sections/support/index.tsx:71
 msgid "Even if you're not in a position to contribute financially, you can still make a difference by giving the GitHub repository a star, spreading the word to your friends, or dropping a quick message to let me know how Reactive Resume has helped you. Your feedback and support are always welcome and much appreciated!"
 msgstr "Even if you're not in a position to contribute financially, you can still make a difference by giving the GitHub repository a star, spreading the word to your friends, or dropping a quick message to let me know how Reactive Resume has helped you. Your feedback and support are always welcome and much appreciated!"
 
@@ -1978,6 +2049,11 @@ msgstr "Get your API key from Skyvern UI at http://localhost:8081"
 msgid "GitHub"
 msgstr "GitHub"
 
+#: apps/client/src/pages/home/sections/support/index.tsx:24
+#: apps/client/src/pages/home/sections/support/index.tsx:29
+msgid "GitHub Sponsors"
+msgstr "GitHub Sponsors"
+
 #: apps/client/src/pages/home/sections/statistics/index.tsx:12
 msgid "GitHub Stars"
 msgstr "GitHub Stars"
@@ -2006,6 +2082,10 @@ msgstr "Goals"
 #: apps/client/src/pages/auth/_components/social-auth.tsx:31
 msgid "Google"
 msgstr "Google"
+
+#: apps/client/src/pages/home/sections/features/index.tsx:84
+msgid "Google Chrome"
+msgstr "Google Chrome"
 
 #: apps/client/src/pages/dashboard/settings/_sections/llm.tsx:260
 msgid "gpt-4-turbo-preview"
@@ -2079,6 +2159,11 @@ msgstr "http://localhost:11434/v1"
 msgid "http://localhost:8000"
 msgstr "http://localhost:8000"
 
+#: apps/client/src/pages/builder/sidebars/left/sections/picture/section.tsx:75
+#: apps/client/src/pages/dashboard/settings/_sections/account.tsx:123
+msgid "https://..."
+msgstr "https://..."
+
 #: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:299
 msgid "https://company.com"
 msgstr "https://company.com"
@@ -2087,6 +2172,10 @@ msgstr "https://company.com"
 #: apps/client/src/pages/dashboard/job-applications/new/_components/manual-job-form.tsx:215
 msgid "https://company.com/careers/job-123"
 msgstr "https://company.com/careers/job-123"
+
+#: apps/client/src/pages/dashboard/job-applications/new/_components/job-url-form.tsx:92
+msgid "https://company.com/jobs/position"
+msgstr "https://company.com/jobs/position"
 
 #: apps/client/src/pages/dashboard/companies/[id]/edit/page.tsx:309
 msgid "https://company.com/logo.png"
@@ -2132,7 +2221,7 @@ msgstr "If this app has helped you with your job hunt, let me know by reaching o
 msgid "If you disable two-factor authentication, you will no longer be required to enter a verification code when logging in."
 msgstr "If you disable two-factor authentication, you will no longer be required to enter a verification code when logging in."
 
-#: apps/client/src/pages/home/sections/support/index.tsx:59
+#: apps/client/src/pages/home/sections/support/index.tsx:54
 msgid "If you're multilingual, we'd love your help in bringing the app to more languages and communities. Don't worry if you don't see your language on the list - just give me a shout-out on GitHub, and I'll make sure to include it. Ready to get started? Jump into translation over at Crowdin by clicking the link below."
 msgstr "If you're multilingual, we'd love your help in bringing the app to more languages and communities. Don't worry if you don't see your language on the list - just give me a shout-out on GitHub, and I'll make sure to include it. Ready to get started? Jump into translation over at Crowdin by clicking the link below."
 
@@ -2388,6 +2477,11 @@ msgctxt "Localized version of a placeholder username. For example, max.musterman
 msgid "john.doe"
 msgstr "john.doe"
 
+#: apps/client/src/pages/auth/forgot-password/page.tsx:84
+#: apps/client/src/pages/auth/login/page.tsx:95
+msgid "john.doe@example.com"
+msgstr "john.doe@example.com"
+
 #: apps/client/src/pages/auth/register/page.tsx:145
 msgctxt "Localized version of a placeholder email. For example, max.mustermann@example.de in German or jan.kowalski@example.pl in Polish."
 msgid "john.doe@example.com"
@@ -2482,6 +2576,11 @@ msgstr "Limited Access"
 msgid "Line Height"
 msgstr "Line Height"
 
+#: apps/client/src/pages/dashboard/cover-letter-stories/_components/cover-letter-story-dialog.tsx:279
+msgid "Link to existing experience (optional)"
+msgstr "Link to existing experience (optional)"
+
+#: apps/client/src/components/brand-icon.tsx:22
 #: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/company.tsx:144
 #: apps/client/src/pages/dashboard/automation/page.tsx:294
 #: apps/client/src/pages/dashboard/companies/[id]/page.tsx:106
@@ -2751,6 +2850,10 @@ msgstr "My LinkedIn Job Search"
 msgid "Name"
 msgstr "Name"
 
+#: apps/client/src/pages/home/sections/features/index.tsx:81
+msgid "NestJS"
+msgstr "NestJS"
+
 #: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/contacts.tsx:74
 msgid "Networking Tips"
 msgstr "Networking Tips"
@@ -2949,9 +3052,18 @@ msgstr "Oops, the server returned an error."
 msgid "Open"
 msgstr "Open"
 
+#: apps/client/src/pages/auth/layout.tsx:65
+msgid "Open books on a table"
+msgstr "Open books on a table"
+
 #: apps/client/src/components/chrome-remote-control.tsx:121
 msgid "Open Chrome DevTools"
 msgstr "Open Chrome DevTools"
+
+#: apps/client/src/pages/home/sections/support/index.tsx:40
+#: apps/client/src/pages/home/sections/support/index.tsx:45
+msgid "Open Collective"
+msgstr "Open Collective"
 
 #: apps/client/src/pages/home/sections/features/index.tsx:47
 msgid "Open Source"
@@ -3041,6 +3153,10 @@ msgstr "Paste or write the job description here..."
 #: apps/client/src/pages/dashboard/job-applications/new/page.tsx:42
 msgid "Paste the job posting URL and we'll extract the details"
 msgstr "Paste the job posting URL and we'll extract the details"
+
+#: apps/client/src/pages/home/sections/support/index.tsx:49
+msgid "PayPal"
+msgstr "PayPal"
 
 #: apps/client/src/pages/builder/sidebars/right/sections/export.tsx:72
 #: apps/client/src/pages/cover-letter-builder/sidebars/right/sections/export.tsx:70
@@ -3136,6 +3252,10 @@ msgstr "Portrait"
 msgid "Position:"
 msgstr "Position:"
 
+#: apps/client/src/pages/home/sections/features/index.tsx:90
+msgid "PostgreSQL"
+msgstr "PostgreSQL"
+
 #: apps/client/src/pages/dashboard/content-library/_components/cv-upload-dialog.tsx:346
 msgid "Potential Duplicate"
 msgstr "Potential Duplicate"
@@ -3143,6 +3263,11 @@ msgstr "Potential Duplicate"
 #: apps/client/src/pages/home/sections/features/index.tsx:96
 msgid "Powered by"
 msgstr "Powered by"
+
+#: apps/client/src/pages/home/components/footer.tsx:32
+#: apps/client/src/pages/home/components/footer.tsx:38
+msgid "Powered by DigitalOcean"
+msgstr "Powered by DigitalOcean"
 
 #: apps/client/src/pages/dashboard/voice-stories/page.tsx:66
 msgid "Prepared answers saved"
@@ -3232,11 +3357,17 @@ msgstr "Quick Stats"
 msgid "Raise an issue"
 msgstr "Raise an issue"
 
+#: apps/client/src/pages/home/sections/features/index.tsx:73
+msgid "React"
+msgstr "React"
+
 #: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:456
 msgid "React Developer"
 msgstr "React Developer"
 
 #: apps/client/src/components/copyright.tsx:36
+#: apps/client/src/components/icon.tsx:32
+#: apps/client/src/components/logo.tsx:32
 #: apps/client/src/pages/auth/backup-otp/page.tsx:52
 #: apps/client/src/pages/auth/forgot-password/page.tsx:49
 #: apps/client/src/pages/auth/login/page.tsx:55
@@ -3254,6 +3385,10 @@ msgstr "React Developer"
 #: apps/client/src/pages/public/page.tsx:95
 msgid "Reactive Resume"
 msgstr "Reactive Resume"
+
+#: apps/client/src/pages/home/sections/hero/index.tsx:65
+msgid "Reactive Resume - Screenshot - Builder Screen"
+msgstr "Reactive Resume - Screenshot - Builder Screen"
 
 #: apps/client/src/pages/home/sections/logo-cloud/index.tsx:39
 msgid "Reactive Resume has helped people land jobs at these great companies:"
@@ -3540,6 +3675,7 @@ msgid "Search companies..."
 msgstr "Search companies..."
 
 #: apps/client/src/pages/builder/_components/content-selection-dialog.tsx:211
+#: apps/client/src/pages/dashboard/content-library/page.tsx:232
 msgid "Search content..."
 msgstr "Search content..."
 
@@ -3564,6 +3700,10 @@ msgstr "Search for a language"
 msgid "Search or create company..."
 msgstr "Search or create company..."
 
+#: apps/client/src/pages/dashboard/cover-letter-stories/page.tsx:118
+msgid "Search stories..."
+msgstr "Search stories..."
+
 #: apps/client/src/components/company-autocomplete.tsx:94
 msgid "Searching..."
 msgstr "Searching..."
@@ -3579,6 +3719,14 @@ msgstr "Secure with two-factor authentication"
 #: apps/client/src/pages/dashboard/settings/_sections/security.tsx:65
 msgid "Security"
 msgstr "Security"
+
+#: apps/client/src/pages/dashboard/content-library/_components/cover-letter-story-dialog.tsx:244
+msgid "Select a paragraph type"
+msgstr "Select a paragraph type"
+
+#: apps/client/src/pages/dashboard/cover-letter-stories/_components/cover-letter-story-dialog.tsx:247
+msgid "Select a story type"
+msgstr "Select a story type"
 
 #: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/settings.tsx:161
 msgid "Select a tone that aligns with the job requirements"
@@ -3609,6 +3757,10 @@ msgstr "Select from Library"
 msgid "Select question type"
 msgstr "Select question type"
 
+#: apps/client/src/pages/dashboard/content-library/_components/cover-letter-story-dialog.tsx:276
+msgid "Select related content (optional)"
+msgstr "Select related content (optional)"
+
 #: apps/client/src/pages/builder/_components/toolbar.tsx:243
 msgid "Select Sections to Edit"
 msgstr "Select Sections to Edit"
@@ -3620,6 +3772,11 @@ msgstr "Select stories above or create new ones"
 #: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/settings.tsx:60
 msgid "Select Template"
 msgstr "Select Template"
+
+#: apps/client/src/pages/dashboard/content-library/_components/cover-letter-story-dialog.tsx:353
+#: apps/client/src/pages/dashboard/cover-letter-stories/_components/cover-letter-story-dialog.tsx:360
+msgid "Select tone"
+msgstr "Select tone"
 
 #: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/settings.tsx:87
 msgid "Select Tone"
@@ -3676,6 +3833,10 @@ msgstr "Setup Instructions"
 #: apps/client/src/pages/dashboard/settings/_dialogs/two-factor.tsx:159
 msgid "Setup two-factor authentication on your account"
 msgstr "Setup two-factor authentication on your account"
+
+#: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:31
+msgid "Share an example of when you had to work with a difficult team member or stakeholder."
+msgstr "Share an example of when you had to work with a difficult team member or stakeholder."
 
 #: apps/client/src/pages/builder/sidebars/right/index.tsx:104
 #: apps/client/src/pages/builder/sidebars/right/sections/sharing.tsx:38
@@ -4014,9 +4175,25 @@ msgstr "Tags"
 msgid "Tags/Skills"
 msgstr "Tags/Skills"
 
+#: apps/client/src/pages/home/sections/features/index.tsx:77
+msgid "TailwindCSS"
+msgstr "TailwindCSS"
+
+#: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:32
+msgid "Talk about a time when you had to learn something new quickly for a project."
+msgstr "Talk about a time when you had to learn something new quickly for a project."
+
 #: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:225
 msgid "Task Running"
 msgstr "Task Running"
+
+#: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:29
+msgid "Tell me about a time when you led a successful project from start to finish."
+msgstr "Tell me about a time when you led a successful project from start to finish."
+
+#: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:39
+msgid "Tell me about a weakness you're working to improve."
+msgstr "Tell me about a weakness you're working to improve."
 
 #: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:675
 msgid "Tell the AI what to do..."
@@ -4241,6 +4418,10 @@ msgstr "Type at least 3 characters to search"
 msgid "Type your answer here..."
 msgstr "Type your answer here..."
 
+#: apps/client/src/pages/dashboard/cover-letter-stories/_components/story-interview-dialog.tsx:408
+msgid "Type your response here or use voice recording above..."
+msgstr "Type your response here or use voice recording above..."
+
 #: apps/client/src/pages/builder/sidebars/right/index.tsx:76
 #: apps/client/src/pages/builder/sidebars/right/sections/typography.tsx:76
 #: apps/client/src/pages/builder/sidebars/right/sections/typography.tsx:77
@@ -4303,6 +4484,11 @@ msgstr "Update an existing resume"
 #: apps/client/src/pages/dashboard/content-library/_components/content-edit-dialog.tsx:805
 msgid "Update Content"
 msgstr "Update Content"
+
+#: apps/client/src/pages/dashboard/content-library/_components/cover-letter-story-dialog.tsx:434
+#: apps/client/src/pages/dashboard/cover-letter-stories/_components/cover-letter-story-dialog.tsx:441
+msgid "Update Story"
+msgstr "Update Story"
 
 #: apps/client/src/pages/dashboard/companies/[id]/page.tsx:373
 msgid "Updated"
@@ -4444,6 +4630,10 @@ msgstr "Views"
 msgid "Visible"
 msgstr "Visible"
 
+#: apps/client/src/pages/home/sections/features/index.tsx:74
+msgid "Vite"
+msgstr "Vite"
+
 #: apps/client/src/pages/dashboard/voice-stories/page.tsx:28
 msgid "Voice Stories"
 msgstr "Voice Stories"
@@ -4482,13 +4672,29 @@ msgstr "Website URL"
 msgid "Website, LinkedIn, etc."
 msgstr "Website, LinkedIn, etc."
 
+#: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:38
+msgid "What are your greatest strengths?"
+msgstr "What are your greatest strengths?"
+
 #: apps/client/src/pages/home/sections/hero/index.tsx:32
 msgid "What's new in the latest version"
 msgstr "What's new in the latest version"
 
+#: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:40
+msgid "Where do you see yourself in 5 years?"
+msgstr "Where do you see yourself in 5 years?"
+
+#: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:41
+msgid "Why are you looking for a new opportunity?"
+msgstr "Why are you looking for a new opportunity?"
+
 #: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:289
 msgid "Why Company?"
 msgstr "Why Company?"
+
+#: apps/client/src/pages/dashboard/voice-stories/_components/voice-story-wizard.tsx:37
+msgid "Why do you want to work for this company?"
+msgstr "Why do you want to work for this company?"
 
 #: apps/client/src/pages/dashboard/job-applications/[id]/_components/content-selection-panel.tsx:278
 msgid "Why this matches:"
@@ -4526,6 +4732,14 @@ msgstr "Workflow Options"
 #: apps/client/src/pages/dashboard/job-applications/_components/automation-toolbar.tsx:392
 msgid "Workflow Started"
 msgstr "Workflow Started"
+
+#: apps/client/src/pages/dashboard/content-library/_components/cover-letter-story-dialog.tsx:309
+msgid "Write a compelling 3-5 sentence story demonstrating your skills and achievements..."
+msgstr "Write a compelling 3-5 sentence story demonstrating your skills and achievements..."
+
+#: apps/client/src/pages/dashboard/cover-letter-stories/_components/cover-letter-story-dialog.tsx:337
+msgid "Write a specific story that demonstrates your skills. Include the situation, your actions, and the results. Use numbers and metrics when possible..."
+msgstr "Write a specific story that demonstrates your skills. Include the situation, your actions, and the results. Use numbers and metrics when possible..."
 
 #: apps/client/src/pages/cover-letter-builder/sidebars/left/sections/content.tsx:201
 msgid "Write your cover letter content here..."

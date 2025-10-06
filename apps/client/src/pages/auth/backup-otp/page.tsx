@@ -76,7 +76,7 @@ export const BackupOtpPage = () => {
                   <FormControl>
                     <Input
                       pattern="[a-z0-9]{10}"
-                      placeholder="a1b2c3d4e5"
+                      placeholder={t`a1b2c3d4e5`}
                       autoComplete="one-time-code"
                       title={t`Backup Codes may contain only lowercase letters or numbers, and must be exactly 10 characters.`}
                       {...field}

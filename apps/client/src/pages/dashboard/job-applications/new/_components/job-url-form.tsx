@@ -89,7 +89,7 @@ export const JobUrlForm = () => {
             <Input
               id="url"
               type="url"
-              placeholder="https://company.com/jobs/position"
+              placeholder={t`https://company.com/jobs/position`}
               value={url}
               onChange={(e) => {
                 setUrl(e.target.value);

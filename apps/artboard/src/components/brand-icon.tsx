@@ -1,3 +1,4 @@
+import { t } from "@lingui/macro";
 import { forwardRef } from "react";
 
 type BrandIconProps = {
@@ -9,7 +10,7 @@ export const BrandIcon = forwardRef<HTMLImageElement, BrandIconProps>(({ slug },
     return (
       <img
         ref={ref}
-        alt="LinkedIn"
+        alt={t`LinkedIn`}
         className="size-4"
         src={`${window.location.origin}/support-logos/linkedin.svg`}
       />

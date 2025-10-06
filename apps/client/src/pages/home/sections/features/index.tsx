@@ -70,24 +70,24 @@ export const FeaturesSection = () => {
     {
       icon: (
         <div className="flex items-center space-x-1">
-          <img src="https://cdn.simpleicons.org/react" alt="React" width={14} height={14} />
-          <img src="https://cdn.simpleicons.org/vite" alt="Vite" width={14} height={14} />
+          <img src="https://cdn.simpleicons.org/react" alt={t`React`} width={14} height={14} />
+          <img src="https://cdn.simpleicons.org/vite" alt={t`Vite`} width={14} height={14} />
           <img
             src="https://cdn.simpleicons.org/tailwindcss"
-            alt="TailwindCSS"
+            alt={t`TailwindCSS`}
             width={14}
             height={14}
           />
-          <img src="https://cdn.simpleicons.org/nestjs" alt="NestJS" width={14} height={14} />
+          <img src="https://cdn.simpleicons.org/nestjs" alt={t`NestJS`} width={14} height={14} />
           <img
             src="https://cdn.simpleicons.org/googlechrome"
-            alt="Google Chrome"
+            alt={t`Google Chrome`}
             width={14}
             height={14}
           />
           <img
             src="https://cdn.simpleicons.org/postgresql"
-            alt="PostgreSQL"
+            alt={t`PostgreSQL`}
             width={14}
             height={14}
           />

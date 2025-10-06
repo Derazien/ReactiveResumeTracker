@@ -21,14 +21,12 @@ export const SupportSection = () => (
           <img
             src="/support-logos/github-sponsors-light.svg"
             className="hidden max-h-[42px] dark:block"
-            // eslint-disable-next-line lingui/no-unlocalized-strings
-            alt="GitHub Sponsors"
+            alt={t`GitHub Sponsors`}
           />
           <img
             src="/support-logos/github-sponsors-dark.svg"
             className="block max-h-[42px] dark:hidden"
-            // eslint-disable-next-line lingui/no-unlocalized-strings
-            alt="GitHub Sponsors"
+            alt={t`GitHub Sponsors`}
           />
         </a>
         <a
@@ -39,19 +37,16 @@ export const SupportSection = () => (
           <img
             src="/support-logos/open-collective-light.svg"
             className="hidden max-h-[38px] dark:block"
-            // eslint-disable-next-line lingui/no-unlocalized-strings
-            alt="Open Collective"
+            alt={t`Open Collective`}
           />
           <img
             src="/support-logos/open-collective-dark.svg"
             className="block max-h-[38px] dark:hidden"
-            // eslint-disable-next-line lingui/no-unlocalized-strings
-            alt="Open Collective"
+            alt={t`Open Collective`}
           />
         </a>
         <a href="https://paypal.me/amruthde" rel="noreferrer noopener nofollow" target="_blank">
-          {/* eslint-disable-next-line lingui/no-unlocalized-strings */}
-          <img src="/support-logos/paypal.svg" className="max-h-[28px]" alt="PayPal" />
+          <img src="/support-logos/paypal.svg" className="max-h-[28px]" alt={t`PayPal`} />
         </a>
       </div>
 
@@ -63,14 +58,12 @@ export const SupportSection = () => (
         <img
           src="/support-logos/crowdin-light.svg"
           className="hidden max-h-[32px] dark:block"
-          // eslint-disable-next-line lingui/no-unlocalized-strings
-          alt="Crowdin"
+          alt={t`Crowdin`}
         />
         <img
           src="/support-logos/crowdin-dark.svg"
           className="block max-h-[32px] dark:hidden"
-          // eslint-disable-next-line lingui/no-unlocalized-strings
-          alt="Crowdin"
+          alt={t`Crowdin`}
         />
       </div>
 

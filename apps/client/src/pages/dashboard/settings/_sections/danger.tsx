@@ -78,7 +78,7 @@ export const DangerZoneSettings = () => {
               <FormItem>
                 <FormLabel>{t`Delete Account`}</FormLabel>
                 <FormControl>
-                  <Input placeholder="delete" {...field} />
+                  <Input placeholder={t`delete`} {...field} />
                 </FormControl>
                 <FormDescription>
                   <Trans>

@@ -26,19 +26,19 @@ type VoiceStoryWizardProps = {
 };
 
 const STORY_PROMPTS = [
-  "Tell me about a time when you led a successful project from start to finish.",
-  "Describe a challenging technical problem you solved and how you approached it.",
-  "Share an example of when you had to work with a difficult team member or stakeholder.",
-  "Talk about a time when you had to learn something new quickly for a project.",
-  "Describe a situation where you had to make a difficult decision with limited information.",
+  t`Tell me about a time when you led a successful project from start to finish.`,
+  t`Describe a challenging technical problem you solved and how you approached it.`,
+  t`Share an example of when you had to work with a difficult team member or stakeholder.`,
+  t`Talk about a time when you had to learn something new quickly for a project.`,
+  t`Describe a situation where you had to make a difficult decision with limited information.`,
 ];
 
 const ANSWER_PROMPTS = [
-  "Why do you want to work for this company?",
-  "What are your greatest strengths?",
-  "Tell me about a weakness you're working to improve.",
-  "Where do you see yourself in 5 years?",
-  "Why are you looking for a new opportunity?",
+  t`Why do you want to work for this company?`,
+  t`What are your greatest strengths?`,
+  t`Tell me about a weakness you're working to improve.`,
+  t`Where do you see yourself in 5 years?`,
+  t`Why are you looking for a new opportunity?`,
 ];
 
 export const VoiceStoryWizard = ({ mode, open, onOpenChange }: VoiceStoryWizardProps) => {
