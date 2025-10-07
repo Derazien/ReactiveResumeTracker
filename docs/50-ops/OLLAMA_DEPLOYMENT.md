@@ -14,9 +14,10 @@ This guide covers deploying multiple Ollama models that can be used simultaneous
 
 ### Why Multiple Models?
 
-- **Primary Model** (qwen2.5:7b): Best balance of performance and speed
-- **Backup Model** (qwen2.5:3b): Faster responses for simple tasks
-- **Coder Model** (qwen2.5-coder:7b): Optional, for code-related tasks
+- **Primary Model** (qwen2.5:7b-instruct): Best for instruction-following and structured tasks
+- **Backup Model** (qwen2.5:3b-instruct): Faster responses for simple tasks
+
+**Note**: We use the **instruct** versions as they are better at following specific instructions and producing structured output, which is ideal for job analysis and resume generation.
 
 ---
 
@@ -56,8 +57,8 @@ chmod +x scripts/production/setup-ollama-models.sh
 ```
 
 This installs:
-- `qwen2.5:7b` (Primary model - ~4.7GB)
-- `qwen2.5:3b` (Backup model - ~2GB)
+- `qwen2.5:7b-instruct` (Primary model - ~4.7GB)
+- `qwen2.5:3b-instruct` (Backup model - ~2GB)
 
 **Time**: ~10-15 minutes depending on connection
 
@@ -69,23 +70,9 @@ This installs:
 ```
 
 This installs only:
-- `qwen2.5:7b` (Primary model - ~4.7GB)
+- `qwen2.5:7b-instruct` (Primary model - ~4.7GB)
 
 **Time**: ~5-10 minutes
-
-### Option 3: Full Install with Coder Model
-
-```bash
-# Install all models including coder
-./scripts/production/setup-ollama-models.sh --with-coder
-```
-
-This installs:
-- `qwen2.5:7b` (Primary model - ~4.7GB)
-- `qwen2.5:3b` (Backup model - ~2GB)
-- `qwen2.5-coder:7b` (Coder model - ~4.7GB)
-
-**Time**: ~15-20 minutes
 
 ---
 
@@ -99,11 +86,11 @@ Add to your `.env` file:
 # Ollama Local LLM Configuration
 LLM_PROVIDER=local
 LOCAL_LLM_BASE_URL=http://localhost:11434
-LOCAL_LLM_MODEL=qwen2.5:7b
+LOCAL_LLM_MODEL=qwen2.5:7b-instruct
 LOCAL_LLM_API_KEY=                           # Optional for Ollama
 
 # Alternative: Switch to backup model for faster responses
-# LOCAL_LLM_MODEL=qwen2.5:3b
+# LOCAL_LLM_MODEL=qwen2.5:3b-instruct
 ```
 
 **After updating `.env`**:
@@ -125,7 +112,7 @@ environment:
   # Use Ollama through Docker network
   OPENAI_API_BASE: http://ollama:11434/v1
   OPENAI_API_KEY: ollama                    # Any value works
-  OPENAI_MODEL: qwen2.5:7b
+  OPENAI_MODEL: qwen2.5:7b-instruct
 ```
 
 #### Option B: Using localhost (If Skyvern runs outside Docker)
@@ -134,7 +121,7 @@ environment:
 # In skyvern/.env
 OPENAI_API_BASE=http://localhost:11434/v1
 OPENAI_API_KEY=ollama
-OPENAI_MODEL=qwen2.5:7b
+OPENAI_MODEL=qwen2.5:7b-instruct
 ```
 
 ---
@@ -151,40 +138,41 @@ Output:
 ```
 📋 Installed Ollama Models:
 
-NAME                    ID              SIZE      MODIFIED
-qwen2.5:7b             9e9c82a1ec90    4.7 GB    2 hours ago
-qwen2.5:3b             5f8ae51e9a21    2.0 GB    2 hours ago
+NAME                         ID              SIZE      MODIFIED
+qwen2.5:7b-instruct         9e9c82a1ec90    4.7 GB    2 hours ago
+qwen2.5:3b-instruct         5f8ae51e9a21    2.0 GB    2 hours ago
 ```
 
 ### Remove a Model
 
 ```bash
 # Remove backup model to free space
-./scripts/production/setup-ollama-models.sh --remove qwen2.5:3b
+./scripts/production/setup-ollama-models.sh --remove qwen2.5:3b-instruct
 
-# Remove coder model
-./scripts/production/setup-ollama-models.sh --remove qwen2.5-coder:7b
+# Remove old base models (if you had them)
+./scripts/production/setup-ollama-models.sh --remove qwen2.5:7b
+./scripts/production/setup-ollama-models.sh --remove qwen2.5:3b
 ```
 
 ### Add a Model Later
 
 ```bash
 # Manually pull a model
-docker exec ollama ollama pull qwen2.5-coder:7b
+docker exec ollama ollama pull qwen2.5:7b-instruct
 
-# Or reinstall with coder
-./scripts/production/setup-ollama-models.sh --with-coder
+# Or reinstall all
+./scripts/production/setup-ollama-models.sh
 ```
 
 ### Update Models
 
 ```bash
 # Pull latest version of a model
-docker exec ollama ollama pull qwen2.5:7b
+docker exec ollama ollama pull qwen2.5:7b-instruct
 
 # Or remove and reinstall all
-./scripts/production/setup-ollama-models.sh --remove qwen2.5:7b
-./scripts/production/setup-ollama-models.sh --remove qwen2.5:3b
+./scripts/production/setup-ollama-models.sh --remove qwen2.5:7b-instruct
+./scripts/production/setup-ollama-models.sh --remove qwen2.5:3b-instruct
 ./scripts/production/setup-ollama-models.sh
 ```
 
@@ -196,26 +184,29 @@ docker exec ollama ollama pull qwen2.5:7b
 
 | Model | Use Case | Speed | Quality | Memory |
 |-------|----------|-------|---------|--------|
-| `qwen2.5:7b` | Job analysis, resume generation, content matching | Fast | High | 8GB |
-| `qwen2.5:3b` | Quick responses, simple queries, testing | Very Fast | Good | 4GB |
-| `qwen2.5-coder:7b` | Code generation, technical docs, debugging | Fast | High | 8GB |
+| `qwen2.5:7b-instruct` | Job analysis, resume generation, content matching | Fast | High | 8GB |
+| `qwen2.5:3b-instruct` | Quick responses, simple queries, testing | Very Fast | Good | 4GB |
 
 ### Recommended Configurations
 
 **For Production** (Best Performance):
 ```bash
-LOCAL_LLM_MODEL=qwen2.5:7b
+LOCAL_LLM_MODEL=qwen2.5:7b-instruct
 ```
 
 **For Development** (Faster Iteration):
 ```bash
-LOCAL_LLM_MODEL=qwen2.5:3b
+LOCAL_LLM_MODEL=qwen2.5:3b-instruct
 ```
 
-**For Code Tasks** (Skyvern/Technical):
-```bash
-OPENAI_MODEL=qwen2.5-coder:7b
-```
+### Why Instruct Models?
+
+The **-instruct** versions are specifically fine-tuned for:
+- ✅ Following specific instructions and constraints
+- ✅ Producing structured output (JSON, lists, tables)
+- ✅ Better at task-oriented requests
+- ✅ More predictable and consistent responses
+- ✅ Ideal for job analysis, content extraction, and resume generation
 
 ### Switching Models
 
@@ -223,10 +214,10 @@ You can switch models by updating the configuration:
 
 ```bash
 # ReactiveResumeTracker (.env)
-LOCAL_LLM_MODEL=qwen2.5:3b      # Use backup model
+LOCAL_LLM_MODEL=qwen2.5:3b-instruct      # Use backup model
 
 # Skyvern (.env or docker-compose)
-OPENAI_MODEL=qwen2.5:3b         # Use backup model
+OPENAI_MODEL=qwen2.5:3b-instruct         # Use backup model
 ```
 
 **Restart services after changing**:
@@ -255,13 +246,13 @@ curl http://localhost:11434/api/tags
 
 # Generate completion
 curl http://localhost:11434/api/generate -d '{
-  "model": "qwen2.5:7b",
+  "model": "qwen2.5:7b-instruct",
   "prompt": "Analyze this job posting: Software Engineer..."
 }'
 
 # Chat completion (OpenAI-compatible)
 curl http://localhost:11434/v1/chat/completions -d '{
-  "model": "qwen2.5:7b",
+  "model": "qwen2.5:7b-instruct",
   "messages": [
     {"role": "user", "content": "Hello!"}
   ]

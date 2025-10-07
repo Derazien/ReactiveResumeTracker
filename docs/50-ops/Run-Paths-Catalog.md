@@ -171,7 +171,7 @@
 | RP0144 | `scripts/win/start-local.ps1` | script-ps1 | canonical | - | - | 1 | 0% | win-only | Windows local dev with Docker + port cleanup |
 | RP0145 | `scripts/production/deploy-server.sh` | script-sh | canonical | - | - | 1 | 0% | linux-only | Linux server deploy with PM2, Docker, migrations |
 | RP0146 | `scripts/production/deploy-server.ps1` | script-ps1 | canonical | - | - | 1 | 0% | win-only | Windows server deploy with PM2, Docker, migrations |
-| RP0147 | `scripts/production/setup-ollama-models.sh` | script-sh | canonical | - | - | 0 | 0% | cross | Setup Ollama LLM models (qwen2.5:7b, qwen2.5:3b, qwen2.5-coder:7b) |
+| RP0147 | `scripts/production/setup-ollama-models.sh` | script-sh | canonical | - | - | 0 | 0% | cross | Setup Ollama LLM instruct models (qwen2.5:7b-instruct, qwen2.5:3b-instruct) |
 
 ## Summary by Status
 

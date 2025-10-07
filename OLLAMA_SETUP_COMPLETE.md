@@ -50,44 +50,30 @@ curl http://localhost:11434/api/tags
 ### Step 2: Run the Setup Script
 
 #### Option A: Standard Installation (Recommended)
-Installs primary + backup models:
+Installs primary + backup instruct models:
 ```bash
 chmod +x scripts/production/setup-ollama-models.sh
 ./scripts/production/setup-ollama-models.sh
 ```
 
 **Models installed:**
-- `qwen2.5:7b` - Primary model (~4.7GB) - Best balance
-- `qwen2.5:3b` - Backup model (~2GB) - Faster responses
+- `qwen2.5:7b-instruct` - Primary instruct model (~4.7GB) - Best for structured tasks
+- `qwen2.5:3b-instruct` - Backup instruct model (~2GB) - Faster responses
 
 **Time:** ~10-15 minutes  
 **Disk Space:** ~7GB
 
 #### Option B: Minimal Installation (Fastest)
-Installs only primary model:
+Installs only primary instruct model:
 ```bash
 ./scripts/production/setup-ollama-models.sh --minimal
 ```
 
 **Models installed:**
-- `qwen2.5:7b` only
+- `qwen2.5:7b-instruct` only
 
 **Time:** ~5-10 minutes  
 **Disk Space:** ~5GB
-
-#### Option C: Full Installation (With Coder)
-Includes coding-specific model:
-```bash
-./scripts/production/setup-ollama-models.sh --with-coder
-```
-
-**Models installed:**
-- `qwen2.5:7b` - Primary
-- `qwen2.5:3b` - Backup
-- `qwen2.5-coder:7b` - For code tasks (~4.7GB)
-
-**Time:** ~15-20 minutes  
-**Disk Space:** ~12GB
 
 ### Step 3: Configure ReactiveResumeTracker
 
@@ -96,7 +82,7 @@ Edit your `.env` file:
 # Add these lines
 LLM_PROVIDER=local
 LOCAL_LLM_BASE_URL=http://localhost:11434
-LOCAL_LLM_MODEL=qwen2.5:7b
+LOCAL_LLM_MODEL=qwen2.5:7b-instruct
 LOCAL_LLM_API_KEY=                           # Optional for Ollama
 ```
 
@@ -115,7 +101,7 @@ Add to `skyvern/docker-compose.yml`:
 environment:
   OPENAI_API_BASE: http://ollama:11434/v1
   OPENAI_API_KEY: ollama
-  OPENAI_MODEL: qwen2.5:7b
+  OPENAI_MODEL: qwen2.5:7b-instruct
 ```
 
 #### If Skyvern runs outside Docker:
@@ -123,7 +109,7 @@ Add to `skyvern/.env`:
 ```bash
 OPENAI_API_BASE=http://localhost:11434/v1
 OPENAI_API_KEY=ollama
-OPENAI_MODEL=qwen2.5:7b
+OPENAI_MODEL=qwen2.5:7b-instruct
 ```
 
 Restart Skyvern:
@@ -141,25 +127,19 @@ pm2 restart skyvern
 
 | Model | Best For | Speed | Quality | RAM |
 |-------|----------|-------|---------|-----|
-| **qwen2.5:7b** | Production, job analysis, resume generation | Fast | High | 8GB |
-| **qwen2.5:3b** | Development, testing, quick responses | Very Fast | Good | 4GB |
-| **qwen2.5-coder:7b** | Code generation, technical tasks | Fast | High | 8GB |
+| **qwen2.5:7b-instruct** | Production, job analysis, resume generation, structured output | Fast | High | 8GB |
+| **qwen2.5:3b-instruct** | Development, testing, quick responses | Very Fast | Good | 4GB |
 
 ### Recommended Configurations
 
 **Production Setup:**
 ```bash
-LOCAL_LLM_MODEL=qwen2.5:7b          # Best quality
+LOCAL_LLM_MODEL=qwen2.5:7b-instruct          # Best quality & instruction-following
 ```
 
 **Development Setup:**
 ```bash
-LOCAL_LLM_MODEL=qwen2.5:3b          # Faster iteration
-```
-
-**Code-Heavy Tasks (Skyvern):**
-```bash
-OPENAI_MODEL=qwen2.5-coder:7b       # Better for technical content
+LOCAL_LLM_MODEL=qwen2.5:3b-instruct          # Faster iteration
 ```
 
 ---
@@ -168,21 +148,27 @@ OPENAI_MODEL=qwen2.5-coder:7b       # Better for technical content
 
 Yes! Both ReactiveResumeTracker and Skyvern can use Ollama at the same time:
 
-1. **Same Model**: Both can use the same model (e.g., `qwen2.5:7b`)
+1. **Same Model**: Both can use the same model (e.g., `qwen2.5:7b-instruct`)
 2. **Different Models**: Configure each to use different models:
-   - ReactiveResume: `qwen2.5:7b` for quality
-   - Skyvern: `qwen2.5:3b` for speed
+   - ReactiveResume: `qwen2.5:7b-instruct` for quality
+   - Skyvern: `qwen2.5:3b-instruct` for speed
+
+**Why Instruct Models?**
+- ✅ Better at following specific instructions
+- ✅ More structured and predictable output
+- ✅ Ideal for job analysis and data extraction
+- ✅ Better JSON/structured format generation
 
 **Example Configuration:**
 
 ReactiveResume `.env`:
 ```bash
-LOCAL_LLM_MODEL=qwen2.5:7b
+LOCAL_LLM_MODEL=qwen2.5:7b-instruct
 ```
 
 Skyvern `.env`:
 ```bash
-OPENAI_MODEL=qwen2.5:3b              # Use faster model
+OPENAI_MODEL=qwen2.5:3b-instruct              # Use faster model
 ```
 
 **Network Configuration:**

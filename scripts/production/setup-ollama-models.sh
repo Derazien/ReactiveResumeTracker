@@ -39,9 +39,8 @@ OLLAMA_CONTAINER="${OLLAMA_CONTAINER:-ollama}"
 OLLAMA_HOST="${OLLAMA_HOST:-http://localhost:11434}"
 
 # Model configuration
-PRIMARY_MODEL="qwen2.5:7b"
-BACKUP_MODEL="qwen2.5:3b"
-CODER_MODEL="qwen2.5-coder:7b"
+PRIMARY_MODEL="qwen2.5:7b-instruct"
+BACKUP_MODEL="qwen2.5:3b-instruct"
 
 # Parse arguments
 MINIMAL_MODE=false
@@ -55,8 +54,7 @@ show_help() {
     echo "Usage: $0 [OPTIONS]"
     echo ""
     echo "Options:"
-    echo "  --minimal           Install only primary model (qwen2.5:7b)"
-    echo "  --with-coder        Include coder model for code tasks"
+    echo "  --minimal           Install only primary model (qwen2.5:7b-instruct)"
     echo "  --list              List all installed models and exit"
     echo "  --remove MODEL      Remove a specific model"
     echo "  --help              Show this help message"
@@ -64,9 +62,8 @@ show_help() {
     echo "Examples:"
     echo "  $0                               # Install primary + backup models"
     echo "  $0 --minimal                     # Install only primary model"
-    echo "  $0 --with-coder                  # Install all models including coder"
     echo "  $0 --list                        # List installed models"
-    echo "  $0 --remove qwen2.5:3b          # Remove backup model"
+    echo "  $0 --remove qwen2.5:3b-instruct  # Remove backup model"
     exit 0
 }
 
@@ -74,10 +71,6 @@ while [[ $# -gt 0 ]]; do
     case $1 in
         --minimal)
             MINIMAL_MODE=true
-            shift
-            ;;
-        --with-coder)
-            INSTALL_CODER=true
             shift
             ;;
         --list)
@@ -255,11 +248,6 @@ if [ "$MINIMAL_MODE" = false ]; then
     pull_model "$BACKUP_MODEL" "Backup lightweight model for faster responses"
 fi
 
-# Install coder model if requested
-if [ "$INSTALL_CODER" = true ]; then
-    pull_model "$CODER_MODEL" "Code generation and technical tasks"
-fi
-
 echo ""
 echo -e "${GREEN}╔════════════════════════════════════════════════════════════╗${NC}"
 echo -e "${GREEN}║                                                            ║${NC}"
@@ -281,10 +269,6 @@ test_model "$PRIMARY_MODEL"
 
 if [ "$MINIMAL_MODE" = false ]; then
     test_model "$BACKUP_MODEL"
-fi
-
-if [ "$INSTALL_CODER" = true ]; then
-    test_model "$CODER_MODEL"
 fi
 
 # ============================================================================
@@ -326,6 +310,7 @@ echo -e "${YELLOW}3. Model Usage:${NC}"
 echo ""
 echo "   Primary Model (${PRIMARY_MODEL}):"
 echo "   - Use for: Job analysis, content matching, resume generation"
+echo "   - Better at following instructions and structured output"
 echo "   - Context: 128k tokens"
 echo "   - Speed: Fast"
 echo ""
@@ -333,26 +318,18 @@ echo ""
 if [ "$MINIMAL_MODE" = false ]; then
 echo "   Backup Model (${BACKUP_MODEL}):"
 echo "   - Use for: Quick responses, simple queries"
+echo "   - Lightweight and faster than 7b model"
 echo "   - Context: 128k tokens"
 echo "   - Speed: Very fast"
-echo ""
-fi
-
-if [ "$INSTALL_CODER" = true ]; then
-echo "   Coder Model (${CODER_MODEL}):"
-echo "   - Use for: Code generation, technical documentation"
-echo "   - Context: 128k tokens"
-echo "   - Speed: Fast"
 echo ""
 fi
 
 echo -e "${YELLOW}4. Switching Models:${NC}"
 echo ""
 echo "   To switch between installed models, update the configuration:"
-echo "   LOCAL_LLM_MODEL=${PRIMARY_MODEL}     # or"
-echo "   LOCAL_LLM_MODEL=${BACKUP_MODEL}      # or"
-if [ "$INSTALL_CODER" = true ]; then
-echo "   LOCAL_LLM_MODEL=${CODER_MODEL}       # or"
+echo "   LOCAL_LLM_MODEL=${PRIMARY_MODEL}     # Primary (recommended)"
+if [ "$MINIMAL_MODE" = false ]; then
+echo "   LOCAL_LLM_MODEL=${BACKUP_MODEL}      # Backup (faster)"
 fi
 echo ""
 
@@ -367,7 +344,7 @@ echo ""
 echo -e "${YELLOW}6. Management Commands:${NC}"
 echo ""
 echo "   List models:      ./scripts/production/setup-ollama-models.sh --list"
-echo "   Remove model:     ./scripts/production/setup-ollama-models.sh --remove qwen2.5:3b"
+echo "   Remove model:     ./scripts/production/setup-ollama-models.sh --remove qwen2.5:3b-instruct"
 echo "   Reinstall all:    ./scripts/production/setup-ollama-models.sh"
 echo "   Minimal install:  ./scripts/production/setup-ollama-models.sh --minimal"
 echo ""
