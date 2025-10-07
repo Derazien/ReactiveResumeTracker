@@ -369,6 +369,13 @@ echo -e "   • No build step required - runs from source"
 echo -e "   • Perfect for development and testing"
 echo ""
 
+echo -e "${YELLOW}📝 OPTIONAL: Ollama Local LLM Setup${NC}"
+echo -e "   To use local LLM models instead of cloud APIs:"
+echo -e "   ${CYAN}./scripts/production/setup-ollama-models.sh${NC}"
+echo ""
+echo -e "   See: ${GRAY}docs/50-ops/OLLAMA_DEPLOYMENT.md${NC}"
+echo ""
+
 # Save PM2 process list
 pm2 save
 

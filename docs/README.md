@@ -38,6 +38,7 @@ Welcome to the official documentation for **ReactiveResumeTracker** - an AI-powe
 **Deployment and execution** - How to run and maintain the system
 
 - **[Phase-E-Server-Deployment-Guide.md](50-ops/Phase-E-Server-Deployment-Guide.md)** ⭐ — Complete deployment procedures
+- **[OLLAMA_DEPLOYMENT.md](50-ops/OLLAMA_DEPLOYMENT.md)** — Multi-model local LLM setup with Ollama
 - **[Phase-E-Archiving-Plan.md](50-ops/Phase-E-Archiving-Plan.md)** — Documentation organization strategy
 - **[Run-Paths-Catalog.md](50-ops/Run-Paths-Catalog.md)** — All executable commands and scripts
 - **[Docker-Services.md](50-ops/Docker-Services.md)** — Service configurations
